@@ -19,18 +19,18 @@ Target C99 and C++11.
 The C implementation only uses typedefs, with no new structs (other than for
 the generic implementation).
 
-The C++ classes for operator overloading are written using the C
-implementation, without knowledge of the hardware.
+The C++ classes for operator overloading are written in terms of the C
+implementation.
 
 Separate typedefs / classes for the result of a vector comparison.
 
 Avoid UB (obey strict aliasing rules & use memcpy where necessary). No unions
 
-Generic, SSE, and NEON definitions interleaved for comparison, and education /
-documentation / reference etc
+Generic, SSE, and NEON definitions interleaved for comparison, education,
+documentation, reference etc
 
 Assume high confidence in modern compilers to inline, elide copies,
-pre-calculate constants etc (eg no force inline)
+pre-calculate constants etc (eg no force inline), compile with -O3
 
 Behaviour of corner cases may NOT be identical on separate platforms
 (eg min / max of signed floating point zero, potential untested corner cases
