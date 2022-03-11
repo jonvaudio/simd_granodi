@@ -1,0 +1,4 @@
+./test_generic_debug
+./test_generic_opt
+./test_sse2neon_debug
+./test_sse2neon_opt
