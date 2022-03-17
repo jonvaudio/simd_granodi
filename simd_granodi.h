@@ -4,7 +4,7 @@
 /*
 
 SIMD GRANODI
-Copyright 2021-2022 Jon Ville / Jon V Audio
+Copyright (c) 2021-2022 Jon Ville
 
 OBJECTIVES:
 
