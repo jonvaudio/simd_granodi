@@ -4,6 +4,7 @@
 #include <inttypes.h> // For printf PRId64 format
 
 #include "simd_granodi.h"
+#include "simd_granodi_sse2_on_neon.h"
 
 #ifdef __cplusplus
 using namespace simd_granodi;
@@ -270,7 +271,17 @@ void test_shuffle() {
 
         #ifdef SIMD_GRANODI_NEON
         assert_eq_pi32(_mm_shuffle_epi32(_mm_set_epi32(3, 2, 1, 0),
-            sg_sse2_shuffle32_imm(src3, src2, src1, src0)), 3, 2, 1, 0);
+            sg_sse2_shuffle32_imm(src3, src2, src1, src0)),
+                src3, src2, src1, src0);
+
+        assert_eq_ps(_mm_shuffle_ps(_mm_set_ps(3.0f, 2.0f, 1.0f, 0.0f),
+                _mm_set_ps(3.0, 2.0f, 1.0f, 0.0f),
+                sg_sse2_shuffle32_imm(src3, src2, src1, src0)),
+            src3, src2, src1, src0);
+        assert_eq_ps(_mm_shuffle_ps(_mm_set_ps(3.0f, 2.0f, 1.0f, 0.0f),
+                _mm_set_ps(13.0, 12.0f, 11.0f, 10.0f),
+                sg_sse2_shuffle32_imm(src3, src2, src1, src0)),
+            10.0f+(float)src3, 10.0f+(float)src2, src1, src0);
         #endif
     } } } }
 
@@ -280,6 +291,16 @@ void test_shuffle() {
             src1, src0);
         assert_eq_pd(sg_shuffle_pd(sg_set_pd(1.0, 0.0), src1, src0),
             src1, src0);
+
+        #ifdef SIMD_GRANODI_NEON
+        assert_eq_pd(_mm_shuffle_pd(_mm_set_pd(1.0, 0.0),
+                _mm_set_pd(1.0, 0.0), sg_sse2_shuffle64_imm(src1, src0)),
+            src1, src0);
+
+        assert_eq_pd(_mm_shuffle_pd(_mm_set_pd(1.0, 0.0),
+                _mm_set_pd(11.0, 10.0), sg_sse2_shuffle64_imm(src1, src0)),
+            10+(double)src1, src0);
+        #endif
     } }
 
     printf("Shuffle test succeeeded\n");
@@ -301,6 +322,24 @@ void test_set() {
     assert_eq_pd(sg_set_pd(1.0, 0.0), 1.0, 0.0);
     assert_eq_pd(sg_set1_pd(1.0), 1.0, 1.0);
     assert_eq_pd(sg_setzero_pd(), 0.0, 0.0);
+
+    #ifdef SIMD_GRANODI_NEON
+    assert_eq_pi32(_mm_set_epi32(3, 2, 1, 0), 3, 2, 1, 0);
+    assert_eq_pi32(_mm_set1_epi32(1), 1, 1, 1, 1);
+    assert_eq_pi32(_mm_setzero_si128(), 0, 0, 0, 0);
+
+    assert_eq_pi64(vreinterpretq_s64_s32(_mm_set_epi64x(1, 0)), 1, 0);
+    assert_eq_pi64(vreinterpretq_s64_s32(_mm_set1_epi64x(1)), 1, 1);
+
+    assert_eq_ps(_mm_set_ps(3.0f, 2.0f, 1.0f, 0.0f),
+        3.0f, 2.0f, 1.0f, 0.0f);
+    assert_eq_ps(_mm_set1_ps(1.0f), 1.0f, 1.0f, 1.0f, 1.0f);
+    assert_eq_ps(_mm_setzero_ps(), 0.0f, 0.0f, 0.0f, 0.0f);
+
+    assert_eq_pd(_mm_set_pd(1.0, 0.0), 1.0, 0.0);
+    assert_eq_pd(_mm_set1_pd(1.0), 1.0, 1.0);
+    assert_eq_pd(_mm_setzero_pd(), 0.0, 0.0);
+    #endif
 
     printf("Set test succeeeded\n");
 }
@@ -324,6 +363,22 @@ void test_get() {
 
     sg_assert(sg_get0_pd(sg_set_pd(2.0, 1.0)) == 1.0);
     sg_assert(sg_get1_pd(sg_set_pd(2.0, 1.0)) == 2.0);
+
+    #ifdef SIMD_GRANODI_NEON
+    sg_assert(_mm_cvtsi128_si32(_mm_set_epi32(2, 2, 2, 1)) == 1);
+    sg_assert(_mm_cvtsi128_si64(_mm_set_epi64x(2, 1)) == 1);
+    sg_assert(_mm_cvtss_f32(_mm_set_ps(2.0f, 2.0f, 2.0f, 1.0)) == 1.0f);
+    sg_assert(_mm_cvtsd_f64(_mm_set_pd(2.0, 1.0)) == 1.0);
+    assert_eq_ps(_mm_cvtsi64_ss(_mm_set_ps(4.0f, 4.0f, 4.0f, 4.0f), 1),
+        4.0f, 4.0f, 4.0f, 1.0f);
+    assert_eq_pd(_mm_cvtsi64_sd(_mm_set_pd(4.0, 4.0), 1), 4.0, 1.0);
+    sg_assert(_mm_cvtsd_si64(_mm_set_pd(2.0, 1.0)) == 1);
+
+    assert_eq_pi64(vreinterpretq_s64_s32(_mm_unpackhi_epi64(
+        _mm_set_epi64x(6, 5), _mm_set_epi64x(4, 3))), 4, 6);
+    assert_eq_pd(_mm_unpackhi_pd(_mm_set_pd(6.0, 5.0),
+        _mm_set_pd(4.0, 3.0)), 4.0, 6.0);
+    #endif
 
     printf("Get test succeeeded\n");
 }
@@ -387,6 +442,18 @@ void test_convert() {
     assert_eq_pi32(sg_cvt_pi64_pi32(sg_set1_pi64(large_neg)),
         0, 0, (int32_t) large_neg, (int32_t) large_neg);
 
+    #ifdef SIMD_GRANODI_NEON
+    assert_eq_ps(_mm_cvtepi32_ps(_mm_set_epi32(3, 2, 1, 0)),
+        3.0f, 2.0f, 1.0f, 0.0f);
+    assert_eq_pd(_mm_cvtepi32_pd(_mm_set_epi32(3, 2, 1, 0)), 1.0, 0.0);
+    assert_eq_pi32(_mm_cvtps_epi32(_mm_set_ps(-3.7, -2.7, 0,0)), -4, -3,0,0);
+    assert_eq_pi32(_mm_cvttps_epi32(_mm_set_ps(-3.7, -2.7, 0,0)), -3, -2,0,0);
+    assert_eq_pi32(_mm_cvtpd_epi32(_mm_set_pd(-3.7, -2.7)), 0, 0, -4, -3);
+    assert_eq_pi32(_mm_cvttpd_epi32(_mm_set_pd(-3.7, -2.7)), 0, 0, -3, -2);
+    assert_eq_ps(_mm_cvtpd_ps(_mm_set_pd(3.0, 2.0)), 0.0f, 0.0f, 3.0f, 2.0f);
+    assert_eq_pd(_mm_cvtps_pd(_mm_set_ps(3.0f, 2.0f, 1.0f, 0.0f)), 1.0, 0.0);
+    #endif
+
     printf("Convert test succeeeded\n");
 }
 
@@ -407,6 +474,22 @@ void test_add_sub() {
     sg_pd g = sg_set_pd(6.0, 1.0), h = sg_set_pd(12.0, 2.0);
     assert_eq_pd(sg_add_pd(g, h), 18.0, 3.0);
     assert_eq_pd(sg_sub_pd(g, h), -6.0, -1.0);
+
+    #ifdef SIMD_GRANODI_NEON
+    assert_eq_pi32(_mm_add_epi32(a, b), 432, 72, 18, 3);
+    assert_eq_pi32(_mm_sub_epi32(a, b), -144, -24, -6, -1);
+
+    assert_eq_pi64(vreinterpretq_s64_s32(_mm_add_epi64(
+        vreinterpretq_s32_s64(c), vreinterpretq_s32_s64(d))), 18, 3);
+    assert_eq_pi64(vreinterpretq_s64_s32(_mm_sub_epi64(
+        vreinterpretq_s32_s64(c), vreinterpretq_s32_s64(d))), -6, -1);
+
+    assert_eq_ps(_mm_add_ps(e, f), 432.0f, 72.0f, 18.0f, 3.0f);
+    assert_eq_ps(_mm_sub_ps(e, f), -144.0f, -24.0f, -6.0f, -1.0f);
+
+    assert_eq_pd(_mm_add_pd(g, h), 18.0, 3.0);
+    assert_eq_pd(_mm_sub_pd(g, h), -6.0, -1.0);
+    #endif
 
     printf("Add subtract test succeeeded\n");
 }
@@ -446,6 +529,10 @@ void test_mul_div() {
         3.0, 2.0);
     assert_eq_pd(sg_safediv_pd(sg_set_pd(18.0, 8.0), sg_set_pd(6.0, 4.0)),
         3.0, 2.0);
+
+    #ifdef SIMD_GRANODI_NEON
+    //
+    #endif
 
     // Test safediv
     assert_eq_pi32(sg_safediv_pi32(sg_set_pi32(8, 8, 8, 8),
