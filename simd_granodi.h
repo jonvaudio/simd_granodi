@@ -42,10 +42,6 @@ Naming conventions are based on SSE2
 NON-VECTOR FUNCTIONS:
 (ie, might switch to general purpose registers, stall pipeline etc)
 
-All NEON shuffles happen in the NEON registers, but build their result in a
-scalar way, in order to be as general as intel shuffles:
-NEON 32x4 shuffles take 4 instructions, and 64x2 shuffles take 2 instructions.
-
 Non-vector on SSE2 only:
 sg_cvt_pi64_ps
 sg_cvt_pi64_pd
