@@ -531,7 +531,14 @@ void test_mul_div() {
         3.0, 2.0);
 
     #ifdef SIMD_GRANODI_NEON
-    //
+    assert_eq_ps(_mm_mul_ps(_mm_set_ps(17.0f, 11.0f, 5.0f, 1.0f),
+        _mm_set_ps(13.0f, 7.0f, 3.0f, 2.0f)), 221.0f, 77.0f, 15.0f, 2.0f);
+    assert_eq_ps(_mm_div_ps(_mm_set_ps(98.0f, 50.0f, 18.0f, 8.0f),
+        _mm_set_ps(14.0f, 10.0f, 6.0f, 4.0f)), 7.0f, 5.0f, 3.0f, 2.0f);
+    assert_eq_pd(_mm_mul_pd(_mm_set_pd(5.0, 1.0),
+        _mm_set_pd(3.0, 2.0)), 15.0, 2.0);
+    assert_eq_pd(_mm_div_pd(_mm_set_pd(18.0, 8.0),
+        _mm_set_pd(6.0, 4.0)), 3.0, 2.0);
     #endif
 
     // Test safediv
@@ -630,6 +637,36 @@ void test_bitwise() {
         assert_eq_pi64(sg_xor_pi64(ai64, bi64), a1 ^ b1, a0 ^ b0);
         assert_eq_pi64(sg_cast_pd_pi64(sg_xor_pd(apd, bpd)), a1 ^ b1, a0 ^ b0);
 
+        #ifdef SIMD_GRANODI_NEON
+        assert_eq_pi32(_mm_andnot_si128(ai32, bi32),
+            ~a3 & b3, ~a2 & b2, ~a1 & b1, ~a0 & b0);
+        assert_eq_pi32(_mm_castps_si128(_mm_andnot_ps(aps, bps)),
+            ~a3 & b3, ~a2 & b2, ~a1 & b1, ~a0 & b0);
+        assert_eq_pi64(vreinterpretq_s64_f64(_mm_andnot_pd(apd, bpd)),
+            ~a1 & b1, ~a0 & b0);
+
+        assert_eq_pi32(_mm_and_si128(ai32, bi32),
+            a3 & b3, a2 & b2, a1 & b1, a0 & b0);
+        assert_eq_pi32(_mm_castps_si128(_mm_and_ps(aps, bps)),
+            a3 & b3, a2 & b2, a1 & b1, a0 & b0);
+        assert_eq_pi64(vreinterpretq_s64_f64(_mm_and_pd(apd, bpd)),
+            a1 & b1, a0 & b0);
+
+        assert_eq_pi32(_mm_or_si128(ai32, bi32),
+            a3 | b3, a2 | b2, a1 | b1, a0 | b0);
+        assert_eq_pi32(_mm_castps_si128(_mm_or_ps(aps, bps)),
+            a3 | b3, a2 | b2, a1 | b1, a0 | b0);
+        assert_eq_pi64(vreinterpretq_s64_f64(_mm_or_pd(apd, bpd)),
+            a1 | b1, a0 | b0);
+
+        assert_eq_pi32(_mm_xor_si128(ai32, bi32),
+            a3 ^ b3, a2 ^ b2, a1 ^ b1, a0 ^ b0);
+        assert_eq_pi32(_mm_castps_si128(_mm_xor_ps(aps, bps)),
+            a3 ^ b3, a2 ^ b2, a1 ^ b1, a0 ^ b0);
+        assert_eq_pi64(vreinterpretq_s64_f64(_mm_xor_pd(apd, bpd)),
+            a1 ^ b1, a0 ^ b0);
+        #endif
+
     } } } } } } } }
 
     printf("Bitwise test succeeeded\n");
@@ -646,6 +683,22 @@ void test_shift() {
     assert_eq_pi64(sg_sra_imm_pi64(sg_set_pi64(-4, -2), 1), -2, -1);
     assert_eq_pi64(sg_srl_imm_pi64(sg_set_pi64(-4, -2), 1),
         9223372036854775806, 9223372036854775807);
+
+    #ifdef SIMD_GRANODI_NEON
+    assert_eq_pi32(_mm_slli_epi32(_mm_set_epi32(64, 16, 4, 1), 1),
+        128, 32, 8, 2);
+    assert_eq_pi64(vreinterpretq_s64_s32(_mm_slli_epi64(
+        _mm_set_epi64x(4, 1), 1)), 8, 2);
+
+    assert_eq_pi32(_mm_srli_epi32(_mm_set_epi32(-64, -16, -4, -2), 1),
+        2147483616, 2147483640, 2147483646, 2147483647);
+    assert_eq_pi64(vreinterpretq_s64_s32(_mm_srli_epi64(
+        _mm_set_epi64x(-4, -1), 1)),
+        9223372036854775806, 9223372036854775807);
+
+    assert_eq_pi32(_mm_srai_epi32(_mm_set_epi32(-64, -16, -4, -2), 1),
+        -32, -8, -2, -1);
+    #endif
 
     printf("Shift test succeeeded\n");
 }
@@ -718,6 +771,29 @@ void test_cmp() {
         assert_eqg_cmp_ps(sg_cmpgt_ps(a_ps, b_ps), cmp4_gt);
         assert_eqg_cmp_pi64(sg_cmpgt_pi64(a_pi64, b_pi64), cmp2_gt);
         assert_eqg_cmp_pd(sg_cmpgt_pd(a_pd, b_pd), cmp2_gt);
+
+        #ifdef SIMD_GRANODI_NEON
+        assert_eqg_cmp_pi32(_mm_cmplt_epi32(a_pi32, b_pi32), cmp4_lt);
+        assert_eqg_cmp_ps(_mm_cmplt_ps(a_ps, b_ps), cmp4_lt);
+        assert_eqg_cmp_pd(_mm_cmplt_pd(a_pd, b_pd), cmp2_lt);
+
+        assert_eqg_cmp_ps(_mm_cmple_ps(a_ps, b_ps), cmp4_lte);
+        assert_eqg_cmp_pd(_mm_cmple_pd(a_pd, b_pd), cmp2_lte);
+
+        assert_eqg_cmp_pi32(_mm_cmpeq_epi32(a_pi32, b_pi32), cmp4_eq);
+        assert_eqg_cmp_ps(_mm_cmpeq_ps(a_ps, b_ps), cmp4_eq);
+        assert_eqg_cmp_pd(_mm_cmpeq_pd(a_pd, b_pd), cmp2_eq);
+
+        assert_eqg_cmp_ps(_mm_cmpneq_ps(a_ps, b_ps), cmp4_neq);
+        assert_eqg_cmp_pd(_mm_cmpneq_pd(a_pd, b_pd), cmp2_neq);
+
+        assert_eqg_cmp_ps(_mm_cmpge_ps(a_ps, b_ps), cmp4_gte);
+        assert_eqg_cmp_pd(_mm_cmpge_pd(a_pd, b_pd), cmp2_gte);
+
+        assert_eqg_cmp_pi32(_mm_cmpgt_epi32(a_pi32, b_pi32), cmp4_gt);
+        assert_eqg_cmp_ps(_mm_cmpgt_ps(a_ps, b_ps), cmp4_gt);
+        assert_eqg_cmp_pd(_mm_cmpgt_pd(a_pd, b_pd), cmp2_gt);
+        #endif
     } } } } } } } }
 
     // Some extra test cases for our own implementation of sg_cmpeq_pi64

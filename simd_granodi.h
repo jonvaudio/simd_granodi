@@ -40,7 +40,7 @@ Naming conventions are based on SSE2
 
 
 NON-VECTOR FUNCTIONS:
-(ie, might switch to general purpose registers, stall etc)
+(ie, might switch to general purpose registers, stall pipeline etc)
 
 All NEON shuffles happen in the NEON registers, but build their result in a
 scalar way, in order to be as general as intel shuffles:
@@ -80,10 +80,15 @@ but can compile using SIMD_GRANODI_FORCE_GENERIC, and can disable denormals.
 so it is recommended to set your compiler to generate SSE2 code for all floats
 if you wish to disable denormal numbers with mixed intrinsic / scalar code.
 
-*/
+TODO:
+- Add truncate, and round, intrinsics
+- Investigate rounding for sg_cvt_pd_ps()
+- sg_abs_pi64() on SSE2 might be easy to implement in-vector
+- Add intrinsics for shifting by in-register (non-immediate) values,
+  supported for most types on both platforms
+- Load / store intrinsics
 
-// TODO:
-// - Add truncate / round intrinsics
+*/
 
 // Sanity check
 #if defined (SIMD_GRANODI_SSE2) || defined (SIMD_GRANODI_NEON) || \
@@ -2169,7 +2174,6 @@ static inline sg_pi64 sg_cvtt_pd_pi64(sg_pd a) {
     #endif
 }
 
-// Todo: I don't know what rounding mode C/C++ uses for (float) cast of double
 static inline sg_ps sg_cvt_pd_ps(sg_pd a) {
     #if defined SIMD_GRANODI_FORCE_GENERIC
     return sg_set_fromg_ps((sg_generic_ps) { .f0 = (float) a.d0,
@@ -3955,8 +3959,6 @@ static inline sg_pi32 sg_abs_pi32(const sg_pi32 a) {
 
 static inline sg_pi64 sg_abs_pi64(const sg_pi64 a) {
     #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-    // Todo: SSE2 version could be implemented by comparing highest order
-    // bit, then shuffling
     const sg_generic_pi64 ag = sg_getg_pi64(a);
     return sg_set_fromg_pi64((sg_generic_pi64) {
         .l0 = ag.l0 < 0 ? -ag.l0 : ag.l0,
