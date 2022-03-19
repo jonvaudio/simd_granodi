@@ -308,19 +308,31 @@ void test_shuffle() {
 
 void test_set() {
     assert_eq_pi32(sg_set_pi32(3, 2, 1, 0), 3, 2, 1, 0);
+    assert_eq_pi32(sg_set_from_u32_pi32(3, 2, 1, 0xffffffff), 3, 2, 1, -1);
     assert_eq_pi32(sg_set1_pi32(1), 1, 1, 1, 1);
+    assert_eq_pi32(sg_set1_from_u32_pi32(0xffffffff), -1, -1, -1, -1);
     assert_eq_pi32(sg_setzero_pi32(), 0, 0, 0, 0);
 
     assert_eq_pi64(sg_set_pi64(1, 0), 1, 0);
+    assert_eq_pi64(sg_set_from_u64_pi64(1, 0xffffffffffffffff), 1, -1);
     assert_eq_pi64(sg_set1_pi64(1), 1, 1);
+    assert_eq_pi64(sg_set1_from_u64_pi64(0xffffffffffffffff), -1, -1);
     assert_eq_pi64(sg_setzero_pi64(), 0, 0);
 
     assert_eq_ps(sg_set_ps(3.0f, 2.0f, 1.0f, 0.0f), 3.0f, 2.0f, 1.0f, 0.0f);
+    assert_eq_ps(sg_set_from_u32_ps(sg_scast_f32_u32(3.0f),
+        sg_scast_f32_u32(2.0f), sg_scast_f32_u32(1.0f),
+        sg_scast_f32_u32(0.0f)), 3.0f, 2.0f, 1.0f, 0.0f);
     assert_eq_ps(sg_set1_ps(1.0f), 1.0f, 1.0f, 1.0f, 1.0f);
+    assert_eq_ps(sg_set1_from_u32_ps(sg_scast_f32_u32(3.0f)),
+        3.0f, 3.0f, 3.0f, 3.0f);
     assert_eq_ps(sg_setzero_ps(), 0.0f, 0.0f, 0.0f, 0.0f);
 
     assert_eq_pd(sg_set_pd(1.0, 0.0), 1.0, 0.0);
+    assert_eq_pd(sg_set_from_u64_pd(sg_scast_f64_u64(1.0),
+        sg_scast_f64_u64(0.0)), 1.0, 0.0);
     assert_eq_pd(sg_set1_pd(1.0), 1.0, 1.0);
+    assert_eq_pd(sg_set1_from_u64_pd(sg_scast_f64_u64(3.0)), 3.0, 3.0);
     assert_eq_pd(sg_setzero_pd(), 0.0, 0.0);
 
     #ifdef SIMD_GRANODI_NEON
