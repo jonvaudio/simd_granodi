@@ -376,6 +376,13 @@ void test_get() {
     sg_assert(sg_get0_pd(sg_set_pd(2.0, 1.0)) == 1.0);
     sg_assert(sg_get1_pd(sg_set_pd(2.0, 1.0)) == 2.0);
 
+
+    // These are part of the NEON test, but need to check SSE2 rounding
+    #if defined SIMD_GRANODI_SSE2 || defined SIMD_GRANODI_NEON
+    sg_assert(_mm_cvtsd_si64(_mm_set_pd(0.0, -1.7)) == -2);
+    sg_assert(_mm_cvtss_si32(_mm_set_ps(0.0f, 0.0f, 0.0f, -1.7f)) == -2);
+    #endif
+
     #ifdef SIMD_GRANODI_NEON
     sg_assert(_mm_cvtsi128_si32(_mm_set_epi32(2, 2, 2, 1)) == 1);
     sg_assert(_mm_cvtsi128_si64(_mm_set_epi64x(2, 1)) == 1);
@@ -384,7 +391,6 @@ void test_get() {
     assert_eq_ps(_mm_cvtsi64_ss(_mm_set_ps(4.0f, 4.0f, 4.0f, 4.0f), 1),
         4.0f, 4.0f, 4.0f, 1.0f);
     assert_eq_pd(_mm_cvtsi64_sd(_mm_set_pd(4.0, 4.0), 1), 4.0, 1.0);
-    sg_assert(_mm_cvtsd_si64(_mm_set_pd(2.0, 1.0)) == 1);
 
     assert_eq_pi64(vreinterpretq_s64_s32(_mm_unpackhi_epi64(
         _mm_set_epi64x(6, 5), _mm_set_epi64x(4, 3))), 4, 6);
