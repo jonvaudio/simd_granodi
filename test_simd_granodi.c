@@ -710,8 +710,8 @@ void test_shift() {
 
     assert_eq_pi32(_mm_srli_epi32(_mm_set_epi32(-64, -16, -4, -2), 1),
         2147483616, 2147483640, 2147483646, 2147483647);
-    assert_eq_pi64(vreinterpretq_s64_s32(_mm_srli_epi64(
-        _mm_set_epi64x(-4, -1), 1)),
+    const __m128i temp_nonsense = _mm_srli_epi64(_mm_set_epi64x(-4, -1), 1);
+    assert_eq_pi64(sg_cast_pi32_pi64(temp_nonsense),
         9223372036854775806, 9223372036854775807);
 
     assert_eq_pi32(_mm_srai_epi32(_mm_set_epi32(-64, -16, -4, -2), 1),

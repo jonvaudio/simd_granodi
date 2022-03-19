@@ -59,7 +59,7 @@ static inline float64x2_t _mm_shuffle_pd(const float64x2_t a,
 #define _mm_cvtepi32_pd sg_cvt_pi32_pd
 #define _mm_cvtps_epi32 sg_cvt_ps_pi32
 #define _mm_cvttps_epi32 sg_cvtt_ps_pi32
-#define _mm_cvtpd_epi32 sg_cvt_pd_epi32
+#define _mm_cvtpd_epi32 sg_cvt_pd_pi32
 #define _mm_cvttpd_epi32 sg_cvtt_pd_pi32
 #define _mm_cvtpd_ps sg_cvt_pd_ps
 #define _mm_cvtps_pd sg_cvt_ps_pd
@@ -97,7 +97,8 @@ static inline float64x2_t _mm_shuffle_pd(const float64x2_t a,
 #define _mm_slli_epi64(a, imm) sg_cast_pi64_pi32( \
     sg_sl_imm_pi64(sg_cast_pi32_pi64(a), imm))
 #define _mm_srli_epi32 sg_srl_imm_pi32
-#define _mm_srli_epi64(a, imm) sg_cast_pi64_pi32(sg_srl_imm_pi64(a, imm))
+#define _mm_srli_epi64(a, imm) sg_cast_pi64_pi32(sg_srl_imm_pi64( \
+    sg_cast_pi32_pi64(a), imm))
 #define _mm_srai_epi32 sg_sra_imm_pi32
 #define _mm_cmplt_epi32 sg_cmplt_pi32
 #define _mm_cmplt_ps sg_cmplt_ps
@@ -110,7 +111,7 @@ static inline float64x2_t _mm_shuffle_pd(const float64x2_t a,
 #define _mm_cmpneq_ps sg_cmpneq_ps
 #define _mm_cmpneq_pd sg_cmpneq_pd
 #define _mm_cmpge_ps sg_cmpgte_ps
-#define _mm_cmpge_pd sg_cmpte_pd
+#define _mm_cmpge_pd sg_cmpgte_pd
 #define _mm_cmpgt_epi32 sg_cmpgt_pi32
 #define _mm_cmpgt_ps sg_cmpgt_ps
 #define _mm_cmpgt_pd sg_cmpgt_pd

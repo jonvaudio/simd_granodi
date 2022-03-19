@@ -1645,7 +1645,7 @@ static inline sg_pi64 sg_setzero_pi64() {
 #elif defined SIMD_GRANODI_SSE2
 #define sg_setzero_pi64() _mm_setzero_si128()
 #elif defined SIMD_GRANODI_NEON
-#define sg_setzero_pi64() vdupq_n_s64(0);
+#define sg_setzero_pi64() vdupq_n_s64(0)
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
@@ -1690,7 +1690,7 @@ static inline sg_ps sg_setzero_ps() {
 #elif defined SIMD_GRANODI_SSE2
 #define sg_setzero_ps() _mm_setzero_ps()
 #elif defined SIMD_GRANODI_NEON
-#define sg_setzero_ps() vdupq_n_f32(0.0f);
+#define sg_setzero_ps() vdupq_n_f32(0.0f)
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
@@ -2366,7 +2366,7 @@ static inline sg_ps sg_div_ps(const sg_ps a, const sg_ps b) {
 #elif defined SIMD_GRANODI_SSE2
 #define sg_div_ps _mm_div_ps
 #elif defined SIMD_GRANODI_NEON
-#define sg_div_pd vdivq_f32
+#define sg_div_ps vdivq_f32
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
@@ -2432,8 +2432,8 @@ static inline sg_pd sg_and_pd(const sg_pd a, const sg_pd b) {
 #elif defined SIMD_GRANODI_SSE2
 #define sg_and_pd _mm_and_pd
 #elif defined SIMD_GRANODI_NEON
-#define sg_and_pd vreinterpretq_f64_s64(vandq_s64(vreinterpretq_s64_f64(a), \
-    vreinterpretq_s64_f64(b)))
+#define sg_and_pd(a, b) vreinterpretq_f64_s64(vandq_s64( \
+    vreinterpretq_s64_f64(a), vreinterpretq_s64_f64(b)))
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
@@ -2465,7 +2465,7 @@ static inline sg_ps sg_andnot_ps(const sg_ps a, const sg_ps b) {
 #elif defined SIMD_GRANODI_SSE2
 #define sg_andnot_ps _mm_andnot_ps
 #elif defined SIMD_GRANODI_NEON
-#define sg_andnot_pd(a, b) vreinterpretq_f32_s32(vbicq_s32( \
+#define sg_andnot_ps(a, b) vreinterpretq_f32_s32(vbicq_s32( \
     vreinterpretq_s32_f32(b), vreinterpretq_s32_f32(a)))
 #endif
 
@@ -3015,9 +3015,9 @@ static inline bool sg_debug_cmp_valid_eq_pi64(const sg_cmp_pi64 cmp,
     return sg_debug_mask_valid_eq_u64(
         sg_scast_s64_u64(sg_get1_pi64(cmp)), b1) &&
         sg_debug_mask_valid_eq_u64(sg_scast_s64_u64(sg_get0_pi64(cmp)), b0);
-    #elif defined SIMD_GRANODI_SSE2
+    #elif defined SIMD_GRANODI_NEON
     return sg_debug_mask_valid_eq_u64(vgetq_lane_u64(cmp, 1), b1) &&
-        sg_debug_mask_valid_eq_u64(vgetq_lane_u64(cmp, 0), b0)
+        sg_debug_mask_valid_eq_u64(vgetq_lane_u64(cmp, 0), b0);
     #endif
 }
 
@@ -3231,7 +3231,7 @@ static inline sg_cmp_pd sg_cmpneq_pd(const sg_pd a, const sg_pd b) {
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cmpneq_pd _mm_cmpneq_pd
 #elif defined SIMD_GRANODI_NEON
-#define sg_cmpneq_pd sg_neon_not_u64(vceqq_f64(a, b))
+#define sg_cmpneq_pd(a, b) sg_neon_not_u64(vceqq_f64(a, b))
 #endif
 
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
@@ -3329,8 +3329,8 @@ static inline sg_cmp_ps sg_castcmp_pi32_ps(const sg_cmp_pi32 cmp) {
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_castcmp_pi32_ps _mm_castsi128_ps
-#elif defined SIMD_GRANODI_SSE2
-#define sg_castmp_pi32_ps(cmp) (cmp)
+#elif defined SIMD_GRANODI_NEON
+#define sg_castcmp_pi32_ps(cmp) (cmp)
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
@@ -3397,7 +3397,7 @@ static inline sg_cmp_pd sg_cvtcmp_ps_pd(const sg_cmp_ps cmp) {
     #endif
 }
 #elif defined SIMD_GRANODI_NEON
-#define sg_cvtcmp_ps_ps sg_cvtcmp_pi32_pi64
+#define sg_cvtcmp_ps_pd sg_cvtcmp_pi32_pi64
 #endif
 
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
