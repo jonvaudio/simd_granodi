@@ -9,7 +9,7 @@ Copyright (c) 2021-2022 Jon Ville
 OBJECTIVES:
 
 Thin layer to abstract ARM64/NEON and x64/SSE2, mostly focusing on
-packed floats and doubles but with support for packed 32 & 64 bit
+packed 4 x float and 2 x double but with support for packed 32 & 64 bit
 signed integers.
 
 Target C99 and C++11.
@@ -116,7 +116,7 @@ TODO:
     #endif
 #endif
 
-// In case the user wants to FORC_GENERIC, the #ifdefs below should prioritize
+// In case the user wants to FORCE_GENERIC, the #ifdefs below should prioritize
 // this, but just in case there is an error
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 #undef SIMD_GRANODI_SSE2
@@ -157,17 +157,10 @@ typedef struct { double d0, d1; } sg_generic_pd;
 typedef struct { bool b0, b1, b2, b3; } sg_generic_cmp4;
 typedef struct { bool b0, b1; } sg_generic_cmp2;
 
-#define sg_allset_u32 ((uint32_t) -1)
-#define sg_allset_u64 ((uint64_t) -1)
-#define sg_fp_signbit_u32 ((uint32_t) 0x80000000)
-#define sg_fp_signbit_u64 ((uint64_t) 0x8000000000000000)
-#define sg_fp_signmask_u32 (0x7fffffff)
-#define sg_fp_signmask_u64 (0x7fffffffffffffff)
-
+#define sg_allset_u32 (0xffffffffu)
+#define sg_allset_u64 (0xffffffffffffffffu)
 #define sg_allset_s32 (-1)
 #define sg_allset_s64 (-1)
-#define sg_fp_signbit_s32 ((int32_t) 0x80000000)
-#define sg_fp_signbit_s64 ((int64_t) 0x8000000000000000)
 #define sg_fp_signmask_s32 (0x7fffffff)
 #define sg_fp_signmask_s64 (0x7fffffffffffffff)
 
@@ -224,32 +217,37 @@ static inline sg_pi32 sg_choose_pi32(const sg_cmp_pi32, const sg_pi32,
 
 
 #ifdef SIMD_GRANODI_SSE2
-#define sg_sse2_allset_si128 (_mm_set_epi64x(sg_allset_s64, sg_allset_s64))
-#define sg_sse2_allset_ps (_mm_castsi128_ps(sg_sse2_allset_si128))
-#define sg_sse2_allset_pd (_mm_castsi128_pd(sg_sse2_allset_si128))
-#define sg_sse2_signbit_ps (_mm_castsi128_ps(_mm_set1_epi32(sg_fp_signbit_s32)))
-#define sg_sse2_signbit_pd (_mm_castsi128_pd( \
-    _mm_set1_epi64x(sg_fp_signbit_s64)))
-#define sg_sse2_signmask_ps (_mm_castsi128_ps( \
-    _mm_set1_epi32(sg_fp_signmask_s32)))
-#define sg_sse2_signmask_pd (_mm_castsi128_pd( \
-    _mm_set1_epi64x(sg_fp_signmask_s64)))
-#endif // SIMD_GRANODI_SSE2
+#define sg_sse2_allset_si128 _mm_set_epi64x(sg_allset_s64, sg_allset_s64)
+#define sg_sse2_allset_ps _mm_castsi128_ps(sg_sse2_allset_si128)
+#define sg_sse2_allset_pd _mm_castsi128_pd(sg_sse2_allset_si128)
+#define sg_sse2_signbit_ps _mm_set1_ps(-0.0f)
+#define sg_sse2_signbit_pd _mm_set1_pd(-0.0)
+#define sg_sse2_signmask_ps _mm_castsi128_ps( \
+    _mm_set1_epi32(sg_fp_signmask_s32))
+#define sg_sse2_signmask_pd _mm_castsi128_pd( \
+    _mm_set1_epi64x(sg_fp_signmask_s64))
+#endif
 
 // Bitcasts (reinterpret, no conversion takes place)
 
 // Scalar bitcasts
 
-//#define sg_scast_u32_s32(i) ((int32_t)(uint32_t)(i))
-//#define sg_scast_u64_s64(i) ((int64_t)(uint64_t)i)
+/*#define sg_scast_u32_s32(i) ((int32_t)(uint32_t)(i))
+#define sg_scast_u64_s64(i) ((int64_t)(uint64_t)i)
 #define sg_scast_s32_u32(i) ((uint32_t)(int32_t)(i))
-#define sg_scast_s64_u64(i) ((uint64_t)(int64_t)(i))
+#define sg_scast_s64_u64(i) ((uint64_t)(int64_t)(i))*/
 
 static inline int32_t sg_scast_u32_s32(const uint32_t a) {
     int32_t result; memcpy(&result, &a, sizeof(int32_t)); return result;
 }
+static inline uint32_t sg_scast_s32_u32(const int32_t a) {
+    uint32_t result; memcpy(&result, &a, sizeof(uint32_t)); return result;
+}
 static inline int64_t sg_scast_u64_s64(const uint64_t a) {
     int64_t result; memcpy(&result, &a, sizeof(int64_t)); return result;
+}
+static inline uint64_t sg_scast_s64_u64(const int64_t a) {
+    uint64_t result; memcpy(&result, &a, sizeof(uint64_t)); return result;
 }
 
 static inline float sg_scast_u32_f32(const uint32_t a) {
@@ -286,10 +284,12 @@ static inline int64_t sg_scast_f64_s64(const double a) {
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_cast_pi32_pi64(const sg_pi32 a) {
     return (sg_pi64) {
-        .l0 = sg_scast_u64_s64((((uint64_t) sg_scast_s32_u32(a.i1)) << 32)
-            | ((uint64_t) sg_scast_s32_u32(a.i0))),
-        .l1 = sg_scast_u64_s64((((uint64_t) sg_scast_s32_u32(a.i3)) << 32)
-            | ((uint64_t) sg_scast_s32_u32(a.i2))) };
+        .l0 = sg_scast_u64_s64(
+            (((uint64_t) sg_scast_s32_u32(a.i1)) << 32) |
+            ((uint64_t) sg_scast_s32_u32(a.i0))),
+        .l1 = sg_scast_u64_s64(
+            (((uint64_t) sg_scast_s32_u32(a.i3)) << 32) |
+            ((uint64_t) sg_scast_s32_u32(a.i2))) };
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cast_pi32_pi64(a) (a)
@@ -303,9 +303,9 @@ static inline sg_pi32 sg_cast_pi64_pi32(const sg_pi64 a) {
         u1 = sg_scast_s64_u64(a.l1);
     return (sg_pi32) {
         .i0 = sg_scast_u32_s32((uint32_t) (u0 & 0xffffffffu)),
-        .i1 = sg_scast_u32_s32((uint32_t) (u0 >> 32)),
+        .i1 = sg_scast_u32_s32((uint32_t) (u0 >> 32u)),
         .i2 = sg_scast_u32_s32((uint32_t) (u1 & 0xffffffffu)),
-        .i3 = sg_scast_u32_s32((uint32_t) (u1 >> 32)) };
+        .i3 = sg_scast_u32_s32((uint32_t) (u1 >> 32u)) };
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cast_pi64_pi32(a) (a)
@@ -1600,12 +1600,13 @@ static inline sg_pi32 sg_set1_pi32(const int32_t si) {
     return (sg_pi32) { .i0 = si, .i1 = si, .i2 = si, .i3 = si };
 }
 static inline sg_pi32 sg_set1_from_u32_pi32(const uint32_t i) {
-    return (sg_pi32) { .i0 = (int32_t) i, .i1 = (int32_t) i,
-        .i2 = (int32_t) i, .i3 = (int32_t) i };
+    return (sg_pi32) { .i0 = sg_scast_u32_s32(i),
+        .i1 = sg_scast_u32_s32(i), .i2 = sg_scast_u32_s32(i),
+        .i3 = sg_scast_u32_s32(i) };
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set1_pi32(si) _mm_set1_epi32(si)
-#define sg_set1_from_u32_pi32(i) _mm_set1_epi32((int32_t)(uint32_t)(i))
+#define sg_set1_from_u32_pi32(i) _mm_set1_epi32(sg_scast_u32_s32(i))
 #elif defined SIMD_GRANODI_NEON
 #define sg_set1_pi32(si) vdupq_n_s32(si)
 #define sg_set1_from_u32_pi32(i) vreinterpretq_s32_u32(vdupq_n_u32(i))
@@ -1620,14 +1621,14 @@ static inline sg_pi32 sg_set_pi32(const int32_t si3, const int32_t si2,
 static inline sg_pi32 sg_set_from_u32_pi32(const uint32_t i3,
     const uint32_t i2, const uint32_t i1, const uint32_t i0)
 {
-    return (sg_pi32) { .i0 = (int32_t) i0, .i1 = (int32_t) i1,
-        .i2 = (int32_t) i2, .i3 = (int32_t) i3 };
+    return (sg_pi32) { .i0 = sg_scast_u32_s32(i0), .i1 = sg_scast_u32_s32(i1),
+        .i2 = sg_scast_u32_s32(i2), .i3 = sg_scast_u32_s32(i3) };
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set_pi32(si3, si2, si1, si0) _mm_set_epi32(si3, si2, si1, si0)
 #define sg_set_from_u32_pi32(i3, i2, i1, i0) \
-    _mm_set_epi32((int32_t)(uint32_t)i3, (int32_t)(uint32_t)i2, \
-        (int32_t)(uint32_t)i1, (int32_t)(uint32_t)i0)
+    _mm_set_epi32(sg_scast_u32_s32(i3), sg_scast_u32_s32(i2), \
+        sg_scast_u32_s32(i1), sg_scast_u32_s32(i0))
 #elif defined SIMD_GRANODI_NEON
 #define sg_set_pi32(si3, si2, si1, si0) \
     vsetq_lane_s32(si3, vsetq_lane_s32(si2, vsetq_lane_s32(si1, \
@@ -1653,11 +1654,11 @@ static inline sg_pi64 sg_set1_pi64(const int64_t si) {
     return (sg_pi64) { .l0 = si, .l1 = si };
 }
 static inline sg_pi64 sg_set1_from_u64_pi64(const uint64_t i) {
-    return (sg_pi64) { .l0 = (int64_t) i, .l1 = (int64_t) i };
+    return (sg_pi64) { .l0 = sg_scast_u64_s64(i), .l1 = sg_scast_u64_s64(i) };
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set1_pi64(si) _mm_set1_epi64x(si)
-#define sg_set1_from_u64_pi64(i) _mm_set1_epi64x((int64_t)(uint64_t)i)
+#define sg_set1_from_u64_pi64(i) _mm_set1_epi64x(sg_scast_u64_s64(i))
 #elif defined SIMD_GRANODI_NEON
 #define sg_set1_pi64(si) vdupq_n_s64(si)
 #define sg_set1_from_u64_pi64(i) vreinterpretq_s64_u64(vdupq_n_u64(i))
@@ -1670,12 +1671,12 @@ static inline sg_pi64 sg_set_pi64(const int64_t si1, const int64_t si0) {
 static inline sg_pi64 sg_set_from_u64_pi64(const uint64_t i1,
     const uint64_t i0)
 {
-    return (sg_pi64) { .l0 = (int64_t) i0, .l1 = (int64_t) i1 };
+    return (sg_pi64) { .l0 = sg_scast_u64_s64(i0), .l1 = sg_scast_u64_s64(i1) };
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set_pi64(si1, si0) _mm_set_epi64x(si1, si0)
 #define sg_set_from_u64_pi64(i1, i0) \
-    _mm_set_epi64x((int64_t)(uint64_t)(i1), (int64_t)(uint64_t)(i0))
+    _mm_set_epi64x(sg_scast_u64_s64(i1), sg_scast_u64_s64(i0))
 #elif defined SIMD_GRANODI_NEON
 #define sg_set_pi64(si1, si0) vsetq_lane_s64(si1, vsetq_lane_s64(si0, \
     vdupq_n_s64(0), 0), 1)
@@ -2013,7 +2014,8 @@ static inline sg_pd sg_cvt_pi32_pd(const sg_pi32 a) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_NEON
 static inline sg_pi32 sg_cvt_pi64_pi32(const sg_pi64 a) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_pi32) { .i0 = (int32_t) a.l0, .i1 = (int32_t) a.l1,
+    return (sg_pi32) { .i0 = (int32_t) (a.l0 & 0xffffffff),
+        .i1 = (int32_t) (a.l1 & 0xffffffff),
         .i2 = 0, .i3 = 0 };
     #elif defined SIMD_GRANODI_NEON
     const int32x4_t cast = vreinterpretq_s32_s64(a);

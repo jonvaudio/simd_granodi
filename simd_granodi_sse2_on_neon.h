@@ -3,12 +3,12 @@
 Copyright (c) 2021-2022 Jon Ville
 
 Very thin conversion layer for compiling old SSE2 code on NEON, used by
-author (in future, can be spun into different header).
+author
 
 - Does NOT include every intrinsic.
 - Some intrinsics are NOT implemented efficiently.
-__m128i is represented as int32x4_t, so intrinsics that use int64x2_t just
-reinterpret everywhere.
+- __m128i is represented as int32x4_t, so intrinsics that use int64x2_t just
+  reinterpret everywhere.
 
 */
 
