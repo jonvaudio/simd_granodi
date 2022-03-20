@@ -31,8 +31,8 @@ Assume high confidence in modern compilers to inline, elide copies,
 pre-calculate constants etc. Written to compile with -O3
 
 Behaviour of corner cases may NOT be identical on separate platforms
-(eg min / max of signed floating point zero, potential untested corner cases
-involving conversion, special values etc)
+(eg min / max of signed floating point zero, abs(INT_MIN), some conversion
+corner cases, rounding when converting double -> float)
 
 Naming conventions are based on SSE2
 
@@ -283,13 +283,14 @@ static inline int64_t sg_scast_f64_s64(const double a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_cast_pi32_pi64(const sg_pi32 a) {
-    return (sg_pi64) {
-        .l0 = sg_scast_u64_s64(
+    sg_pi64 result;
+    result.l0 = sg_scast_u64_s64(
             (((uint64_t) sg_scast_s32_u32(a.i1)) << 32) |
-            ((uint64_t) sg_scast_s32_u32(a.i0))),
-        .l1 = sg_scast_u64_s64(
+            ((uint64_t) sg_scast_s32_u32(a.i0)));
+    result.l1 = sg_scast_u64_s64(
             (((uint64_t) sg_scast_s32_u32(a.i3)) << 32) |
-            ((uint64_t) sg_scast_s32_u32(a.i2))) };
+            ((uint64_t) sg_scast_s32_u32(a.i2)));
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cast_pi32_pi64(a) (a)
@@ -301,11 +302,12 @@ static inline sg_pi64 sg_cast_pi32_pi64(const sg_pi32 a) {
 static inline sg_pi32 sg_cast_pi64_pi32(const sg_pi64 a) {
     const uint64_t u0 = sg_scast_s64_u64(a.l0),
         u1 = sg_scast_s64_u64(a.l1);
-    return (sg_pi32) {
-        .i0 = sg_scast_u32_s32((uint32_t) (u0 & 0xffffffffu)),
-        .i1 = sg_scast_u32_s32((uint32_t) (u0 >> 32u)),
-        .i2 = sg_scast_u32_s32((uint32_t) (u1 & 0xffffffffu)),
-        .i3 = sg_scast_u32_s32((uint32_t) (u1 >> 32u)) };
+    sg_pi32 result;
+    result.i0 = sg_scast_u32_s32((uint32_t) (u0 & 0xffffffffu));
+    result.i1 = sg_scast_u32_s32((uint32_t) (u0 >> 32u));
+    result.i2 = sg_scast_u32_s32((uint32_t) (u1 & 0xffffffffu));
+    result.i3 = sg_scast_u32_s32((uint32_t) (u1 >> 32u));
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cast_pi64_pi32(a) (a)
@@ -315,9 +317,10 @@ static inline sg_pi32 sg_cast_pi64_pi32(const sg_pi64 a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_cast_pi32_ps(const sg_pi32 a) {
-    return (sg_ps) { .f0 = sg_scast_s32_f32(a.i0),
-        .f1 = sg_scast_s32_f32(a.i1), .f2 = sg_scast_s32_f32(a.i2),
-        .f3 = sg_scast_s32_f32(a.i3) };
+    sg_ps result;
+    result.f0 = sg_scast_s32_f32(a.i0); result.f1 = sg_scast_s32_f32(a.i1);
+    result.f2 = sg_scast_s32_f32(a.i2); result.f3 = sg_scast_s32_f32(a.i3);
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cast_pi32_ps _mm_castsi128_ps
@@ -327,9 +330,10 @@ static inline sg_ps sg_cast_pi32_ps(const sg_pi32 a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_cast_ps_pi32(const sg_ps a) {
-    return (sg_pi32) { .i0 = sg_scast_f32_s32(a.f0),
-        .i1 = sg_scast_f32_s32(a.f1), .i2 = sg_scast_f32_s32(a.f2),
-        .i3 = sg_scast_f32_s32(a.f3) };
+    sg_pi32 result;
+    result.i0 = sg_scast_f32_s32(a.f0); result.i1 = sg_scast_f32_s32(a.f1);
+    result.i2 = sg_scast_f32_s32(a.f2); result.i3 = sg_scast_f32_s32(a.f3);
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cast_ps_pi32 _mm_castps_si128
@@ -339,8 +343,9 @@ static inline sg_pi32 sg_cast_ps_pi32(const sg_ps a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_cast_pi64_pd(const sg_pi64 a) {
-    return (sg_pd) { .d0 = sg_scast_s64_f64(a.l0),
-        .d1 = sg_scast_s64_f64(a.l1) };
+    sg_pd result;
+    result.d0 = sg_scast_s64_f64(a.l0); result.d1 = sg_scast_s64_f64(a.l1);
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cast_pi64_pd _mm_castsi128_pd
@@ -350,8 +355,9 @@ static inline sg_pd sg_cast_pi64_pd(const sg_pi64 a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_cast_pd_pi64(const sg_pd a) {
-    return (sg_pi64) { .l0 = sg_scast_f64_s64(a.d0),
-        .l1 = sg_scast_f64_s64(a.d1) };
+    sg_pi64 result;
+    result.l0 = sg_scast_f64_s64(a.d0); result.l1 = sg_scast_f64_s64(a.d1);
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cast_pd_pi64 _mm_castpd_si128
@@ -447,10 +453,12 @@ static inline sg_pi32 sg_shuffle_pi32_switch_(const sg_pi32 a,
 {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
     const int32_t array[] = { a.i0, a.i1, a.i2, a.i3 };
-    return (sg_pi32) { .i0 = array[imm8_compile_time_constant & 3],
-        .i1 = array[(imm8_compile_time_constant >> 2) & 3],
-        .i2 = array[(imm8_compile_time_constant >> 4) & 3],
-        .i3 = array[(imm8_compile_time_constant >> 6) & 3] };
+    sg_pi32 result;
+    result.i0 = array[imm8_compile_time_constant & 3];
+    result.i1 = array[(imm8_compile_time_constant >> 2) & 3];
+    result.i2 = array[(imm8_compile_time_constant >> 4) & 3];
+    result.i3 = array[(imm8_compile_time_constant >> 6) & 3];
+    return result;
     #elif defined SIMD_GRANODI_SSE2
 switch (imm8_compile_time_constant & 0xff) {
 case 0: return _mm_shuffle_epi32(a, 0); case 1: return _mm_shuffle_epi32(a, 1);
@@ -984,8 +992,10 @@ static inline sg_pi64 sg_shuffle_pi64_switch_(const sg_pi64 a,
     const int imm8_compile_time_constant) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
     const int64_t array[] = { a.l0, a.l1 };
-    return (sg_pi64) { .l0 = array[imm8_compile_time_constant & 1],
-        .l1 = array[(imm8_compile_time_constant >> 1) & 1] };
+    sg_pi64 result;
+    result.l0 = array[imm8_compile_time_constant & 1];
+    result.l1 = array[(imm8_compile_time_constant >> 1) & 1];
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     switch (imm8_compile_time_constant & 3)
     {
@@ -1021,10 +1031,12 @@ static inline sg_ps sg_shuffle_ps_switch_(const sg_ps a,
 {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
     const float array[] = { a.f0, a.f1, a.f2, a.f3 };
-    return (sg_ps) { .f0 = array[imm8_compile_time_constant & 3],
-        .f1 = array[(imm8_compile_time_constant >> 2) & 3],
-        .f2 = array[(imm8_compile_time_constant >> 4) & 3],
-        .f3 = array[(imm8_compile_time_constant >> 6) & 3] };
+    sg_ps result;
+    result.f0 = array[imm8_compile_time_constant & 3];
+    result.f1 = array[(imm8_compile_time_constant >> 2) & 3];
+    result.f2 = array[(imm8_compile_time_constant >> 4) & 3];
+    result.f3 = array[(imm8_compile_time_constant >> 6) & 3];
+    return result;
     #elif defined SIMD_GRANODI_SSE2
 switch (imm8_compile_time_constant & 0xff) {
 case 0: return _mm_shuffle_ps(a, a, 0); case 1: return _mm_shuffle_ps(a, a, 1);
@@ -1560,8 +1572,10 @@ static inline sg_pd sg_shuffle_pd_switch_(const sg_pd a,
 {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
     const double array[] = { a.d0, a.d1 };
-    return (sg_pd) { .d0 = array[imm8_compile_time_constant & 1],
-        .d1 = array[(imm8_compile_time_constant >> 1) & 1] };
+    sg_pd result;
+    result.d0 = array[imm8_compile_time_constant & 1];
+    result.d1 = array[(imm8_compile_time_constant >> 1) & 1];
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     switch(imm8_compile_time_constant & 3)
     {
@@ -1587,7 +1601,9 @@ static inline sg_pd sg_shuffle_pd_switch_(const sg_pd a,
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_setzero_pi32() {
-    return (sg_pi32) { .i0 = 0, .i1 = 0, .i2 = 0, .i3 = 0 };
+    sg_pi32 result;
+    result.i0 = 0; result.i1 = 0; result.i2 = 0; result.i3 = 0;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_setzero_pi32() _mm_setzero_si128()
@@ -1597,12 +1613,15 @@ static inline sg_pi32 sg_setzero_pi32() {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_set1_pi32(const int32_t si) {
-    return (sg_pi32) { .i0 = si, .i1 = si, .i2 = si, .i3 = si };
+    sg_pi32 result;
+    result.i0 = si; result.i1 = si; result.i2 = si; result.i3 = si;
+    return result;
 }
 static inline sg_pi32 sg_set1_from_u32_pi32(const uint32_t i) {
-    return (sg_pi32) { .i0 = sg_scast_u32_s32(i),
-        .i1 = sg_scast_u32_s32(i), .i2 = sg_scast_u32_s32(i),
-        .i3 = sg_scast_u32_s32(i) };
+    sg_pi32 result;
+    result.i0 = sg_scast_u32_s32(i); result.i1 = sg_scast_u32_s32(i);
+    result.i2 = sg_scast_u32_s32(i); result.i3 = sg_scast_u32_s32(i);
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set1_pi32(si) _mm_set1_epi32(si)
@@ -1616,13 +1635,17 @@ static inline sg_pi32 sg_set1_from_u32_pi32(const uint32_t i) {
 static inline sg_pi32 sg_set_pi32(const int32_t si3, const int32_t si2,
     const int32_t si1, const int32_t si0)
 {
-    return (sg_pi32) { .i0 = si0, .i1 = si1, .i2 = si2, .i3 = si3 };
+    sg_pi32 result;
+    result.i0 = si0; result.i1 = si1; result.i2 = si2; result.i3 = si3;
+    return result;
 }
 static inline sg_pi32 sg_set_from_u32_pi32(const uint32_t i3,
     const uint32_t i2, const uint32_t i1, const uint32_t i0)
 {
-    return (sg_pi32) { .i0 = sg_scast_u32_s32(i0), .i1 = sg_scast_u32_s32(i1),
-        .i2 = sg_scast_u32_s32(i2), .i3 = sg_scast_u32_s32(i3) };
+    sg_pi32 result;
+    result.i0 = sg_scast_u32_s32(i0); result.i1 = sg_scast_u32_s32(i1);
+    result.i2 = sg_scast_u32_s32(i2); result.i3 = sg_scast_u32_s32(i3);
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set_pi32(si3, si2, si1, si0) _mm_set_epi32(si3, si2, si1, si0)
@@ -1641,7 +1664,9 @@ static inline sg_pi32 sg_set_from_u32_pi32(const uint32_t i3,
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_setzero_pi64() {
-    return (sg_pi64) { .l0 = 0, .l1 = 0 };
+    sg_pi64 result;
+    result.l0 = 0; result.l1 = 0;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_setzero_pi64() _mm_setzero_si128()
@@ -1651,10 +1676,14 @@ static inline sg_pi64 sg_setzero_pi64() {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_set1_pi64(const int64_t si) {
-    return (sg_pi64) { .l0 = si, .l1 = si };
+    sg_pi64 result;
+    result.l0 = si; result.l1 = si;
+    return result;
 }
 static inline sg_pi64 sg_set1_from_u64_pi64(const uint64_t i) {
-    return (sg_pi64) { .l0 = sg_scast_u64_s64(i), .l1 = sg_scast_u64_s64(i) };
+    sg_pi64 result;
+    result.l0 = sg_scast_u64_s64(i); result.l1 = sg_scast_u64_s64(i);
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set1_pi64(si) _mm_set1_epi64x(si)
@@ -1666,12 +1695,16 @@ static inline sg_pi64 sg_set1_from_u64_pi64(const uint64_t i) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_set_pi64(const int64_t si1, const int64_t si0) {
-    return (sg_pi64) { .l0 = si0, .l1 = si1 };
+    sg_pi64 result;
+    result.l0 = si0; result.l1 = si1;
+    return result;
 }
 static inline sg_pi64 sg_set_from_u64_pi64(const uint64_t i1,
     const uint64_t i0)
 {
-    return (sg_pi64) { .l0 = sg_scast_u64_s64(i0), .l1 = sg_scast_u64_s64(i1) };
+    sg_pi64 result;
+    result.l0 = sg_scast_u64_s64(i0); result.l1 = sg_scast_u64_s64(i1);
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set_pi64(si1, si0) _mm_set_epi64x(si1, si0)
@@ -1686,7 +1719,9 @@ static inline sg_pi64 sg_set_from_u64_pi64(const uint64_t i1,
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_setzero_ps() {
-    return (sg_ps) { .f0 = 0.0f, .f1 = 0.0f, .f2 = 0.0f, .f3 = 0.0f };
+    sg_ps result;
+    result.f0 = 0.0f; result.f1 = 0.0f; result.f2 = 0.0f; result.f3 = 0.0f;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_setzero_ps() _mm_setzero_ps()
@@ -1696,7 +1731,9 @@ static inline sg_ps sg_setzero_ps() {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_set1_ps(const float f) {
-    return (sg_ps) { .f0 = f, .f1 = f, .f2 = f, .f3 = f };
+    sg_ps result;
+    result.f0 = f; result.f1 = f; result.f2 = f; result.f3 = f;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set1_ps _mm_set1_ps
@@ -1709,7 +1746,9 @@ static inline sg_ps sg_set1_ps(const float f) {
 static inline sg_ps sg_set_ps(const float f3, const float f2, const float f1,
     const float f0)
 {
-    return (sg_ps) { .f0 = f0, .f1 = f1, .f2 = f2, .f3 = f3 };
+    sg_ps result;
+    result.f0 = f0; result.f1 = f1; result.f2 = f2; result.f3 = f3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set_ps(f3, f2, f1, f0) _mm_set_ps(f3, f2, f1, f0)
@@ -1723,7 +1762,9 @@ static inline sg_ps sg_set_ps(const float f3, const float f2, const float f1,
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_setzero_pd() {
-    return (sg_pd) { .d0 = 0.0, .d1 = 0.0 };
+    sg_pd result;
+    result.d0 = 0.0; result.d1 = 0.0;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_setzero_pd() _mm_setzero_pd()
@@ -1733,7 +1774,9 @@ static inline sg_pd sg_setzero_pd() {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_set1_pd(const double d) {
-    return (sg_pd) { .d0 = d, .d1 = d };
+    sg_pd result;
+    result.d0 = d; result.d1 = d;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set1_pd _mm_set1_pd
@@ -1744,7 +1787,9 @@ static inline sg_pd sg_set1_pd(const double d) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_set_pd(const double d1, const double d0) {
-    return (sg_pd) { .d0 = d0, .d1 = d1 };
+    sg_pd result;
+    result.d0 = d0, result.d1 = d1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set_pd _mm_set_pd
@@ -1921,21 +1966,29 @@ static inline double sg_get1_pd(const sg_pd a) {
 #endif
 
 static inline sg_generic_pi32 sg_getg_pi32(const sg_pi32 a) {
-    return (sg_generic_pi32) { .i0 = sg_get0_pi32(a), .i1 = sg_get1_pi32(a),
-        .i2 = sg_get2_pi32(a), .i3 = sg_get3_pi32(a) };
+    sg_generic_pi32 result;
+    result.i0 = sg_get0_pi32(a); result.i1 = sg_get1_pi32(a);
+    result.i2 = sg_get2_pi32(a); result.i3 = sg_get3_pi32(a);
+    return result;
 }
 
 static inline sg_generic_pi64 sg_getg_pi64(const sg_pi64 a) {
-    return (sg_generic_pi64) { .l0 = sg_get0_pi64(a), .l1 = sg_get1_pi64(a) };
+    sg_generic_pi64 result;
+    result.l0 = sg_get0_pi64(a); result.l1 = sg_get1_pi64(a);
+    return result;
 }
 
 static inline sg_generic_ps sg_getg_ps(const sg_ps a) {
-    return (sg_generic_ps) { .f0 = sg_get0_ps(a), .f1 = sg_get1_ps(a),
-        .f2 = sg_get2_ps(a), .f3 = sg_get3_ps(a) };
+    sg_generic_ps result;
+    result.f0 = sg_get0_ps(a); result.f1 = sg_get1_ps(a);
+    result.f2 = sg_get2_ps(a); result.f3 = sg_get3_ps(a);
+    return result;
 }
 
 static inline sg_generic_pd sg_getg_pd(const sg_pd a) {
-    return (sg_generic_pd) { .d0 = sg_get0_pd(a), .d1 = sg_get1_pd(a) };
+    sg_generic_pd result;
+    result.d0 = sg_get0_pd(a); result.d1 = sg_get1_pd(a);
+    return result;
 }
 
 static inline bool sg_debug_eq_pi32(const sg_pi32 a, const int32_t i3,
@@ -1973,7 +2026,9 @@ static inline bool sg_debug_eq_pd(const sg_pd a, const double d1,
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_pi64 sg_cvt_pi32_pi64(const sg_pi32 a) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_pi64) { .l0 = (int64_t) a.i0, .l1 = (int64_t) a.i1 };
+    sg_pi64 result;
+    result.l0 = (int64_t) a.i0; result.l1 = (int64_t) a.i1;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     const __m128i a_shuffled = _mm_shuffle_epi32(a,
         sg_sse2_shuffle32_imm(1, 1, 0, 0));
@@ -1992,8 +2047,10 @@ static inline sg_pi64 sg_cvt_pi32_pi64(const sg_pi32 a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_cvt_pi32_ps(const sg_pi32 a) {
-    return (sg_ps) { .f0 = (float) a.i0, .f1 = (float) a.i1,
-        .f2 = (float) a.i2, .f3 = (float) a.i3 };
+    sg_ps result;
+    result.f0 = (float) a.i0; result.f1 = (float) a.i1;
+    result.f2 = (float) a.i2; result.f3 = (float) a.i3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cvt_pi32_ps _mm_cvtepi32_ps
@@ -2003,7 +2060,9 @@ static inline sg_ps sg_cvt_pi32_ps(const sg_pi32 a) {
 
 #if defined SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_cvt_pi32_pd(const sg_pi32 a) {
-    return (sg_pd) { .d0 = (double) a.i0, .d1 = (double) a.i1 };
+    sg_pd result;
+    result.d0 = (double) a.i0; result.d1 = (double) a.i1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cvt_pi32_pd _mm_cvtepi32_pd
@@ -2014,9 +2073,11 @@ static inline sg_pd sg_cvt_pi32_pd(const sg_pi32 a) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_NEON
 static inline sg_pi32 sg_cvt_pi64_pi32(const sg_pi64 a) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_pi32) { .i0 = (int32_t) (a.l0 & 0xffffffff),
-        .i1 = (int32_t) (a.l1 & 0xffffffff),
-        .i2 = 0, .i3 = 0 };
+    sg_pi32 result;
+    result.i0 = (int32_t) (a.l0 & 0xffffffff);
+    result.i1 = (int32_t) (a.l1 & 0xffffffff);
+    result.i2 = 0; result.i3 = 0;
+    return result;
     #elif defined SIMD_GRANODI_NEON
     const int32x4_t cast = vreinterpretq_s32_s64(a);
     return vcombine_s32(vget_low_s32(vcopyq_laneq_s32(cast, 1, cast, 2)),
@@ -2031,8 +2092,10 @@ static inline sg_pi32 sg_cvt_pi64_pi32(const sg_pi64 a) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_ps sg_cvt_pi64_ps(const sg_pi64 a) {
     #if defined SIMD_GRANODI_FORCE_GENERIC
-    return (sg_ps) { .f0 = (float) a.l0,
-        .f1 = (float) a.l1, .f2 = 0.0f, .f3 = 0.0f };
+    sg_ps result;
+    result.f0 = (float) a.l0; result.f1 = (float) a.l1;
+    result.f2 = 0.0f; result.f3 = 0.0f;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     const int64_t si0 = _mm_cvtsi128_si64(a),
         si1 = _mm_cvtsi128_si64(_mm_unpackhi_epi64(a, a));
@@ -2049,7 +2112,9 @@ static inline sg_ps sg_cvt_pi64_ps(const sg_pi64 a) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_pd sg_cvt_pi64_pd(const sg_pi64 a) {
     #if defined SIMD_GRANODI_FORCE_GENERIC
-    return (sg_pd) { .d0 = (double) a.l0, .d1 = (double) a.l1 };
+    sg_pd result;
+    result.d0 = (double) a.l0; result.d1 = (double) a.l1;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     const int64_t si0 = _mm_cvtsi128_si64(a),
         si1 = _mm_cvtsi128_si64(_mm_unpackhi_epi64(a, a));
@@ -2065,9 +2130,10 @@ static inline sg_pd sg_cvt_pi64_pd(const sg_pi64 a) {
 // Use current rounding mode (default round-to-nearest with 0.5 rounding down)
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_cvt_ps_pi32(const sg_ps a) {
-    return (sg_pi32) { .i0 = (int32_t) rintf(a.f0),
-        .i1 = (int32_t) rintf(a.f1), .i2 = (int32_t) rintf(a.f2),
-        .i3 = (int32_t) rintf(a.f3) };
+    sg_pi32 result;
+    result.i0 = (int32_t) rintf(a.f0); result.i1 = (int32_t) rintf(a.f1);
+    result.i2 = (int32_t) rintf(a.f2); result.i3 = (int32_t) rintf(a.f3);
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cvt_ps_pi32 _mm_cvtps_epi32
@@ -2078,8 +2144,10 @@ static inline sg_pi32 sg_cvt_ps_pi32(const sg_ps a) {
 // cvtt (extra t) methods use truncation instead of rounding
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_cvtt_ps_pi32(const sg_ps a) {
-    return (sg_pi32) { .i0 = (int32_t) a.f0, .i1 = (int32_t) a.f1,
-     .i2 = (int32_t) a.f2, .i3 = (int32_t) a.f3 };
+    sg_pi32 result;
+    result.i0 = (int32_t) a.f0; result.i1 = (int32_t) a.f1;
+    result.i2 = (int32_t) a.f2; result.i3 = (int32_t) a.f3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cvtt_ps_pi32 _mm_cvttps_epi32
@@ -2090,8 +2158,10 @@ static inline sg_pi32 sg_cvtt_ps_pi32(const sg_ps a) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_pi64 sg_cvt_ps_pi64(sg_ps a) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_pi64) { .l0 = (int64_t) rintf(a.f0),
-        .l1 = (int64_t) rintf(a.f1) };
+    sg_pi64 result;
+    result.l0 = (int64_t) rintf(a.f0);
+    result.l1 = (int64_t) rintf(a.f1);
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     int64_t si0 = (int64_t) rintf(_mm_cvtss_f32(a)),
         si1 = (int64_t) rintf(_mm_cvtss_f32(
@@ -2106,7 +2176,9 @@ static inline sg_pi64 sg_cvt_ps_pi64(sg_ps a) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_pi64 sg_cvtt_ps_pi64(sg_ps a) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_pi64) { .l0 = (int64_t) a.f0, .l1 = (int64_t) a.f1 };
+    sg_pi64 result;
+    result.l0 = (int64_t) a.f0; result.l1 = (int64_t) a.f1;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     int64_t si0 = (int64_t) _mm_cvtss_f32(a),
         si1 = (int64_t) _mm_cvtss_f32(
@@ -2120,8 +2192,9 @@ static inline sg_pi64 sg_cvtt_ps_pi64(sg_ps a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_cvt_ps_pd(sg_ps a) {
-    return sg_set_fromg_pd((sg_generic_pd) { .d0 = (double) a.f0,
-        .d1 = (double) a.f1 });
+    sg_pd result;
+    result.d0 = (double) a.f0; result.d1 = (double) a.f1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cvt_ps_pd _mm_cvtps_pd
@@ -2131,8 +2204,10 @@ static inline sg_pd sg_cvt_ps_pd(sg_ps a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_cvt_pd_pi32(sg_pd a) {
-    return (sg_pi32) { .i0 = (int32_t) rint(a.d0),
-        .i1 = (int32_t) rint(a.d1), .i2 = 0, .i3 = 0 };
+    sg_pi32 result;
+    result.i0 = (int32_t) rint(a.d0); result.i1 = (int32_t) rint(a.d1);
+    result.i2 = 0; result.i3 = 0;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cvt_pd_pi32 _mm_cvtpd_epi32
@@ -2142,8 +2217,10 @@ static inline sg_pi32 sg_cvt_pd_pi32(sg_pd a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_cvtt_pd_pi32(sg_pd a) {
-    return (sg_pi32) { .i0 = (int32_t) a.d0, .i1 = (int32_t) a.d1,
-        .i2 = 0, .i3 = 0 };
+    sg_pi32 result;
+    result.i0 = (int32_t) a.d0; result.i1 = (int32_t) a.d1;
+    result.i2 = 0; result.i3 = 0;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cvtt_pd_pi32 _mm_cvttpd_epi32
@@ -2154,8 +2231,9 @@ static inline sg_pi32 sg_cvtt_pd_pi32(sg_pd a) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_pi64 sg_cvt_pd_pi64(sg_pd a) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_pi64) { .l0 = (int64_t) rint(a.d0),
-        .l1 = (int64_t) rint(a.d1) };
+    sg_pi64 result;
+    result.l0 = (int64_t) rint(a.d0); result.l1 = (int64_t) rint(a.d1);
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     const int64_t si0 = _mm_cvtsd_si64(a),
         si1 = _mm_cvtsd_si64(_mm_unpackhi_pd(a, a));
@@ -2169,7 +2247,9 @@ static inline sg_pi64 sg_cvt_pd_pi64(sg_pd a) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_pi64 sg_cvtt_pd_pi64(sg_pd a) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_pi64) { .l0 = (int64_t) a.d0, .l1 = (int64_t) a.d1 };
+    sg_pi64 result;
+    result.l0 = (int64_t) a.d0; result.l1 = (int64_t) a.d1;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     const int64_t si0 = _mm_cvttsd_si64(a),
         si1 = _mm_cvttsd_si64(_mm_unpackhi_pd(a, a));
@@ -2182,8 +2262,10 @@ static inline sg_pi64 sg_cvtt_pd_pi64(sg_pd a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_cvt_pd_ps(sg_pd a) {
-    return sg_set_fromg_ps((sg_generic_ps) { .f0 = (float) a.d0,
-        .f1 = (float) a.d1, .f2 = 0.0f, .f3 = 0.0f });
+    sg_ps result;
+    result.f0 = (float) a.d0; result.f1 = (float) a.d1;
+    result.f2 = 0.0f; result.f3 = 0.0f;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cvt_pd_ps _mm_cvtpd_ps
@@ -2195,8 +2277,10 @@ static inline sg_ps sg_cvt_pd_ps(sg_pd a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_add_pi32(const sg_pi32 a, const sg_pi32 b) {
-    return (sg_pi32) { .i0 = a.i0 + b.i0, .i1 = a.i1 + b.i1,
-        .i2 = a.i2 + b.i2, .i3 = a.i3 + b.i3 };
+    sg_pi32 result;
+    result.i0 = a.i0 + b.i0; result.i1 = a.i1 + b.i1;
+    result.i2 = a.i2 + b.i2; result.i3 = a.i3 + b.i3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_add_pi32 _mm_add_epi32
@@ -2206,7 +2290,9 @@ static inline sg_pi32 sg_add_pi32(const sg_pi32 a, const sg_pi32 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_add_pi64(const sg_pi64 a, const sg_pi64 b) {
-    return (sg_pi64) { .l0 = a.l0 + b.l0, .l1 = a.l1 + b.l1 };
+    sg_pi64 result;
+    result.l0 = a.l0 + b.l0; result.l1 = a.l1 + b.l1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_add_pi64 _mm_add_epi64
@@ -2216,8 +2302,10 @@ static inline sg_pi64 sg_add_pi64(const sg_pi64 a, const sg_pi64 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_add_ps(const sg_ps a, const sg_ps b) {
-    return (sg_ps) { .f0 = a.f0 + b.f0, .f1 = a.f1 + b.f1,
-        .f2 = a.f2 + b.f2, .f3 = a.f3 + b.f3 };
+    sg_ps result;
+    result.f0 = a.f0 + b.f0; result.f1 = a.f1 + b.f1;
+    result.f2 = a.f2 + b.f2; result.f3 = a.f3 + b.f3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_add_ps _mm_add_ps
@@ -2227,7 +2315,9 @@ static inline sg_ps sg_add_ps(const sg_ps a, const sg_ps b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_add_pd(const sg_pd a, const sg_pd b) {
-    return (sg_pd) { .d0 = a.d0 + b.d0, .d1 = a.d1 + b.d1 };
+    sg_pd result;
+    result.d0 = a.d0 + b.d0; result.d1 = a.d1 + b.d1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_add_pd _mm_add_pd
@@ -2237,8 +2327,10 @@ static inline sg_pd sg_add_pd(const sg_pd a, const sg_pd b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_sub_pi32(const sg_pi32 a, const sg_pi32 b) {
-    return (sg_pi32) { .i0 = a.i0 - b.i0, .i1 = a.i1 - b.i1,
-        .i2 = a.i2 - b.i2, .i3 = a.i3 - b.i3 };
+    sg_pi32 result;
+    result.i0 = a.i0 - b.i0; result.i1 = a.i1 - b.i1;
+    result.i2 = a.i2 - b.i2; result.i3 = a.i3 - b.i3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_sub_pi32 _mm_sub_epi32
@@ -2248,7 +2340,9 @@ static inline sg_pi32 sg_sub_pi32(const sg_pi32 a, const sg_pi32 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_sub_pi64(const sg_pi64 a, const sg_pi64 b) {
-    return (sg_pi64) { .l0 = a.l0 - b.l0, .l1 = a.l1 - b.l1 };
+    sg_pi64 result;
+    result.l0 = a.l0 - b.l0; result.l1 = a.l1 - b.l1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_sub_pi64 _mm_sub_epi64
@@ -2258,8 +2352,10 @@ static inline sg_pi64 sg_sub_pi64(const sg_pi64 a, const sg_pi64 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_sub_ps(const sg_ps a, const sg_ps b) {
-    return (sg_ps) { .f0 = a.f0 - b.f0, .f1 = a.f1 - b.f1,
-        .f2 = a.f2 - b.f2, .f3 = a.f3 - b.f3 };
+    sg_ps result;
+    result.f0 = a.f0 - b.f0; result.f1 = a.f1 - b.f1;
+    result.f2 = a.f2 - b.f2; result.f3 = a.f3 - b.f3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_sub_ps _mm_sub_ps
@@ -2269,7 +2365,9 @@ static inline sg_ps sg_sub_ps(const sg_ps a, const sg_ps b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_sub_pd(const sg_pd a, const sg_pd b) {
-    return (sg_pd) { .d0 = a.d0 - b.d0, .d1 = a.d1 - b.d1 };
+    sg_pd result;
+    result.d0 = a.d0 - b.d0; result.d1 = a.d1 - b.d1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_sub_pd _mm_sub_pd
@@ -2280,8 +2378,10 @@ static inline sg_pd sg_sub_pd(const sg_pd a, const sg_pd b) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_pi32 sg_mul_pi32(const sg_pi32 a, const sg_pi32 b) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_generic_pi32) { .i0 = a.i0 * b.i0,
-        .i1 = a.i1 * b.i1, .i2 = a.i2 * b.i2, .i3 = a.i3 * b.i3 };
+    sg_pi32 result;
+    result.i0 = a.i0 * b.i0; result.i1 = a.i1 * b.i1;
+    result.i2 = a.i2 * b.i2; result.i3 = a.i3 * b.i3;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     // Generate ltz masks
     const __m128i a_ltz = _mm_cmplt_epi32(a, _mm_setzero_si128()),
@@ -2323,14 +2423,17 @@ static inline sg_pi32 sg_mul_pi32(const sg_pi32 a, const sg_pi32 b) {
 
 static inline sg_pi64 sg_mul_pi64(const sg_pi64 a, const sg_pi64 b) {
     const sg_generic_pi64 ag = sg_getg_pi64(a), bg = sg_getg_pi64(b);
-    return sg_set_fromg_pi64((sg_generic_pi64) { .l0 = ag.l0 * bg.l0,
-        .l1 = ag.l1 * bg.l1 });
+    sg_generic_pi64 result;
+    result.l0 = ag.l0 * bg.l0; result.l1 = ag.l1 * bg.l1;
+    return sg_set_fromg_pi64(result);
 }
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_mul_ps(const sg_ps a, const sg_ps b) {
-    return (sg_ps) { .f0 = a.f0 * b.f0, .f1 = a.f1 * b.f1,
-        .f2 = a.f2 * b.f2, .f3 = a.f3 * b.f3 };
+    sg_ps result;
+    result.f0 = a.f0 * b.f0; result.f1 = a.f1 * b.f1;
+    result.f2 = a.f2 * b.f2; result.f3 = a.f3 * b.f3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_mul_ps _mm_mul_ps
@@ -2340,7 +2443,9 @@ static inline sg_ps sg_mul_ps(const sg_ps a, const sg_ps b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_mul_pd(const sg_pd a, const sg_pd b) {
-    return (sg_pd) { .d0 = a.d0 * b.d0, .d1 = a.d1 * b.d1 };
+    sg_pd result;
+    result.d0 = a.d0 * b.d0; result.d1 = a.d1 * b.d1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_mul_pd _mm_mul_pd
@@ -2350,20 +2455,25 @@ static inline sg_pd sg_mul_pd(const sg_pd a, const sg_pd b) {
 
 static inline sg_pi32 sg_div_pi32(const sg_pi32 a, const sg_pi32 b) {
     const sg_generic_pi32 ag = sg_getg_pi32(a), bg = sg_getg_pi32(b);
-    return sg_set_fromg_pi32((sg_generic_pi32) { .i0 = ag.i0 / bg.i0,
-        .i1 = ag.i1 / bg.i1, .i2 = ag.i2 / bg.i2, .i3 = ag.i3 / bg.i3 });
+    sg_generic_pi32 result;
+    result.i0 = ag.i0 / bg.i0; result.i1 = ag.i1 / bg.i1;
+    result.i2 = ag.i2 / bg.i2; result.i3 = ag.i3 / bg.i3 ;
+    return sg_set_fromg_pi32(result);
 }
 
 static inline sg_pi64 sg_div_pi64(const sg_pi64 a, const sg_pi64 b) {
     const sg_generic_pi64 ag = sg_getg_pi64(a), bg = sg_getg_pi64(b);
-    return sg_set_fromg_pi64((sg_generic_pi64) { .l0 = ag.l0 / bg.l0,
-        .l1 = ag.l1 / bg.l1 });
+    sg_generic_pi64 result;
+    result.l0 = ag.l0 / bg.l0; result.l1 = ag.l1 / bg.l1;
+    return sg_set_fromg_pi64(result);
 }
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_div_ps(const sg_ps a, const sg_ps b) {
-    return (sg_ps) { .f0 = a.f0 / b.f0, .f1 = a.f1 / b.f1,
-        .f2 = a.f2 / b.f2, .f3 = a.f3 / b.f3 };
+    sg_ps result;
+    result.f0 = a.f0 / b.f0; result.f1 = a.f1 / b.f1;
+    result.f2 = a.f2 / b.f2; result.f3 = a.f3 / b.f3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_div_ps _mm_div_ps
@@ -2373,7 +2483,9 @@ static inline sg_ps sg_div_ps(const sg_ps a, const sg_ps b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_div_pd(const sg_pd a, const sg_pd b) {
-    return (sg_pd) { .d0 = a.d0 / b.d0, .d1 = a.d1 / b.d1 };
+    sg_pd result;
+    result.d0 = a.d0 / b.d0; result.d1 = a.d1 / b.d1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_div_pd _mm_div_pd
@@ -2397,8 +2509,10 @@ static inline sg_pd sg_div_pd(const sg_pd a, const sg_pd b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_and_pi32(const sg_pi32 a, const sg_pi32 b) {
-    return (sg_pi32) { .i0 = a.i0 & b.i0, .i1 = a.i1 & b.i1,
-        .i2 = a.i2 & b.i2, .i3 = a.i3 & b.i3 };
+    sg_pi32 result;
+    result.i0 = a.i0 & b.i0; result.i1 = a.i1 & b.i1;
+    result.i2 = a.i2 & b.i2; result.i3 = a.i3 & b.i3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_and_pi32 _mm_and_si128
@@ -2408,7 +2522,9 @@ static inline sg_pi32 sg_and_pi32(const sg_pi32 a, const sg_pi32 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_and_pi64(const sg_pi64 a, const sg_pi64 b) {
-    return (sg_pi64) { .l0 = a.l0 & b.l0, .l1 = a.l1 & b.l1 };
+    sg_pi64 result;
+    result.l0 = a.l0 & b.l0; result.l1 = a.l1 & b.l1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_and_pi64 _mm_and_si128
@@ -2440,8 +2556,10 @@ static inline sg_pd sg_and_pd(const sg_pd a, const sg_pd b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_andnot_pi32(const sg_pi32 a, const sg_pi32 b) {
-    return (sg_pi32) { .i0 = ~a.i0 & b.i0, .i1 = ~a.i1 & b.i1,
-        .i2 = ~a.i2 & b.i2, .i3 = ~a.i3 & b.i3 };
+    sg_pi32 result;
+    result.i0 = ~a.i0 & b.i0; result.i1 = ~a.i1 & b.i1;
+    result.i2 = ~a.i2 & b.i2; result.i3 = ~a.i3 & b.i3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_andnot_pi32 _mm_andnot_si128
@@ -2451,7 +2569,9 @@ static inline sg_pi32 sg_andnot_pi32(const sg_pi32 a, const sg_pi32 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_andnot_pi64(const sg_pi64 a, const sg_pi64 b) {
-    return (sg_pi64) { .l0 = ~a.l0 & b.l0, .l1 = ~a.l1 & b.l1 };
+    sg_pi64 result;
+    result.l0 = ~a.l0 & b.l0; result.l1 = ~a.l1 & b.l1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_andnot_pi64 _mm_andnot_si128
@@ -2485,8 +2605,9 @@ static inline sg_pd sg_andnot_pd(const sg_pd a, const sg_pd b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_not_pi32(const sg_pi32 a) {
-    return (sg_pi32) {.i0 = ~a.i0, .i1 = ~a.i1,
-        .i2 = ~a.i2, .i3 = ~a.i3 };
+    sg_pi32 result;
+    result.i0 = ~a.i0; result.i1 = ~a.i1; result.i2 = ~a.i2; result.i3 = ~a.i3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_not_pi32 sg_sse2_not_si128
@@ -2496,8 +2617,9 @@ static inline sg_pi32 sg_not_pi32(const sg_pi32 a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_not_pi64(const sg_pi64 a) {
-    return (sg_pi64) { .l0 = ~a.l0, .l1 = ~a.l1 };
-
+    sg_pi64 result;
+    result.l0 = ~a.l0; result.l1 = ~a.l1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_not_pi64 sg_sse2_not_si128
@@ -2527,8 +2649,10 @@ static inline sg_pd sg_not_pd(const sg_pd a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_or_pi32(const sg_pi32 a, const sg_pi32 b) {
-    return (sg_pi32) { .i0 = a.i0 | b.i0, .i1 = a.i1 | b.i1,
-        .i2 = a.i2 | b.i2, .i3 = a.i3 | b.i3 };
+    sg_pi32 result;
+    result.i0 = a.i0 | b.i0; result.i1 = a.i1 | b.i1;
+    result.i2 = a.i2 | b.i2; result.i3 = a.i3 | b.i3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_or_pi32 _mm_or_si128
@@ -2538,7 +2662,9 @@ static inline sg_pi32 sg_or_pi32(const sg_pi32 a, const sg_pi32 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_or_pi64(const sg_pi64 a, const sg_pi64 b) {
-    return (sg_pi64) { .l0 = a.l0 | b.l0, .l1 = a.l1 | b.l1 };
+    sg_pi64 result;
+    result.l0 = a.l0 | b.l0; result.l1 = a.l1 | b.l1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_or_pi64 _mm_or_si128
@@ -2570,8 +2696,10 @@ static inline sg_pd sg_or_pd(const sg_pd a, const sg_pd b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_xor_pi32(const sg_pi32 a, const sg_pi32 b) {
-    return (sg_pi32) { .i0 = a.i0 ^ b.i0, .i1 = a.i1 ^ b.i1,
-        .i2 = a.i2 ^ b.i2, .i3 = a.i3 ^ b.i3 };
+    sg_pi32 result;
+    result.i0 = a.i0 ^ b.i0; result.i1 = a.i1 ^ b.i1;
+    result.i2 = a.i2 ^ b.i2; result.i3 = a.i3 ^ b.i3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_xor_pi32 _mm_xor_si128
@@ -2581,7 +2709,9 @@ static inline sg_pi32 sg_xor_pi32(const sg_pi32 a, const sg_pi32 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_xor_pi64(const sg_pi64 a, const sg_pi64 b) {
-    return (sg_pi64) { .l0 = a.l0 ^ b.l0, .l1 = a.l1 ^ b.l1 };
+    sg_pi64 result;
+    result.l0 = a.l0 ^ b.l0; result.l1 = a.l1 ^ b.l1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_xor_pi64 _mm_xor_si128
@@ -2615,8 +2745,10 @@ static inline sg_pd sg_xor_pd(const sg_pd a, const sg_pd b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_sl_imm_pi32(const sg_pi32 a, const int32_t shift) {
-    return (sg_pi32) { .i0 = a.i0 << shift, .i1 = a.i1 << shift,
-        .i2 = a.i2 << shift, .i3 = a.i3 << shift };
+    sg_pi32 result;
+    result.i0 = a.i0 << shift; result.i1 = a.i1 << shift;
+    result.i2 = a.i2 << shift; result.i3 = a.i3 << shift;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_sl_imm_pi32 _mm_slli_epi32
@@ -2626,8 +2758,9 @@ static inline sg_pi32 sg_sl_imm_pi32(const sg_pi32 a, const int32_t shift) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_sl_imm_pi64(const sg_pi64 a, const int32_t shift) {
-    return (sg_pi64) { .l0 = a.l0 << (int64_t) shift,
-        .l1 = a.l1 << (int64_t) shift };
+    sg_pi64 result;
+    result.l0 = a.l0 << (int64_t) shift; result.l1 = a.l1 << (int64_t) shift;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_sl_imm_pi64 _mm_slli_epi64
@@ -2637,11 +2770,12 @@ static inline sg_pi64 sg_sl_imm_pi64(const sg_pi64 a, const int32_t shift) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_srl_imm_pi32(const sg_pi32 a, const int32_t shift) {
-    return (sg_pi32) {
-        .i0 = sg_scast_u32_s32((sg_scast_s32_u32(a.i0) >> shift)),
-        .i1 = sg_scast_u32_s32((sg_scast_s32_u32(a.i1) >> shift)),
-        .i2 = sg_scast_u32_s32((sg_scast_s32_u32(a.i2) >> shift)),
-        .i3 = sg_scast_u32_s32((sg_scast_s32_u32(a.i3) >> shift)) };
+    sg_pi32 result;
+    result.i0 = sg_scast_u32_s32((sg_scast_s32_u32(a.i0) >> shift));
+    result.i1 = sg_scast_u32_s32((sg_scast_s32_u32(a.i1) >> shift));
+    result.i2 = sg_scast_u32_s32((sg_scast_s32_u32(a.i2) >> shift));
+    result.i3 = sg_scast_u32_s32((sg_scast_s32_u32(a.i3) >> shift));
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_srl_imm_pi32 _mm_srli_epi32
@@ -2652,9 +2786,10 @@ static inline sg_pi32 sg_srl_imm_pi32(const sg_pi32 a, const int32_t shift) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_srl_imm_pi64(const sg_pi64 a, const int32_t shift) {
-    return (sg_pi64){
-        .l0 = sg_scast_u64_s64(sg_scast_s64_u64(a.l0) >> (uint64_t) shift),
-        .l1 = sg_scast_u64_s64(sg_scast_s64_u64(a.l1) >> (uint64_t) shift) };
+    sg_pi64 result;
+    result.l0 = sg_scast_u64_s64(sg_scast_s64_u64(a.l0) >> (uint64_t) shift);
+    result.l1 = sg_scast_u64_s64(sg_scast_s64_u64(a.l1) >> (uint64_t) shift);
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_srl_imm_pi64 _mm_srli_epi64
@@ -2665,8 +2800,10 @@ static inline sg_pi64 sg_srl_imm_pi64(const sg_pi64 a, const int32_t shift) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_sra_imm_pi32(const sg_pi32 a, const int32_t shift) {
-    return (sg_pi32) { .i0 = a.i0 >> shift, .i1 = a.i1 >> shift,
-        .i2 = a.i2 >> shift, .i3 = a.i3 >> shift };
+    sg_pi32 result;
+    result.i0 = a.i0 >> shift; result.i1 = a.i1 >> shift;
+    result.i2 = a.i2 >> shift; result.i3 = a.i3 >> shift;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_sra_imm_pi32 _mm_srai_epi32
@@ -2679,8 +2816,10 @@ static inline sg_pi64 sg_sra_imm_pi64(const sg_pi64 a,
     const int32_t shift_compile_time_constant)
 {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_pi64) { .l0 = a.l0 >> (int64_t) shift_compile_time_constant,
-        .l1 = a.l1 >> (int64_t) shift_compile_time_constant };
+    sg_pi64 result;
+    result.l0 = a.l0 >> (int64_t) shift_compile_time_constant;
+    result.l1 = a.l1 >> (int64_t) shift_compile_time_constant;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     const __m128i signed_shift_mask = _mm_cmplt_epi32(
         _mm_shuffle_epi32(a, sg_sse2_shuffle32_imm(3, 3, 1, 1)),
@@ -2827,8 +2966,9 @@ static inline sg_pi64 sg_sra_imm_pi64(const sg_pi64 a,
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pi32 sg_setzero_cmp_pi32() {
-    return (sg_generic_cmp4) { .b0 = false, .b1 = false,
-        .b2 = false, .b3 = false };
+    sg_cmp_pi32 result;
+    result.b0 = false; result.b1 = false; result.b2 = false; result.b3 = false;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_setzero_cmp_pi32() _mm_setzero_si128()
@@ -2838,7 +2978,9 @@ static inline sg_cmp_pi32 sg_setzero_cmp_pi32() {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pi64 sg_setzero_cmp_pi64() {
-    return (sg_generic_cmp2) { .b0 = false, .b1 = false };
+    sg_cmp_pi64 result;
+    result.b0 = false; result.b1 = false;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_setzero_cmp_pi64() _mm_setzero_si128()
@@ -2848,8 +2990,7 @@ static inline sg_cmp_pi64 sg_setzero_cmp_pi64() {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_ps sg_setzero_cmp_ps() {
-    return (sg_generic_cmp4) { .b0 = false, .b1 = false,
-        .b2 = false, .b3 = false };
+    return sg_setzero_cmp_pi32();
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_setzero_cmp_ps() _mm_setzero_ps()
@@ -2859,7 +3000,7 @@ static inline sg_cmp_ps sg_setzero_cmp_ps() {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pd sg_setzero_cmp_pd() {
-    return (sg_generic_cmp2) { .b0 = false, .b1 = false };
+    return sg_setzero_cmp_pi64();
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_setzero_cmp_pd() _mm_setzero_pd()
@@ -2869,7 +3010,9 @@ static inline sg_cmp_pd sg_setzero_cmp_pd() {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pi32 sg_set1cmp_pi32(const bool b) {
-    return (sg_generic_cmp4) { .b0 = b, .b1 = b, .b2 = b, .b3 = b };
+    sg_cmp_pi32 result;
+    result.b0 = b; result.b1 = b; result.b2 = b; result.b3 = b;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set1cmp_pi32(b) ((b) ? sg_sse2_allset_si128 : _mm_setzero_si128())
@@ -2879,7 +3022,9 @@ static inline sg_cmp_pi32 sg_set1cmp_pi32(const bool b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pi64 sg_set1cmp_pi64(const bool b) {
-    return (sg_generic_cmp2) { .b0 = b, .b1 = b};
+    sg_cmp_pi64 result;
+    result.b0 = b; result.b1 = b;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set1cmp_pi64(b) ((b) ? sg_sse2_allset_si128 : _mm_setzero_si128())
@@ -2911,7 +3056,9 @@ static inline sg_cmp_pd sg_set1cmp_pd(const bool b) {
 static inline sg_cmp_pi32 sg_setcmp_pi32(const bool b3, const bool b2,
     const bool b1, const bool b0)
 {
-    return (sg_generic_cmp4) { .b0 = b0, .b1 = b1, .b2 = b2, .b3 = b3 };
+    sg_cmp_pi32 result;
+    result.b0 = b0; result.b1 = b1; result.b2 = b2; result.b3 = b3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_setcmp_pi32(b3, b2, b1, b0) \
@@ -2932,7 +3079,9 @@ static inline sg_cmp_pi32 sg_setcmp_fromg_pi32(const sg_generic_cmp4 cmpg) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pi64 sg_setcmp_pi64(const bool b1, const bool b0) {
-    return (sg_generic_cmp2) { .b0 = b0, .b1 = b1 };
+    sg_cmp_pi64 result;
+    result.b0 = b0; result.b1 = b1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_setcmp_pi64(b1, b0) \
@@ -2966,7 +3115,7 @@ static inline sg_cmp_ps sg_setcmp_fromg_ps(const sg_generic_cmp4 cmpg) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pd sg_setcmp_pd(const bool b1, const bool b0) {
-    return (sg_generic_cmp2) { .b0 = b0, .b1 = b1 };
+    return sg_setcmp_pi64(b1, b0);
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_setcmp_pd(b1, b0) _mm_castsi128_pd(sg_setcmp_pi64(b1, b0))
@@ -3059,8 +3208,10 @@ static inline bool sg_debug_cmp_valid_eq_pd(const sg_cmp_pd cmp,
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pi32 sg_cmplt_pi32(const sg_pi32 a, const sg_pi32 b) {
-    return (sg_cmp_pi32) { .b0 = a.i0 < b.i0, .b1 = a.i1 < b.i1,
-        .b2 = a.i2 < b.i2, .b3 = a.i3 < b.i3 };
+    sg_cmp_pi32 result;
+    result.b0 = a.i0 < b.i0; result.b1 = a.i1 < b.i1;
+    result.b2 = a.i2 < b.i2; result.b3 = a.i3 < b.i3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cmplt_pi32 _mm_cmplt_epi32
@@ -3071,8 +3222,9 @@ static inline sg_cmp_pi32 sg_cmplt_pi32(const sg_pi32 a, const sg_pi32 b) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_cmp_pi64 sg_cmplt_pi64(const sg_pi64 a, const sg_pi64 b) {
     const sg_generic_pi64 ag = sg_getg_pi64(a), bg = sg_getg_pi64(b);
-    return sg_setcmp_fromg_pi64((sg_generic_cmp2) { .b0 = ag.l0 < bg.l0,
-        .b1 = ag.l1 < bg.l1 });
+    sg_generic_cmp2 result;
+    result.b0 = ag.l0 < bg.l0; result.b1 = ag.l1 < bg.l1;
+    return sg_setcmp_fromg_pi64(result);
 }
 #elif defined SIMD_GRANODI_NEON
 #define sg_cmplt_pi64 vcltq_s64
@@ -3080,8 +3232,10 @@ static inline sg_cmp_pi64 sg_cmplt_pi64(const sg_pi64 a, const sg_pi64 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_ps sg_cmplt_ps(const sg_ps a, const sg_ps b) {
-    return (sg_cmp_ps) { .b0 = a.f0 < b.f0, .b1 = a.f1 < b.f1,
-        .b2 = a.f2 < b.f2, .b3 = a.f3 < b.f3 };
+    sg_cmp_ps result;
+    result.b0 = a.f0 < b.f0; result.b1 = a.f1 < b.f1;
+    result.b2 = a.f2 < b.f2; result.b3 = a.f3 < b.f3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cmplt_ps _mm_cmplt_ps
@@ -3091,7 +3245,9 @@ static inline sg_cmp_ps sg_cmplt_ps(const sg_ps a, const sg_ps b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pd sg_cmplt_pd(const sg_pd a, const sg_pd b) {
-    return (sg_cmp_pd) { .b0 = a.d0 < b.d0, .b1 = a.d1 < b.d1 };
+    sg_cmp_pd result;
+    result.b0 = a.d0 < b.d0; result.b1 = a.d1 < b.d1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cmplt_pd _mm_cmplt_pd
@@ -3102,8 +3258,10 @@ static inline sg_cmp_pd sg_cmplt_pd(const sg_pd a, const sg_pd b) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_cmp_pi32 sg_cmplte_pi32(const sg_pi32 a, const sg_pi32 b) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_cmp_pi32) { .b0 = a.i0 <= b.i0, .b1 = a.i1 <= b.i1,
-        .b2 = a.i2 <= b.i2, .b3 = a.i3 <= b.i3 };
+    sg_cmp_pi32 result;
+    result.b0 = a.i0 <= b.i0; result.b1 = a.i1 <= b.i1;
+    result.b2 = a.i2 <= b.i2; result.b3 = a.i3 <= b.i3;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     return _mm_or_si128(_mm_cmplt_epi32(a, b), _mm_cmpeq_epi32(a, b));
     #endif
@@ -3115,8 +3273,9 @@ static inline sg_cmp_pi32 sg_cmplte_pi32(const sg_pi32 a, const sg_pi32 b) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_cmp_pi64 sg_cmplte_pi64(const sg_pi64 a, const sg_pi64 b) {
     const sg_generic_pi64 ag = sg_getg_pi64(a), bg = sg_getg_pi64(b);
-    return sg_setcmp_fromg_pi64((sg_generic_cmp2) {
-        .b0 = ag.l0 <= bg.l0, .b1 = ag.l1 <= bg.l1 });
+    sg_generic_cmp2 result;
+    result.b0 = ag.l0 <= bg.l0; result.b1 = ag.l1 <= bg.l1;
+    return sg_setcmp_fromg_pi64(result);
 }
 #elif defined SIMD_GRANODI_NEON
 #define sg_cmplte_pi64 vcleq_s64
@@ -3124,8 +3283,10 @@ static inline sg_cmp_pi64 sg_cmplte_pi64(const sg_pi64 a, const sg_pi64 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_ps sg_cmplte_ps(const sg_ps a, const sg_ps b) {
-    return (sg_cmp_ps) { .b0 = a.f0 <= b.f0, .b1 = a.f1 <= b.f1,
-        .b2 = a.f2 <= b.f2, .b3 = a.f3 <= b.f3 };
+    sg_cmp_ps result;
+    result.b0 = a.f0 <= b.f0; result.b1 = a.f1 <= b.f1;
+    result.b2 = a.f2 <= b.f2; result.b3 = a.f3 <= b.f3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cmplte_ps _mm_cmple_ps
@@ -3135,7 +3296,9 @@ static inline sg_cmp_ps sg_cmplte_ps(const sg_ps a, const sg_ps b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pd sg_cmplte_pd(const sg_pd a, const sg_pd b) {
-    return (sg_cmp_pd) { .b0 = a.d0 <= b.d0, .b1 = a.d1 <= b.d1 };
+    sg_cmp_pd result;
+    result.b0 = a.d0 <= b.d0; result.b1 = a.d1 <= b.d1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cmplte_pd _mm_cmple_pd
@@ -3145,8 +3308,10 @@ static inline sg_cmp_pd sg_cmplte_pd(const sg_pd a, const sg_pd b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pi32 sg_cmpeq_pi32(const sg_pi32 a, const sg_pi32 b) {
-    return (sg_cmp_pi32) { .b0 = a.i0 == b.i0, .b1 = a.i1 == b.i1,
-        .b2 = a.i2 == b.i2, .b3 = a.i3 == b.i3 };
+    sg_cmp_pi32 result;
+    result.b0 = a.i0 == b.i0; result.b1 = a.i1 == b.i1;
+    result.b2 = a.i2 == b.i2; result.b3 = a.i3 == b.i3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cmpeq_pi32 _mm_cmpeq_epi32
@@ -3157,7 +3322,9 @@ static inline sg_cmp_pi32 sg_cmpeq_pi32(const sg_pi32 a, const sg_pi32 b) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_cmp_pi64 sg_cmpeq_pi64(const sg_pi64 a, const sg_pi64 b) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_generic_cmp2) { .b0 = a.l0 == b.l0, .b1 = a.l1 == b.l1 };
+    sg_cmp_pi64 result;
+    result.b0 = a.l0 == b.l0; result.b1 = a.l1 == b.l1;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     const __m128i eq_epi32 = _mm_cmpeq_epi32(a, b);
     return _mm_and_si128(eq_epi32,
@@ -3170,8 +3337,10 @@ static inline sg_cmp_pi64 sg_cmpeq_pi64(const sg_pi64 a, const sg_pi64 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_ps sg_cmpeq_ps(const sg_ps a, const sg_ps b) {
-    return (sg_cmp_ps) { .b0 = a.f0 == b.f0, .b1 = a.f1 == b.f1,
-        .b2 = a.f2 == b.f2, .b3 = a.f3 == b.f3 };
+    sg_cmp_ps result;
+    result.b0 = a.f0 == b.f0; result.b1 = a.f1 == b.f1;
+    result.b2 = a.f2 == b.f2; result.b3 = a.f3 == b.f3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cmpeq_ps _mm_cmpeq_ps
@@ -3181,7 +3350,9 @@ static inline sg_cmp_ps sg_cmpeq_ps(const sg_ps a, const sg_ps b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pd sg_cmpeq_pd(const sg_pd a, const sg_pd b) {
-    return (sg_cmp_pd) { .b0 = a.d0 == b.d0, .b1 = a.d1 == b.d1 };
+    sg_cmp_pd result;
+    result.b0 = a.d0 == b.d0; result.b1 = a.d1 == b.d1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cmpeq_pd _mm_cmpeq_pd
@@ -3191,10 +3362,10 @@ static inline sg_cmp_pd sg_cmpeq_pd(const sg_pd a, const sg_pd b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pi32 sg_cmpneq_pi32(const sg_pi32 a, const sg_pi32 b) {
-    return (sg_cmp_pi32) { .b0 = a.i0 != b.i0,
-        .b1 = a.i1 != b.i1,
-        .b2 = a.i2 != b.i2,
-        .b3 = a.i3 != b.i3 };
+    sg_cmp_pi32 result;
+    result.b0 = a.i0 != b.i0; result.b1 = a.i1 != b.i1;
+    result.b2 = a.i2 != b.i2; result.b3 = a.i3 != b.i3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cmpneq_pi32(a, b) sg_sse2_not_si128(_mm_cmpeq_epi32(a, b))
@@ -3204,7 +3375,9 @@ static inline sg_cmp_pi32 sg_cmpneq_pi32(const sg_pi32 a, const sg_pi32 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pi64 sg_cmpneq_pi64(const sg_pi64 a, const sg_pi64 b) {
-    return (sg_generic_cmp2) { .b0 = a.l0 != b.l0, .b1 = a.l1 != b.l1 };
+    sg_cmp_pi64 result;
+    result.b0 = a.l0 != b.l0; result.b1 = a.l1 != b.l1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cmpneq_pi64(a, b) sg_sse2_not_si128(sg_cmpeq_pi64(a, b))
@@ -3214,10 +3387,10 @@ static inline sg_cmp_pi64 sg_cmpneq_pi64(const sg_pi64 a, const sg_pi64 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_ps sg_cmpneq_ps(const sg_ps a, const sg_ps b) {
-    return (sg_cmp_ps) { .b0 = a.f0 != b.f0,
-        .b1 = a.f1 != b.f1,
-        .b2 = a.f2 != b.f2,
-        .b3 = a.f3 != b.f3 };
+    sg_cmp_ps result;
+    result.b0 = a.f0 != b.f0; result.b1 = a.f1 != b.f1;
+    result.b2 = a.f2 != b.f2; result.b3 = a.f3 != b.f3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cmpneq_ps _mm_cmpneq_ps
@@ -3227,8 +3400,9 @@ static inline sg_cmp_ps sg_cmpneq_ps(const sg_ps a, const sg_ps b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pd sg_cmpneq_pd(const sg_pd a, const sg_pd b) {
-    return (sg_cmp_pd) { .b0 = a.d0 != b.d0,
-        .b1 = a.d1 != b.d1 };
+    sg_cmp_pd result;
+    result.b0 = a.d0 != b.d0; result.b1 = a.d1 != b.d1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cmpneq_pd _mm_cmpneq_pd
@@ -3239,8 +3413,10 @@ static inline sg_cmp_pd sg_cmpneq_pd(const sg_pd a, const sg_pd b) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_cmp_pi32 sg_cmpgte_pi32(const sg_pi32 a, const sg_pi32 b) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_cmp_pi32) { .b0 = a.i0 >= b.i0, .b1 = a.i1 >= b.i1,
-        .b2 = a.i2 >= b.i2, .b3 = a.i3 >= b.i3 };
+    sg_cmp_pi32 result;
+    result.b0 = a.i0 >= b.i0; result.b1 = a.i1 >= b.i1;
+    result.b2 = a.i2 >= b.i2; result.b3 = a.i3 >= b.i3;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     return _mm_or_si128(_mm_cmpgt_epi32(a, b), _mm_cmpeq_epi32(a, b));
     #endif
@@ -3252,8 +3428,9 @@ static inline sg_cmp_pi32 sg_cmpgte_pi32(const sg_pi32 a, const sg_pi32 b) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_cmp_pi64 sg_cmpgte_pi64(const sg_pi64 a, const sg_pi64 b) {
     const sg_generic_pi64 ag = sg_getg_pi64(a), bg = sg_getg_pi64(b);
-    return sg_setcmp_fromg_pi64((sg_generic_cmp2) {
-        .b0 = ag.l0 >= bg.l0, .b1 = ag.l1 >= bg.l1 });
+    sg_generic_cmp2 result;
+    result.b0 = ag.l0 >= bg.l0; result.b1 = ag.l1 >= bg.l1;
+    return sg_setcmp_fromg_pi64(result);
 
 }
 #elif defined SIMD_GRANODI_NEON
@@ -3262,8 +3439,10 @@ static inline sg_cmp_pi64 sg_cmpgte_pi64(const sg_pi64 a, const sg_pi64 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_ps sg_cmpgte_ps(const sg_ps a, const sg_ps b) {
-    return (sg_cmp_ps) { .b0 = a.f0 >= b.f0, .b1 = a.f1 >= b.f1,
-        .b2 = a.f2 >= b.f2, .b3 = a.f3 >= b.f3 };
+    sg_cmp_ps result;
+    result.b0 = a.f0 >= b.f0; result.b1 = a.f1 >= b.f1;
+    result.b2 = a.f2 >= b.f2; result.b3 = a.f3 >= b.f3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cmpgte_ps _mm_cmpge_ps
@@ -3273,7 +3452,9 @@ static inline sg_cmp_ps sg_cmpgte_ps(const sg_ps a, const sg_ps b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pd sg_cmpgte_pd(const sg_pd a, const sg_pd b) {
-    return (sg_cmp_pd) { .b0 = a.d0 >= b.d0, .b1 = a.d1 >= b.d1 };
+    sg_cmp_pd result;
+    result.b0 = a.d0 >= b.d0; result.b1 = a.d1 >= b.d1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cmpgte_pd _mm_cmpge_pd
@@ -3283,8 +3464,10 @@ static inline sg_cmp_pd sg_cmpgte_pd(const sg_pd a, const sg_pd b) {
 
 static inline sg_cmp_pi32 sg_cmpgt_pi32(const sg_pi32 a, const sg_pi32 b) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_cmp_pi32) { .b0 = a.i0 > b.i0, .b1 = a.i1 > b.i1,
-        .b2 = a.i2 > b.i2, .b3 = a.i3 > b.i3 };
+    sg_cmp_pi32 result;
+    result.b0 = a.i0 > b.i0; result.b1 = a.i1 > b.i1;
+    result.b2 = a.i2 > b.i2; result.b3 = a.i3 > b.i3;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     return _mm_cmpgt_epi32(a, b);
     #elif defined SIMD_GRANODI_NEON
@@ -3295,8 +3478,9 @@ static inline sg_cmp_pi32 sg_cmpgt_pi32(const sg_pi32 a, const sg_pi32 b) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_cmp_pi64 sg_cmpgt_pi64(const sg_pi64 a, const sg_pi64 b) {
     const sg_generic_pi64 ag = sg_getg_pi64(a), bg = sg_getg_pi64(b);
-    return sg_setcmp_fromg_pi64((sg_generic_cmp2) { .b0 = ag.l0 > bg.l0,
-        .b1 = ag.l1 > bg.l1 });
+    sg_generic_cmp2 result;
+    result.b0 = ag.l0 > bg.l0; result.b1 = ag.l1 > bg.l1;
+    return sg_setcmp_fromg_pi64(result);
 }
 #elif defined SIMD_GRANODI_NEON
 #define sg_cmpgt_pi64 vcgtq_s64
@@ -3304,8 +3488,10 @@ static inline sg_cmp_pi64 sg_cmpgt_pi64(const sg_pi64 a, const sg_pi64 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_ps sg_cmpgt_ps(const sg_ps a, const sg_ps b) {
-    return (sg_cmp_ps) { .b0 = a.f0 > b.f0, .b1 = a.f1 > b.f1,
-        .b2 = a.f2 > b.f2, .b3 = a.f3 > b.f3 };
+    sg_cmp_ps result;
+    result.b0 = a.f0 > b.f0; result.b1 = a.f1 > b.f1;
+    result.b2 = a.f2 > b.f2; result.b3 = a.f3 > b.f3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cmpgt_ps _mm_cmpgt_ps
@@ -3315,7 +3501,9 @@ static inline sg_cmp_ps sg_cmpgt_ps(const sg_ps a, const sg_ps b) {
 
 static inline sg_cmp_pd sg_cmpgt_pd(const sg_pd a, const sg_pd b) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_cmp_pd) { .b0 = a.d0 > b.d0, .b1 = a.d1 > b.d1 };
+    sg_cmp_pd result;
+    result.b0 = a.d0 > b.d0; result.b1 = a.d1 > b.d1;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     return _mm_cmpgt_pd(a, b);
     #elif defined SIMD_GRANODI_NEON
@@ -3369,7 +3557,9 @@ static inline sg_cmp_pi64 sg_castcmp_pd_pi64(const sg_cmp_pd cmp) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_NEON
 static inline sg_cmp_pi64 sg_cvtcmp_pi32_pi64(const sg_cmp_pi32 cmp) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_generic_cmp2) { .b0 = cmp.b0, .b1 = cmp.b1 };
+    sg_generic_cmp2 result;
+    result.b0 = cmp.b0; result.b1 = cmp.b1;
+    return result;
     #elif defined SIMD_GRANODI_NEON
     return vreinterpretq_u64_u32(vzip1q_u32(cmp, cmp));
     #endif
@@ -3417,7 +3607,10 @@ static inline sg_cmp_pi64 sg_cvtcmp_ps_pi64(const sg_cmp_ps cmp) {
 
 #if defined SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pi32 sg_cvtcmp_pi64_pi32(const sg_cmp_pi64 cmp) {
-    return (sg_cmp_pi32) { .b0 = cmp.b0, .b1 = cmp.b1, .b2 = 0, .b3 = 0 };
+    sg_cmp_pi32 result;
+    result.b0 = cmp.b0; result.b1 = cmp.b1;
+    result.b2 = false; result.b3 = false;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cvtcmp_pi64_pi32(cmp) \
@@ -3465,9 +3658,10 @@ static inline sg_cmp_pi32 sg_cvtcmp_pd_pi32(const sg_cmp_pd cmp) {
 static inline sg_cmp_pi32 sg_and_cmp_pi32(const sg_cmp_pi32 cmpa,
     const sg_cmp_pi32 cmpb)
 {
-    return (sg_cmp_pi32) { .b0 = cmpa.b0 && cmpb.b0,
-        .b1 = cmpa.b1 && cmpb.b1, .b2 = cmpa.b2 && cmpb.b2,
-        .b3 = cmpa.b3 && cmpb.b3 };
+    sg_cmp_pi32 result;
+    result.b0 = cmpa.b0 && cmpb.b0; result.b1 = cmpa.b1 && cmpb.b1;
+    result.b2 = cmpa.b2 && cmpb.b2; result.b3 = cmpa.b3 && cmpb.b3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_and_cmp_pi32 _mm_and_si128
@@ -3479,8 +3673,9 @@ static inline sg_cmp_pi32 sg_and_cmp_pi32(const sg_cmp_pi32 cmpa,
 static inline sg_cmp_pi64 sg_and_cmp_pi64(const sg_cmp_pi64 cmpa,
     const sg_cmp_pi64 cmpb)
 {
-    return (sg_cmp_pi64) { .b0 = cmpa.b0 && cmpb.b0,
-        .b1 = cmpa.b1 && cmpb.b1 };
+    sg_cmp_pi64 result;
+    result.b0 = cmpa.b0 && cmpb.b0; result.b1 = cmpa.b1 && cmpb.b1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_and_cmp_pi64 _mm_and_si128
@@ -3504,8 +3699,7 @@ static inline sg_cmp_ps sg_and_cmp_ps(const sg_cmp_ps cmpa,
 static inline sg_cmp_pd sg_and_cmp_pd(const sg_cmp_pd cmpa,
     const sg_cmp_pd cmpb)
 {
-    return (sg_cmp_pd) { .b0 = cmpa.b0 && cmpb.b0,
-        .b1 = cmpa.b1 && cmpb.b1 };
+    return sg_and_cmp_pi64(cmpa, cmpb);
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_and_cmp_pd _mm_and_pd
@@ -3517,9 +3711,10 @@ static inline sg_cmp_pd sg_and_cmp_pd(const sg_cmp_pd cmpa,
 static inline sg_cmp_pi32 sg_andnot_cmp_pi32(const sg_cmp_pi32 cmpa,
     const sg_cmp_pi32 cmpb)
 {
-    return (sg_cmp_pi32) { .b0 = !cmpa.b0 && cmpb.b0,
-        .b1 = !cmpa.b1 && cmpb.b1, .b2 = !cmpa.b2 && cmpb.b2,
-        .b3 = !cmpa.b3 && cmpb.b3 };
+    sg_cmp_pi32 result;
+    result.b0 = !cmpa.b0 && cmpb.b0; result.b1 = !cmpa.b1 && cmpb.b1;
+    result.b2 = !cmpa.b2 && cmpb.b2; result.b3 = !cmpa.b3 && cmpb.b3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_andnot_cmp_pi32 _mm_andnot_si128
@@ -3531,8 +3726,9 @@ static inline sg_cmp_pi32 sg_andnot_cmp_pi32(const sg_cmp_pi32 cmpa,
 static inline sg_cmp_pi64 sg_andnot_cmp_pi64(const sg_cmp_pi64 cmpa,
     const sg_cmp_pi64 cmpb)
 {
-    return (sg_cmp_pi64) { .b0 = !cmpa.b0 && cmpb.b0,
-        .b1 = !cmpa.b1 && cmpb.b1 };
+    sg_cmp_pi64 result;
+    result.b0 = !cmpa.b0 && cmpb.b0; result.b1 = !cmpa.b1 && cmpb.b1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_andnot_cmp_pi64 _mm_andnot_si128
@@ -3552,8 +3748,7 @@ static inline sg_cmp_ps sg_andnot_cmp_ps(const sg_cmp_ps cmpa, sg_cmp_ps cmpb) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pd sg_andnot_cmp_pd(const sg_cmp_pd cmpa, sg_cmp_pd cmpb) {
-    return (sg_cmp_pd) { .b0 = !cmpa.b0 && cmpb.b0,
-        .b1 = !cmpa.b1 && cmpb.b1 };
+    return sg_andnot_cmp_pi64(cmpa, cmpb);
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_andnot_cmp_pd _mm_andnot_pd
@@ -3563,8 +3758,10 @@ static inline sg_cmp_pd sg_andnot_cmp_pd(const sg_cmp_pd cmpa, sg_cmp_pd cmpb) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pi32 sg_not_cmp_pi32(const sg_cmp_pi32 cmp) {
-    return (sg_cmp_pi32) { .b0 = !cmp.b0, .b1 = !cmp.b1,
-        .b2 = !cmp.b2, .b3 = !cmp.b3 };
+    sg_cmp_pi32 result;
+    result.b0 = !cmp.b0; result.b1 = !cmp.b1;
+    result.b2 = !cmp.b2; result.b3 = !cmp.b3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_not_cmp_pi32 sg_sse2_not_si128
@@ -3574,7 +3771,9 @@ static inline sg_cmp_pi32 sg_not_cmp_pi32(const sg_cmp_pi32 cmp) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pi64 sg_not_cmp_pi64(const sg_cmp_pi64 cmp) {
-    return (sg_cmp_pi64) { .b0 = !cmp.b0, .b1 = !cmp.b1 };
+    sg_cmp_pi64 result;
+    result.b0 = !cmp.b0; result.b1 = !cmp.b1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_not_cmp_pi64 sg_sse2_not_si128
@@ -3594,7 +3793,7 @@ static inline sg_cmp_ps sg_not_cmp_ps(const sg_cmp_ps cmp) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_cmp_pd sg_not_cmp_pd(const sg_cmp_pd cmp) {
-    return (sg_cmp_pd) { .b0 = !cmp.b0, .b1 = !cmp.b1 };
+    return sg_not_cmp_pi64(cmp);
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_not_cmp_pd sg_sse2_not_pd
@@ -3606,9 +3805,10 @@ static inline sg_cmp_pd sg_not_cmp_pd(const sg_cmp_pd cmp) {
 static inline sg_cmp_pi32 sg_or_cmp_pi32(const sg_cmp_pi32 cmpa,
     const sg_cmp_pi32 cmpb)
 {
-    return (sg_cmp_pi32) { .b0 = cmpa.b0 || cmpb.b0,
-        .b1 = cmpa.b1 || cmpb.b1, .b2 = cmpa.b2 || cmpb.b2,
-        .b3 = cmpa.b3 || cmpb.b3 };
+    sg_cmp_pi32 result;
+    result.b0 = cmpa.b0 || cmpb.b0; result.b1 = cmpa.b1 || cmpb.b1;
+    result.b2 = cmpa.b2 || cmpb.b2; result.b3 = cmpa.b3 || cmpb.b3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_or_cmp_pi32 _mm_or_si128
@@ -3620,8 +3820,9 @@ static inline sg_cmp_pi32 sg_or_cmp_pi32(const sg_cmp_pi32 cmpa,
 static inline sg_cmp_pi64 sg_or_cmp_pi64(const sg_cmp_pi64 cmpa,
     const sg_cmp_pi64 cmpb)
 {
-    return (sg_cmp_pi64) { .b0 = cmpa.b0 || cmpb.b0,
-        .b1 = cmpa.b1 || cmpb.b1 };
+    sg_cmp_pi64 result;
+    result.b0 = cmpa.b0 || cmpb.b0; result.b1 = cmpa.b1 || cmpb.b1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_or_cmp_pi64 _mm_or_si128
@@ -3645,8 +3846,7 @@ static inline sg_cmp_ps sg_or_cmp_ps(const sg_cmp_ps cmpa,
 static inline sg_cmp_pd sg_or_cmp_pd(const sg_cmp_pd cmpa,
     const sg_cmp_pd cmpb)
 {
-    return (sg_cmp_pd) { .b0 = cmpa.b0 || cmpb.b0,
-        .b1 = cmpa.b1 || cmpb.b1 };
+    return sg_or_cmp_pi64(cmpa, cmpb);
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_or_cmp_pd _mm_or_pd
@@ -3660,9 +3860,10 @@ static inline sg_cmp_pi32 sg_xor_cmp_pi32(const sg_cmp_pi32 cmpa,
 {
     // the additional unary ! is unneccessary if comparison obtained correctly,
     // but used out of caution
-    return (sg_cmp_pi32) { .b0 = !cmpa.b0 != !cmpb.b0,
-        .b1 = !cmpa.b1 != !cmpb.b1, .b2 = !cmpa.b2 != !cmpb.b2,
-        .b3 = !cmpa.b3 != !cmpb.b3 };
+    sg_cmp_pi32 result;
+    result.b0 = !cmpa.b0 != !cmpb.b0; result.b1 = !cmpa.b1 != !cmpb.b1;
+    result.b2 = !cmpa.b2 != !cmpb.b2; result.b3 = !cmpa.b3 != !cmpb.b3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_xor_cmp_pi32 _mm_xor_si128
@@ -3674,8 +3875,9 @@ static inline sg_cmp_pi32 sg_xor_cmp_pi32(const sg_cmp_pi32 cmpa,
 static inline sg_cmp_pi64 sg_xor_cmp_pi64(const sg_cmp_pi64 cmpa,
     const sg_cmp_pi64 cmpb)
 {
-    return (sg_cmp_pi64) { .b0 = !cmpa.b0 != !cmpb.b0,
-        .b1 = !cmpa.b1 != !cmpb.b1 };
+    sg_cmp_pi64 result;
+    result.b0 = !cmpa.b0 != !cmpb.b0; result.b1 = !cmpa.b1 != !cmpb.b1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_xor_cmp_pi64 _mm_xor_si128
@@ -3714,10 +3916,12 @@ static inline sg_pi32 sg_choose_pi32(const sg_cmp_pi32 cmp,
     const sg_pi32 if_true, const sg_pi32 if_false)
 {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_pi32) { .i0 = cmp.b0 ? if_true.i0 : if_false.i0,
-        .i1 = cmp.b1 ? if_true.i1 : if_false.i1,
-        .i2 = cmp.b2 ? if_true.i2 : if_false.i2,
-        .i3 = cmp.b3 ? if_true.i3 : if_false.i3 };
+    sg_pi32 result;
+    result.i0 = cmp.b0 ? if_true.i0 : if_false.i0;
+    result.i1 = cmp.b1 ? if_true.i1 : if_false.i1;
+    result.i2 = cmp.b2 ? if_true.i2 : if_false.i2;
+    result.i3 = cmp.b3 ? if_true.i3 : if_false.i3;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     // There is a single instruction in later versions of SSE for blending,
     // but the throughput is the same as these combined instructions
@@ -3734,9 +3938,10 @@ static inline sg_pi32 sg_choose_pi32(const sg_cmp_pi32 cmp,
 static inline sg_pi32 sg_choose_else_zero_pi32(const sg_cmp_pi32 cmp,
     const sg_pi32 if_true)
 {
-    return (sg_pi32) { .i0 = cmp.b0 ? if_true.i0 : 0,
-        .i1 = cmp.b1 ? if_true.i1 : 0, .i2 = cmp.b2 ? if_true.i2 : 0,
-        .i3 = cmp.b3 ? if_true.i3 : 0 };
+    sg_pi32 result;
+    result.i0 = cmp.b0 ? if_true.i0 : 0; result.i1 = cmp.b1 ? if_true.i1 : 0;
+    result.i2 = cmp.b2 ? if_true.i2 : 0; result.i3 = cmp.b3 ? if_true.i3 : 0;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_choose_else_zero_pi32 _mm_and_si128
@@ -3749,8 +3954,10 @@ static inline sg_pi32 sg_choose_else_zero_pi32(const sg_cmp_pi32 cmp,
 static inline sg_pi64 sg_choose_pi64(const sg_cmp_pi64 cmp,
     const sg_pi64 if_true, const sg_pi64 if_false)
 {
-    return (sg_pi64) { .l0 = cmp.b0 ? if_true.l0 : if_false.l0,
-        .l1 = cmp.b1 ? if_true.l1 : if_false.l1 };
+    sg_pi64 result;
+    result.l0 = cmp.b0 ? if_true.l0 : if_false.l0;
+    result.l1 = cmp.b1 ? if_true.l1 : if_false.l1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_choose_pi64 sg_choose_pi32
@@ -3762,8 +3969,9 @@ static inline sg_pi64 sg_choose_pi64(const sg_cmp_pi64 cmp,
 static inline sg_pi64 sg_choose_else_zero_pi64(const sg_cmp_pi64 cmp,
     const sg_pi64 if_true)
 {
-    return (sg_pi64) { .l0 = cmp.b0 ? if_true.l0 : 0,
-        .l1 = cmp.b1 ? if_true.l1 : 0 };
+    sg_pi64 result;
+    result.l0 = cmp.b0 ? if_true.l0 : 0; result.l1 = cmp.b1 ? if_true.l1 : 0;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_choose_else_zero_pi64 _mm_and_si128
@@ -3777,10 +3985,12 @@ static inline sg_ps sg_choose_ps(const sg_cmp_ps cmp,
     const sg_ps if_true, const sg_ps if_false)
 {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_ps) {. f0 = cmp.b0 ? if_true.f0 : if_false.f0,
-        .f1 = cmp.b1 ? if_true.f1 : if_false.f1,
-        .f2 = cmp.b2 ? if_true.f2 : if_false.f2,
-        .f3 = cmp.b3 ? if_true.f3 : if_false.f3 };
+    sg_ps result;
+    result.f0 = cmp.b0 ? if_true.f0 : if_false.f0;
+    result.f1 = cmp.b1 ? if_true.f1 : if_false.f1;
+    result.f2 = cmp.b2 ? if_true.f2 : if_false.f2;
+    result.f3 = cmp.b3 ? if_true.f3 : if_false.f3;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     return _mm_or_ps(_mm_andnot_ps(cmp, if_false),
         _mm_and_ps(cmp, if_true));
@@ -3794,10 +4004,12 @@ static inline sg_ps sg_choose_ps(const sg_cmp_ps cmp,
 static inline sg_ps sg_choose_else_zero_ps(const sg_cmp_ps cmp,
     const sg_ps if_true)
 {
-    return (sg_ps) { .f0 = cmp.b0 ? if_true.f0 : 0.0f,
-        .f1 = cmp.b1 ? if_true.f1 : 0.0f,
-        .f2 = cmp.b2 ? if_true.f2 : 0.0f,
-        .f3 = cmp.b3 ? if_true.f3 : 0.0f };
+    sg_ps result;
+    result.f0 = cmp.b0 ? if_true.f0 : 0.0f;
+    result.f1 = cmp.b1 ? if_true.f1 : 0.0f;
+    result.f2 = cmp.b2 ? if_true.f2 : 0.0f;
+    result.f3 = cmp.b3 ? if_true.f3 : 0.0f;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_choose_else_zero_ps _mm_and_ps
@@ -3811,8 +4023,10 @@ static inline sg_pd sg_choose_pd(const sg_cmp_pd cmp,
     const sg_pd if_true, const sg_pd if_false)
 {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_pd) { .d0 = cmp.b0 ? if_true.d0 : if_false.d0,
-        .d1 = cmp.b1 ? if_true.d1 : if_false.d1 };
+    sg_pd result;
+    result.d0 = cmp.b0 ? if_true.d0 : if_false.d0;
+    result.d1 = cmp.b1 ? if_true.d1 : if_false.d1;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     return _mm_or_pd(_mm_andnot_pd(cmp, if_false),
         _mm_and_pd(cmp, if_true));
@@ -3826,8 +4040,10 @@ static inline sg_pd sg_choose_pd(const sg_cmp_pd cmp,
 static inline sg_pd sg_choose_else_zero_pd(const sg_cmp_pd cmp,
     const sg_pd if_true)
 {
-    return (sg_pd) { .d0 = cmp.b0 ? if_true.d0 : 0.0,
-        .d1 = cmp.b1 ? if_true.d1 : 0.0 };
+    sg_pd result;
+    result.d0 = cmp.b0 ? if_true.d0 : 0.0;
+    result.d1 = cmp.b1 ? if_true.d1 : 0.0;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_choose_else_zero_pd _mm_and_pd
@@ -3836,44 +4052,44 @@ static inline sg_pd sg_choose_else_zero_pd(const sg_cmp_pd cmp,
     vreinterpretq_f64_u64(vandq_u64(cmp, vreinterpretq_u64_f64(if_true)))
 #endif
 
-// Safe division: Divide by 1 if the denominator is 0.
-// Quite often we want to divide by a number that could be zero, and then
-// discard (via masking) the result of the division later when it turns out
-// the denominator was zero. But before then, we want the division to happen
-// safely: even if hardware exceptions are ignored, a slowdown could still
-// happen.
-// Note that with integers, this does NOT check for dividing INT_MIN by -1
+/*
+Safe division: Divide by 1 if the denominator is 0.
+Sometimes we want to divide by a number that could be zero, and then
+discard (via masking) the result of the division later when it turns out
+the denominator was zero. But before then, we want the division to happen
+safely: even if hardware exceptions are ignored, a slowdown could still
+happen.
+Note that
+- with float / double, and a large numerator & small denom, may
+  not be "safe".
+- with integers, this does NOT check for dividing INT_MIN by -1
+*/
 static inline sg_pi32 sg_safediv_pi32(const sg_pi32 a, const sg_pi32 b) {
-    const sg_generic_pi32 ag = sg_getg_pi32(a);
-    sg_generic_pi32 b_safe = sg_getg_pi32(b);
-    b_safe.i0 = b_safe.i0 != 0 ? b_safe.i0 : 1;
-    b_safe.i1 = b_safe.i1 != 0 ? b_safe.i1 : 1;
-    b_safe.i2 = b_safe.i2 != 0 ? b_safe.i2 : 1;
-    b_safe.i3 = b_safe.i3 != 0 ? b_safe.i3 : 1;
-    return sg_set_fromg_pi32((sg_generic_pi32) { .i0 = ag.i0 / b_safe.i0,
-        .i1 = ag.i1 / b_safe.i1, .i2 = ag.i2 / b_safe.i2,
-        .i3 = ag.i3 / b_safe.i3 });
+    const sg_generic_pi32 ag = sg_getg_pi32(a), bg = sg_getg_pi32(b);
+    sg_generic_pi32 result;
+    result.i0 = ag.i0 / (bg.i0 != 0 ? bg.i0 : 1);
+    result.i1 = ag.i1 / (bg.i1 != 0 ? bg.i1 : 1);
+    result.i2 = ag.i2 / (bg.i2 != 0 ? bg.i2 : 1);
+    result.i3 = ag.i3 / (bg.i3 != 0 ? bg.i3 : 1);
+    return sg_set_fromg_pi32(result);
 }
 
 static inline sg_pi64 sg_safediv_pi64(const sg_pi64 a, const sg_pi64 b) {
-    const sg_generic_pi64 ag = sg_getg_pi64(a);
-    sg_generic_pi64 b_safe = sg_getg_pi64(b);
-    b_safe.l0 = b_safe.l0 != 0 ? b_safe.l0 : 1;
-    b_safe.l1 = b_safe.l1 != 0 ? b_safe.l1 : 1;
-    return sg_set_fromg_pi64((sg_generic_pi64) { .l0 = ag.l0 / b_safe.l0,
-        .l1 = ag.l1 / b_safe.l1 });
+    const sg_generic_pi64 ag = sg_getg_pi64(a), bg = sg_getg_pi64(b);
+    sg_generic_pi64 result;
+    result.l0 = ag.l0 / (bg.l0 != 0 ? bg.l0 : 1);
+    result.l1 = ag.l1 / (bg.l1 != 0 ? bg.l1 : 1);
+    return sg_set_fromg_pi64(result);
 }
 
 static inline sg_ps sg_safediv_ps(const sg_ps a, const sg_ps b) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    const sg_ps b_safe = { .f0 = b.f0 != 0.0f ? b.f0 : 1.0f,
-        .f1 = b.f1 != 0.0f ? b.f1 : 1.0f,
-        .f2 = b.f2 != 0.0f ? b.f2 : 1.0f,
-        .f3 = b.f3 != 0.0f ? b.f3 : 1.0f };
-    return (sg_generic_ps) { .f0 = a.f0 / b_safe.f0,
-        .f1 = a.f1 / b_safe.f1,
-        .f2 = a.f2 / b_safe.f2,
-        .f3 = a.f3 / b_safe.f3 };
+    sg_ps result;
+    result.f0 = a.f0 / (b.f0 != 0.0f ? b.f0 : 1.0f);
+    result.f1 = a.f1 / (b.f1 != 0.0f ? b.f1 : 1.0f);
+    result.f2 = a.f2 / (b.f2 != 0.0f ? b.f2 : 1.0f);
+    result.f3 = a.f3 / (b.f3 != 0.0f ? b.f3 : 1.0f);
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     const __m128 safe_mask = _mm_cmpneq_ps(_mm_setzero_ps(), b);
     const __m128 safe_b = sg_choose_ps(safe_mask, b, _mm_set1_ps(1.0f));
@@ -3887,10 +4103,10 @@ static inline sg_ps sg_safediv_ps(const sg_ps a, const sg_ps b) {
 
 static inline sg_pd sg_safediv_pd(const sg_pd a, const sg_pd b) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    const sg_pd b_safe = { .d0 = b.d0 != 0.0 ? b.d0 : 1.0,
-        .d1 = b.d1 != 0.0 ? b.d1 : 1.0 };
-    return (sg_generic_pd) { .d0 = a.d0 / b_safe.d0,
-        .d1 = a.d1 / b_safe.d1 };
+    sg_pd result;
+    result.d0 = a.d0 / (b.d0 != 0.0 ? b.d0 : 1.0);
+    result.d1 = a.d1 / (b.d1 != 0.0 ? b.d1 : 1.0);
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     const __m128d safe_mask = _mm_cmpneq_pd(_mm_setzero_pd(), b);
     const __m128d safe_b = sg_choose_pd(safe_mask, b, _mm_set1_pd(1.0));
@@ -3907,8 +4123,10 @@ static inline sg_pd sg_safediv_pd(const sg_pd a, const sg_pd b) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_pi32 sg_abs_pi32(const sg_pi32 a) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_pi32) { .i0 = abs(a.i0), .i1 = abs(a.i1),
-        .i2 = abs(a.i2), .i3 = abs(a.i3) };
+    sg_pi32 result;
+    result.i0 = abs(a.i0); result.i1 = abs(a.i1);
+    result.i2 = abs(a.i2); result.i3 = abs(a.i3);
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     return sg_choose_pi32(_mm_cmplt_epi32(a, _mm_setzero_si128()),
         _mm_sub_epi32(_mm_setzero_si128(), a), a);
@@ -3921,9 +4139,10 @@ static inline sg_pi32 sg_abs_pi32(const sg_pi32 a) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_pi64 sg_abs_pi64(const sg_pi64 a) {
     const sg_generic_pi64 ag = sg_getg_pi64(a);
-    return sg_set_fromg_pi64((sg_generic_pi64) {
-        .l0 = ag.l0 < 0 ? -ag.l0 : ag.l0,
-        .l1 = ag.l1 < 0 ? -ag.l1 : ag.l1 });
+    sg_generic_pi64 result;
+    result.l0 = ag.l0 < 0 ? -ag.l0 : ag.l0;
+    result.l1 = ag.l1 < 0 ? -ag.l1 : ag.l1;
+    return sg_set_fromg_pi64(result);
 }
 #elif defined SIMD_GRANODI_NEON
 #define sg_abs_pi64 vabsq_s64
@@ -3931,8 +4150,10 @@ static inline sg_pi64 sg_abs_pi64(const sg_pi64 a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_abs_ps(const sg_ps a) {
-    return (sg_generic_ps) { .f0 = fabsf(a.f0), .f1 = fabsf(a.f1),
-        .f2 = fabsf(a.f2), .f3 = fabsf(a.f3) };
+    sg_ps result;
+    result.f0 = fabsf(a.f0); result.f1 = fabsf(a.f1);
+    result.f2 = fabsf(a.f2); result.f3 = fabsf(a.f3);
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_abs_ps(a) _mm_and_ps(a, sg_sse2_signmask_ps)
@@ -3942,7 +4163,9 @@ static inline sg_ps sg_abs_ps(const sg_ps a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_abs_pd(const sg_pd a) {
-    return (sg_pd) { .d0 = fabs(a.d0), .d1 = fabs(a.d1) };
+    sg_pd result;
+    result.d0 = fabs(a.d0); result.d1 = fabs(a.d1);
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_abs_pd(a) _mm_and_pd(a, sg_sse2_signmask_pd)
@@ -3952,8 +4175,9 @@ static inline sg_pd sg_abs_pd(const sg_pd a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_neg_pi32(const sg_pi32 a) {
-    return (sg_pi32) { .i0 = -a.i0, .i1 = -a.i1,
-        .i2 = -a.i2, .i3 = -a.i3 };
+    sg_pi32 result;
+    result.i0 = -a.i0; result.i1 = -a.i1; result.i2 = -a.i2; result.i3 = -a.i3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_neg_pi32(a) _mm_sub_epi32(_mm_setzero_si128(), a)
@@ -3963,7 +4187,9 @@ static inline sg_pi32 sg_neg_pi32(const sg_pi32 a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_neg_pi64(const sg_pi64 a) {
-    return (sg_pi64) { .l0 = -a.l0, .l1 = -a.l1 };
+    sg_pi64 result;
+    result.l0 = -a.l0; result.l1 = -a.l1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_neg_pi64(a) _mm_sub_epi64(_mm_setzero_si128(), a)
@@ -3973,8 +4199,10 @@ static inline sg_pi64 sg_neg_pi64(const sg_pi64 a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_neg_ps(const sg_ps a) {
-    return (sg_ps) { .f0 = -a.f0, .f1 = -a.f1,
-        .f2 = -a.f2, .f3 = -a.f3 };
+    sg_ps result;
+    result.f0 = -a.f0; result.f1 = -a.f1;
+    result.f2 = -a.f2; result.f3 = -a.f3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_neg_ps(a) _mm_xor_ps(a, sg_sse2_signbit_ps)
@@ -3984,7 +4212,9 @@ static inline sg_ps sg_neg_ps(const sg_ps a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_neg_pd(const sg_pd a) {
-    return (sg_pd) { .d0 = -a.d0, .d1 = -a.d1 };
+    sg_pd result;
+    result.d0 = -a.d0; result.d1 = -a.d1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_neg_pd(a) _mm_xor_pd(a, sg_sse2_signbit_pd)
@@ -3997,10 +4227,12 @@ static inline sg_pd sg_neg_pd(const sg_pd a) {
 
 static inline sg_ps sg_remove_signed_zero_ps(const sg_ps a) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_ps) { .f0 = a.f0 != 0.0f ? a.f0 : 0.0f,
-        .f1 = a.f1 != 0.0f ? a.f1 : 0.0f,
-        .f2 = a.f2 != 0.0f ? a.f2 : 0.0f,
-        .f3 = a.f3 != 0.0f ? a.f3 : 0.0f };
+    sg_ps result;
+    result.f0 = a.f0 != 0.0f ? a.f0 : 0.0f;
+    result.f1 = a.f1 != 0.0f ? a.f1 : 0.0f;
+    result.f2 = a.f2 != 0.0f ? a.f2 : 0.0f;
+    result.f3 = a.f3 != 0.0f ? a.f3 : 0.0f;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     return _mm_and_ps(a, _mm_cmpneq_ps(a, _mm_setzero_ps()));
     #elif defined SIMD_GRANODI_NEON
@@ -4011,8 +4243,10 @@ static inline sg_ps sg_remove_signed_zero_ps(const sg_ps a) {
 
 static inline sg_pd sg_remove_signed_zero_pd(const sg_pd a) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_pd) { .d0 = a.d0 != 0.0 ? a.d0 : 0.0,
-        .d1 = a.d1 != 0.0 ? a.d1 : 0.0 };
+    sg_pd result;
+    result.d0 = a.d0 != 0.0 ? a.d0 : 0.0;
+    result.d1 = a.d1 != 0.0 ? a.d1 : 0.0;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     return _mm_and_pd(a, _mm_cmpneq_pd(a, _mm_setzero_pd()));
     #elif defined SIMD_GRANODI_NEON
@@ -4026,10 +4260,12 @@ static inline sg_pd sg_remove_signed_zero_pd(const sg_pd a) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_pi32 sg_min_pi32(const sg_pi32 a, const sg_pi32 b) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_pi32) { .i0 = a.i0 < b.i0 ? a.i0 : b.i0,
-        .i1 = a.i1 < b.i1 ? a.i1 : b.i1,
-        .i2 = a.i2 < b.i2 ? a.i2 : b.i2,
-        .i3 = a.i3 < b.i3 ? a.i3 : b.i3 };
+    sg_pi32 result;
+    result.i0 = a.i0 < b.i0 ? a.i0 : b.i0;
+    result.i1 = a.i1 < b.i1 ? a.i1 : b.i1;
+    result.i2 = a.i2 < b.i2 ? a.i2 : b.i2;
+    result.i3 = a.i3 < b.i3 ? a.i3 : b.i3;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     return sg_choose_pi32(_mm_cmplt_epi32(a, b), a, b);
     #endif
@@ -4041,9 +4277,10 @@ static inline sg_pi32 sg_min_pi32(const sg_pi32 a, const sg_pi32 b) {
 static inline sg_pi64 sg_min_pi64(const sg_pi64 a, const sg_pi64 b) {
     #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
     const sg_generic_pi64 ag = sg_getg_pi64(a), bg = sg_getg_pi64(b);
-        return sg_set_fromg_pi64((sg_generic_pi64) {
-            .l0 = ag.l0 < bg.l0 ? ag.l0 : bg.l0,
-            .l1 = ag.l1 < bg.l1 ? ag.l1 : bg.l1 });
+    sg_generic_pi64 result;
+    result.l0 = ag.l0 < bg.l0 ? ag.l0 : bg.l0;
+    result.l1 = ag.l1 < bg.l1 ? ag.l1 : bg.l1;
+    return sg_set_fromg_pi64(result);
     #elif defined SIMD_GRANODI_NEON
     return sg_choose_pi64(vcltq_s64(a, b), a, b);
     #endif
@@ -4054,10 +4291,12 @@ static inline sg_pi64 sg_min_pi64(const sg_pi64 a, const sg_pi64 b) {
 // For consistent behaviour, recommend combining with sg_remove_signed_zero()
 #if defined SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_min_fast_ps(const sg_ps a, const sg_ps b) {
-    return (sg_ps) { .f0 = a.f0 < b.f0 ? a.f0 : b.f0,
-        .f1 = a.f1 < b.f1 ? a.f1 : b.f1,
-        .f2 = a.f2 < b.f2 ? a.f2 : b.f2,
-        .f3 = a.f3 < b.f3 ? a.f3 : b.f3 };
+    sg_ps result;
+    result.f0 = a.f0 < b.f0 ? a.f0 : b.f0;
+    result.f1 = a.f1 < b.f1 ? a.f1 : b.f1;
+    result.f2 = a.f2 < b.f2 ? a.f2 : b.f2;
+    result.f3 = a.f3 < b.f3 ? a.f3 : b.f3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_min_fast_ps _mm_min_ps
@@ -4067,8 +4306,10 @@ static inline sg_ps sg_min_fast_ps(const sg_ps a, const sg_ps b) {
 
 #if defined SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_min_fast_pd(const sg_pd a, const sg_pd b) {
-    return (sg_pd) { .d0 = a.d0 < b.d0 ? a.d0 : b.d0,
-        .d1 = a.d1 < b.d1 ? a.d1 : b.d1 };
+    sg_pd result;
+    result.d0 = a.d0 < b.d0 ? a.d0 : b.d0;
+    result.d1 = a.d1 < b.d1 ? a.d1 : b.d1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_min_fast_pd _mm_min_pd
@@ -4081,10 +4322,12 @@ static inline sg_pd sg_min_fast_pd(const sg_pd a, const sg_pd b) {
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_pi32 sg_max_pi32(const sg_pi32 a, const sg_pi32 b) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return (sg_pi32) { .i0 = a.i0 > b.i0 ? a.i0 : b.i0,
-        .i1 = a.i1 > b.i1 ? a.i1 : b.i1,
-        .i2 = a.i2 > b.i2 ? a.i2 : b.i2,
-        .i3 = a.i3 > b.i3 ? a.i3 : b.i3 };
+    sg_pi32 result;
+    result.i0 = a.i0 > b.i0 ? a.i0 : b.i0;
+    result.i1 = a.i1 > b.i1 ? a.i1 : b.i1;
+    result.i2 = a.i2 > b.i2 ? a.i2 : b.i2;
+    result.i3 = a.i3 > b.i3 ? a.i3 : b.i3;
+    return result;
     #elif defined SIMD_GRANODI_SSE2
     return sg_choose_pi32(_mm_cmpgt_epi32(a, b), a, b);
     #endif
@@ -4096,9 +4339,10 @@ static inline sg_pi32 sg_max_pi32(const sg_pi32 a, const sg_pi32 b) {
 static inline sg_pi64 sg_max_pi64(const sg_pi64 a, const sg_pi64 b) {
     #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
     const sg_generic_pi64 ag = sg_getg_pi64(a), bg = sg_getg_pi64(b);
-    return sg_set_fromg_pi64((sg_generic_pi64) {
-        .l0 = ag.l0 > bg.l0 ? ag.l0 : bg.l0,
-        .l1 = ag.l1 > bg.l1 ? ag.l1 : bg.l1 });
+    sg_generic_pi64 result;
+    result.l0 = ag.l0 > bg.l0 ? ag.l0 : bg.l0;
+    result.l1 = ag.l1 > bg.l1 ? ag.l1 : bg.l1;
+    return sg_set_fromg_pi64(result);
     #elif defined SIMD_GRANODI_NEON
     return sg_choose_pi64(vcgtq_s64(a, b), a, b);
     #endif
@@ -4106,10 +4350,12 @@ static inline sg_pi64 sg_max_pi64(const sg_pi64 a, const sg_pi64 b) {
 
 #if defined SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_max_fast_ps(const sg_ps a, const sg_ps b) {
-    return (sg_ps) { .f0 = a.f0 > b.f0 ? a.f0 : b.f0,
-        .f1 = a.f1 > b.f1 ? a.f1 : b.f1,
-        .f2 = a.f2 > b.f2 ? a.f2 : b.f2,
-        .f3 = a.f3 > b.f3 ? a.f3 : b.f3 };
+    sg_ps result;
+    result.f0 = a.f0 > b.f0 ? a.f0 : b.f0;
+    result.f1 = a.f1 > b.f1 ? a.f1 : b.f1;
+    result.f2 = a.f2 > b.f2 ? a.f2 : b.f2;
+    result.f3 = a.f3 > b.f3 ? a.f3 : b.f3;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_max_fast_ps _mm_max_ps
@@ -4119,8 +4365,10 @@ static inline sg_ps sg_max_fast_ps(const sg_ps a, const sg_ps b) {
 
 #if defined SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_max_fast_pd(const sg_pd a, const sg_pd b) {
-    return (sg_pd) { .d0 = a.d0 > b.d0 ? a.d0 : b.d0,
-        .d1 = a.d1 > b.d1 ? a.d1 : b.d1 };
+    sg_pd result;
+    result.d0 = a.d0 > b.d0 ? a.d0 : b.d0;
+    result.d1 = a.d1 > b.d1 ? a.d1 : b.d1;
+    return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_max_fast_pd _mm_max_pd
