@@ -61,6 +61,8 @@ SSE2 in vector registers, but slower:
 - sg_mul_pi32 combines two _mm_mul_epu32 (unsigned mul) with a lot of other ops
 
 Non-vector on NEON:
+sg_srl_pi32
+sg_srl_pi64
 sg_sra_pi32
 
 Non-vector on SSE2 and NEON:
@@ -2800,7 +2802,7 @@ static inline sg_pi64 sg_sl_pi64(const sg_pi64 a, const sg_pi64 shift) {
     return result;
     #endif
 }
-#elif defined SIMG_GRANODI_NEON
+#elif defined SIMD_GRANODI_NEON
 #define sg_sl_pi64 vshlq_s64
 #endif
 
@@ -2816,19 +2818,18 @@ static inline sg_pi64 sg_sl_imm_pi64(const sg_pi64 a, const int32_t shift) {
 #define sg_sl_imm_pi64 vshlq_n_s64
 #endif
 
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_pi32 sg_srl_pi32(const sg_pi32 a, const sg_pi32 shift) {
-    #ifdef SIMD_GRANODI_FORCE_GENERIC
-    sg_pi32 result;
-    result.i0 = sg_scast_u32_s32((sg_scast_s32_u32(a.i0) >>
-        sg_scast_s32_u32(shift.i0)));
-    result.i1 = sg_scast_u32_s32((sg_scast_s32_u32(a.i1) >>
-        sg_scast_s32_u32(shift.i1)));
-    result.i2 = sg_scast_u32_s32((sg_scast_s32_u32(a.i2) >>
-        sg_scast_s32_u32(shift.i2)));
-    result.i3 = sg_scast_u32_s32((sg_scast_s32_u32(a.i3) >>
-        sg_scast_s32_u32(shift.i3)));
-    return result;
+    #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_NEON
+    sg_generic_pi32 ag = sg_getg_pi32(a), shiftg = sg_getg_pi32(shift), result;
+    result.i0 = sg_scast_u32_s32((sg_scast_s32_u32(ag.i0) >>
+        sg_scast_s32_u32(shiftg.i0)));
+    result.i1 = sg_scast_u32_s32((sg_scast_s32_u32(ag.i1) >>
+        sg_scast_s32_u32(shiftg.i1)));
+    result.i2 = sg_scast_u32_s32((sg_scast_s32_u32(ag.i2) >>
+        sg_scast_s32_u32(shiftg.i2)));
+    result.i3 = sg_scast_u32_s32((sg_scast_s32_u32(ag.i3) >>
+        sg_scast_s32_u32(shiftg.i3)));
+    return sg_set_fromg_pi32(result);
     #elif defined SIMD_GRANODI_SSE2
     __m128i result = _mm_and_si128(_mm_set_epi32(0,0,0,-1),
         _mm_srl_epi32(a, _mm_and_si128(shift, _mm_set_epi32(0,0,0,-1))));
@@ -2844,9 +2845,6 @@ static inline sg_pi32 sg_srl_pi32(const sg_pi32 a, const sg_pi32 shift) {
     return result;
     #endif
 }
-#elif defined SIMD_GRANODI_NEON
-#define sg_srl_pi32(a, shift) vshlq_s32(a, vnegq_s32(shift))
-#endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_srl_imm_pi32(const sg_pi32 a, const int32_t shift) {
@@ -2864,15 +2862,14 @@ static inline sg_pi32 sg_srl_imm_pi32(const sg_pi32 a, const int32_t shift) {
     vshrq_n_u32(vreinterpretq_u32_s32(a), (shift)))
 #endif
 
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_pi64 sg_srl_pi64(const sg_pi64 a, const sg_pi64 shift) {
-    #ifdef SIMD_GRANODI_FORCE_GENERIC
-    sg_pi64 result;
-    result.l0 = sg_scast_u64_s64(sg_scast_s64_u64(a.l0) >>
-        (uint64_t) sg_scast_s32_u32(shift.l0));
-    result.l1 = sg_scast_u64_s64(sg_scast_s64_u64(a.l1) >>
-        (uint64_t) sg_scast_s32_u32(shift.l1));
-    return result;
+    #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_NEON
+    sg_generic_pi64 ag = sg_getg_pi64(a), shiftg = sg_getg_pi64(shift), result;
+    result.l0 = sg_scast_u64_s64(sg_scast_s64_u64(ag.l0) >>
+        (uint64_t) sg_scast_s32_u32(shiftg.l0));
+    result.l1 = sg_scast_u64_s64(sg_scast_s64_u64(ag.l1) >>
+        (uint64_t) sg_scast_s32_u32(shiftg.l1));
+    return sg_set_fromg_pi64(result);
     #elif defined SIMD_GRANODI_SSE2
     __m128i result = _mm_and_si128(_mm_set_epi64x(0,-1),
         _mm_srl_epi64(a, shift));
@@ -2882,9 +2879,6 @@ static inline sg_pi64 sg_srl_pi64(const sg_pi64 a, const sg_pi64 shift) {
     return result;
     #endif
 }
-#elif defined SIMD_GRANODI_NEON
-#define sg_srl_pi64(a, shift) vshlq_s64(a, vnegq_s64(shift))
-#endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_srl_imm_pi64(const sg_pi64 a, const int32_t shift) {

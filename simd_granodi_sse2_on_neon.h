@@ -125,6 +125,6 @@ static inline float64x2_t _mm_shuffle_pd(const float64x2_t a,
 #define _mm_min_pd sg_min_fast_pd
 #define _mm_max_ps sg_max_fast_ps
 #define _mm_max_pd sg_max_fast_pd
-#define _mm_sll_epi32(a, shift) sg_sl_pi32(a, vdupq_lane_s32(shift, 0))
+#define _mm_sll_epi32(a, shift) sg_sl_pi32(a, vdupq_laneq_s32(shift, 0))
 
 #endif
