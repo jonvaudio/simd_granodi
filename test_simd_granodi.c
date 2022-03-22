@@ -1126,7 +1126,8 @@ void test_min_max() {
     assert_eq_ps(_mm_min_ps(sg_set1_ps(1.0f), sg_set1_ps(2.0f)),
         1.0f, 1.0f, 1.0f, 1.0f);
     assert_eq_pd(_mm_min_pd(sg_set1_pd(1.0), sg_set1_pd(2.0)), 1.0, 1.0);
-    assert_eq_ps(_mm_max_ps(sg_set1_ps(1.0f), sg_set1_ps(2.0f)), 2.0f, 2.0f);
+    assert_eq_ps(_mm_max_ps(sg_set1_ps(1.0f), sg_set1_ps(2.0f)),
+        2.0f, 2.0f, 2.0f, 2.0f);
     assert_eq_pd(_mm_max_pd(sg_set1_pd(1.0), sg_set1_pd(2.0)), 2.0, 2.0);
     #endif
 
