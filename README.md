@@ -1,4 +1,4 @@
-# SIMD Granodi
+# simd_granodi.h
 
 ### Easy 128-bit AArch64 NEON / x64 SSE2 SIMD in a single header file, for both plain C99, and C++ with operator overloading
 
