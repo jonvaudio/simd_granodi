@@ -343,13 +343,17 @@ void test_set() {
     assert_eq_pi64(vreinterpretq_s64_s32(_mm_set_epi64x(1, 0)), 1, 0);
     assert_eq_pi64(vreinterpretq_s64_s32(_mm_set1_epi64x(1)), 1, 1);
 
+    assert_eq_ps(_mm_set_ss(3.0f), 0.0f, 0.0f, 0.0f, 3.0f);
     assert_eq_ps(_mm_set_ps(3.0f, 2.0f, 1.0f, 0.0f),
         3.0f, 2.0f, 1.0f, 0.0f);
     assert_eq_ps(_mm_set1_ps(1.0f), 1.0f, 1.0f, 1.0f, 1.0f);
+    assert_eq_ps(_mm_set_ps1(1.0f), 1.0f, 1.0f, 1.0f, 1.0f);
     assert_eq_ps(_mm_setzero_ps(), 0.0f, 0.0f, 0.0f, 0.0f);
 
+    assert_eq_pd(_mm_set_sd(3.0), 0.0, 3.0);
     assert_eq_pd(_mm_set_pd(1.0, 0.0), 1.0, 0.0);
     assert_eq_pd(_mm_set1_pd(1.0), 1.0, 1.0);
+    assert_eq_pd(_mm_set_pd1(1.0), 1.0, 1.0);
     assert_eq_pd(_mm_setzero_pd(), 0.0, 0.0);
     #endif
 
@@ -1117,6 +1121,14 @@ void test_min_max() {
     assert_eq_pd(sg_min_fast_pd(
         sg_set_pd(3.0, 1.0), sg_set_pd(4.0, 2.0)),
         3.0, 1.0);
+
+    #ifdef SIMD_GRANODI_NEON
+    assert_eq_ps(_mm_min_ps(sg_set1_ps(1.0f), sg_set1_ps(2.0f)),
+        1.0f, 1.0f, 1.0f, 1.0f);
+    assert_eq_pd(_mm_min_pd(sg_set1_pd(1.0), sg_set1_pd(2.0)), 1.0, 1.0);
+    assert_eq_ps(_mm_max_ps(sg_set1_ps(1.0f), sg_set1_ps(2.0f)), 2.0f, 2.0f);
+    assert_eq_pd(_mm_max_pd(sg_set1_pd(1.0), sg_set1_pd(2.0)), 2.0, 2.0);
+    #endif
 
     printf("Min max test succeeded\n");
 }

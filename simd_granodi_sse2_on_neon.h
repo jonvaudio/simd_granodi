@@ -39,10 +39,14 @@ static inline float64x2_t _mm_shuffle_pd(const float64x2_t a,
 #define _mm_setzero_si128 sg_setzero_pi32
 #define _mm_setzero_ps sg_setzero_ps
 #define _mm_setzero_pd sg_setzero_pd
+#define _mm_set_ss(a) vsetq_lane_f32(a, sg_setzero_ps(), 0)
+#define _mm_set_sd(a) vsetq_lane_f64(a, sg_setzero_pd(), 0)
 #define _mm_set1_epi32 sg_set1_pi32
 #define _mm_set1_epi64x(a) sg_cast_pi64_pi32(sg_set1_pi64(a))
 #define _mm_set1_ps sg_set1_ps
+#define _mm_set_ps1 sg_set1_ps
 #define _mm_set1_pd sg_set1_pd
+#define _mm_set_pd1 sg_set1_pd
 #define _mm_set_epi32 sg_set_pi32
 #define _mm_set_epi64x(si1, si0) sg_cast_pi64_pi32(sg_set_pi64(si1, si0))
 #define _mm_set_ps sg_set_ps
@@ -115,5 +119,11 @@ static inline float64x2_t _mm_shuffle_pd(const float64x2_t a,
 #define _mm_cmpgt_epi32 sg_cmpgt_pi32
 #define _mm_cmpgt_ps sg_cmpgt_ps
 #define _mm_cmpgt_pd sg_cmpgt_pd
+// Note: these handle signed zero differently than on intel, but shouldn't
+// matter!
+#define _mm_min_ps sg_min_ps
+#define _mm_min_pd sg_min_pd
+#define _mm_max_ps sg_max_ps
+#define _mm_max_pd sg_max_pd
 
 #endif
