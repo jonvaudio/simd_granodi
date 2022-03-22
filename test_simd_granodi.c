@@ -813,26 +813,41 @@ void test_cmp() {
         assert_eqg_cmp_pd(sg_cmpgt_pd(a_pd, b_pd), cmp2_gt);
 
         #ifdef SIMD_GRANODI_NEON
-        assert_eqg_cmp_pi32(_mm_cmplt_epi32(a_pi32, b_pi32), cmp4_lt);
-        assert_eqg_cmp_ps(_mm_cmplt_ps(a_ps, b_ps), cmp4_lt);
-        assert_eqg_cmp_pd(_mm_cmplt_pd(a_pd, b_pd), cmp2_lt);
+        assert_eqg_cmp_pi32(vreinterpretq_u32_s32(
+            _mm_cmplt_epi32(a_pi32, b_pi32)), cmp4_lt);
+        assert_eqg_cmp_ps(vreinterpretq_u32_f32(
+            _mm_cmplt_ps(a_ps, b_ps)), cmp4_lt);
+        assert_eqg_cmp_pd(vreinterpretq_u64_f64(
+            _mm_cmplt_pd(a_pd, b_pd)), cmp2_lt);
 
-        assert_eqg_cmp_ps(_mm_cmple_ps(a_ps, b_ps), cmp4_lte);
-        assert_eqg_cmp_pd(_mm_cmple_pd(a_pd, b_pd), cmp2_lte);
+        assert_eqg_cmp_ps(vreinterpretq_u32_f32(
+            _mm_cmple_ps(a_ps, b_ps)), cmp4_lte);
+        assert_eqg_cmp_pd(vreinterpretq_u64_f64(
+            _mm_cmple_pd(a_pd, b_pd)), cmp2_lte);
 
-        assert_eqg_cmp_pi32(_mm_cmpeq_epi32(a_pi32, b_pi32), cmp4_eq);
-        assert_eqg_cmp_ps(_mm_cmpeq_ps(a_ps, b_ps), cmp4_eq);
-        assert_eqg_cmp_pd(_mm_cmpeq_pd(a_pd, b_pd), cmp2_eq);
+        assert_eqg_cmp_pi32(vreinterpretq_u32_s32(
+            _mm_cmpeq_epi32(a_pi32, b_pi32)), cmp4_eq);
+        assert_eqg_cmp_ps(vreinterpretq_u32_f32(
+            _mm_cmpeq_ps(a_ps, b_ps)), cmp4_eq);
+        assert_eqg_cmp_pd(vreinterpretq_u64_f64(
+            _mm_cmpeq_pd(a_pd, b_pd)), cmp2_eq);
 
-        assert_eqg_cmp_ps(_mm_cmpneq_ps(a_ps, b_ps), cmp4_neq);
-        assert_eqg_cmp_pd(_mm_cmpneq_pd(a_pd, b_pd), cmp2_neq);
+        assert_eqg_cmp_ps(vreinterpretq_u32_f32(
+            _mm_cmpneq_ps(a_ps, b_ps)), cmp4_neq);
+        assert_eqg_cmp_pd(vreinterpretq_u64_f64(
+            _mm_cmpneq_pd(a_pd, b_pd)), cmp2_neq);
 
-        assert_eqg_cmp_ps(_mm_cmpge_ps(a_ps, b_ps), cmp4_gte);
-        assert_eqg_cmp_pd(_mm_cmpge_pd(a_pd, b_pd), cmp2_gte);
+        assert_eqg_cmp_ps(vreinterpretq_u32_f32(
+            _mm_cmpge_ps(a_ps, b_ps)), cmp4_gte);
+        assert_eqg_cmp_pd(vreinterpretq_u64_f64(
+            _mm_cmpge_pd(a_pd, b_pd)), cmp2_gte);
 
-        assert_eqg_cmp_pi32(_mm_cmpgt_epi32(a_pi32, b_pi32), cmp4_gt);
-        assert_eqg_cmp_ps(_mm_cmpgt_ps(a_ps, b_ps), cmp4_gt);
-        assert_eqg_cmp_pd(_mm_cmpgt_pd(a_pd, b_pd), cmp2_gt);
+        assert_eqg_cmp_pi32(vreinterpretq_u32_s32(
+            _mm_cmpgt_epi32(a_pi32, b_pi32)), cmp4_gt);
+        assert_eqg_cmp_ps(vreinterpretq_u32_f32(
+            _mm_cmpgt_ps(a_ps, b_ps)), cmp4_gt);
+        assert_eqg_cmp_pd(vreinterpretq_u64_f64(
+            _mm_cmpgt_pd(a_pd, b_pd)), cmp2_gt);
         #endif
     } } } } } } } }
 

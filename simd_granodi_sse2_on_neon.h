@@ -104,27 +104,27 @@ static inline float64x2_t _mm_shuffle_pd(const float64x2_t a,
 #define _mm_srli_epi64(a, imm) sg_cast_pi64_pi32(sg_srl_imm_pi64( \
     sg_cast_pi32_pi64(a), imm))
 #define _mm_srai_epi32 sg_sra_imm_pi32
-#define _mm_cmplt_epi32 sg_cmplt_pi32
-#define _mm_cmplt_ps sg_cmplt_ps
-#define _mm_cmplt_pd sg_cmplt_pd
-#define _mm_cmple_ps sg_cmplte_ps
-#define _mm_cmple_pd sg_cmplte_pd
-#define _mm_cmpeq_epi32 sg_cmpeq_pi32
-#define _mm_cmpeq_ps sg_cmpeq_ps
-#define _mm_cmpeq_pd sg_cmpeq_pd
-#define _mm_cmpneq_ps sg_cmpneq_ps
-#define _mm_cmpneq_pd sg_cmpneq_pd
-#define _mm_cmpge_ps sg_cmpgte_ps
-#define _mm_cmpge_pd sg_cmpgte_pd
-#define _mm_cmpgt_epi32 sg_cmpgt_pi32
-#define _mm_cmpgt_ps sg_cmpgt_ps
-#define _mm_cmpgt_pd sg_cmpgt_pd
+#define _mm_sll_epi32(a, shift) sg_sl_pi32(a, vdupq_laneq_s32(shift, 0))
+#define _mm_cmplt_epi32(a, b) vreinterpretq_s32_u32(sg_cmplt_pi32(a, b))
+#define _mm_cmplt_ps(a, b) vreinterpretq_f32_u32(sg_cmplt_ps(a, b))
+#define _mm_cmplt_pd(a, b) vreinterpretq_f64_u64(sg_cmplt_pd(a, b))
+#define _mm_cmple_ps(a, b) vreinterpretq_f32_u32(sg_cmplte_ps(a, b))
+#define _mm_cmple_pd(a, b) vreinterpretq_f64_u64(sg_cmplte_pd(a, b))
+#define _mm_cmpeq_epi32(a, b) vreinterpretq_s32_u32(sg_cmpeq_pi32(a, b))
+#define _mm_cmpeq_ps(a, b) vreinterpretq_f32_u32(sg_cmpeq_ps(a, b))
+#define _mm_cmpeq_pd(a, b) vreinterpretq_f64_u64(sg_cmpeq_pd(a, b))
+#define _mm_cmpneq_ps(a, b) vreinterpretq_f32_u32(sg_cmpneq_ps(a, b))
+#define _mm_cmpneq_pd(a, b) vreinterpretq_f64_u64(sg_cmpneq_pd(a, b))
+#define _mm_cmpge_ps(a, b) vreinterpretq_f32_u32(sg_cmpgte_ps(a, b))
+#define _mm_cmpge_pd(a, b) vreinterpretq_f64_u64(sg_cmpgte_pd(a, b))
+#define _mm_cmpgt_epi32(a, b) vreinterpretq_s32_u32(sg_cmpgt_pi32(a, b))
+#define _mm_cmpgt_ps(a, b) vreinterpretq_f32_u32(sg_cmpgt_ps(a, b))
+#define _mm_cmpgt_pd(a, b) vreinterpretq_f64_u64(sg_cmpgt_pd(a, b))
 // Note: min/max handle signed zero differently than on intel, but shouldn't
 // matter!
 #define _mm_min_ps sg_min_fast_ps
 #define _mm_min_pd sg_min_fast_pd
 #define _mm_max_ps sg_max_fast_ps
 #define _mm_max_pd sg_max_fast_pd
-#define _mm_sll_epi32(a, shift) sg_sl_pi32(a, vdupq_laneq_s32(shift, 0))
 
 #endif
