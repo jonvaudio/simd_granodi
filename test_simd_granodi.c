@@ -695,6 +695,7 @@ void test_bitwise() {
 }
 
 void test_shift() {
+    // Test immediate
     assert_eq_pi32(sg_sl_imm_pi32(sg_set_pi32(64, 16, 4, 1), 1), 128, 32, 8, 2);
     assert_eq_pi32(sg_sra_imm_pi32(sg_set_pi32(-64, -16, -4, -2), 1),
         -32, -8, -2, -1);
@@ -706,7 +707,24 @@ void test_shift() {
     assert_eq_pi64(sg_srl_imm_pi64(sg_set_pi64(-4, -2), 1),
         9223372036854775806, 9223372036854775807);
 
+    // Test in-register
+    assert_eq_pi32(sg_sl_pi32(sg_set_pi32(8, 4, 2, 1), sg_set_pi32(4, 3, 2, 1)),
+        128, 32, 8, 2);
+    assert_eq_pi32(sg_sra_pi32(sg_set_pi32(-64, -16, -4, -2),
+        sg_set_pi32(4, 3, 2, 1)), -4, -2, -1, -1);
+    assert_eq_pi32(sg_srl_pi32(sg_set_pi32(-64, -16, -4, -2),
+        sg_set_pi32(4, 3, 2, 1)),
+        268435452, 536870910, 1073741823, 2147483647);
+
+    assert_eq_pi64(sg_sl_pi64(sg_set_pi64(2, 1), sg_set_pi64(2, 1)), 8, 2);
+    assert_eq_pi64(sg_sra_pi64(sg_set_pi64(-4, -2), sg_set_pi64(2, 1)), -1, -1);
+    assert_eq_pi64(sg_srl_pi64(sg_set_pi64(-4, -2), sg_set_pi64(2, 1)),
+        4611686018427387903, 9223372036854775807);
+
     #ifdef SIMD_GRANODI_NEON
+    assert_eq_pi32(_mm_sll_epi32(sg_set_pi32(8, 4, 2, 1),
+        sg_set_pi32(4, 3, 2, 1)), 16, 8, 4, 2);
+
     assert_eq_pi32(_mm_slli_epi32(_mm_set_epi32(64, 16, 4, 1), 1),
         128, 32, 8, 2);
     assert_eq_pi64(vreinterpretq_s64_s32(_mm_slli_epi64(

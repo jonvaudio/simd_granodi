@@ -55,9 +55,13 @@ sg_abs_pi64
 sg_min_pi64
 sg_max_pi64
 
-SSE2 special mention:
-sg_mul_pi32 is in vector registers, but involves shuffling, bitwise ops,
-negation, and two _mm_mul_epu32
+SSE2 in vector registers, but slower:
+- sg_sl_pi32, sg_sl_pi64, sg_srl_pi32, sg_srl_pi64, sg_sra_pi32, shift one
+  element at a time
+- sg_mul_pi32 combines two _mm_mul_epu32 (unsigned mul) with a lot of other ops
+
+Non-vector on NEON:
+sg_sra_pi32
 
 Non-vector on SSE2 and NEON:
 sg_mul_pi64
@@ -65,6 +69,7 @@ sg_div_pi32
 sg_div_pi64
 sg_safediv_pi32
 sg_safediv_pi64
+sg_sra_pi64
 
 PLATFORM DETECTION
 32 bit ARM NEON hardware does not have all the intrinsic instructions used here,
@@ -78,8 +83,6 @@ TODO:
 - Add truncate, and round, intrinsics
 - Investigate rounding for sg_cvt_pd_ps()
 - sg_abs_pi64() on SSE2 might be easy to implement in-vector
-- Add intrinsics for shifting by in-register (non-immediate) values,
-  supported for most types on both platforms
 - Load / store intrinsics
 
 */
@@ -2743,6 +2746,32 @@ static inline sg_pd sg_xor_pd(const sg_pd a, const sg_pd b) {
 
 // Shift
 
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
+static inline sg_pi32 sg_sl_pi32(const sg_pi32 a, const sg_pi32 shift) {
+    #ifdef SIMD_GRANODI_FORCE_GENERIC
+    sg_pi32 result;
+    result.i0 = a.i0 << shift.i0; result.i1 = a.i1 << shift.i1;
+    result.i2 = a.i2 << shift.i2; result.i3 = a.i3 << shift.i3;
+    return result;
+    #elif defined SIMD_GRANODI_SSE2
+    __m128i result = _mm_and_si128(_mm_set_epi32(0,0,0,-1),
+        _mm_sll_epi32(a, _mm_and_si128(shift, _mm_set_epi32(0,0,0,-1))));
+    result = _mm_or_si128(result, _mm_and_si128(_mm_set_epi32(0,0,-1,0),
+        _mm_sll_epi32(a, _mm_and_si128(_mm_set_epi32(0,0,0,-1),
+            _mm_shuffle_epi32(shift, sg_sse2_shuffle32_imm(3,2,1,1))))));
+    result = _mm_or_si128(result, _mm_and_si128(_mm_set_epi32(0,-1,0,0),
+        _mm_sll_epi32(a, _mm_and_si128(_mm_set_epi32(0,0,0,-1),
+            _mm_shuffle_epi32(shift, sg_sse2_shuffle32_imm(3,2,1,2))))));
+    result = _mm_or_si128(result, _mm_and_si128(_mm_set_epi32(-1,0,0,0),
+        _mm_sll_epi32(a, _mm_and_si128(_mm_set_epi32(0,0,0,-1),
+            _mm_shuffle_epi32(shift, sg_sse2_shuffle32_imm(3,2,1,3))))));
+    return result;
+    #endif
+}
+#elif defined SIMD_GRANODI_NEON
+#define sg_sl_pi32 vshlq_s32
+#endif
+
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_sl_imm_pi32(const sg_pi32 a, const int32_t shift) {
     sg_pi32 result;
@@ -2756,6 +2785,25 @@ static inline sg_pi32 sg_sl_imm_pi32(const sg_pi32 a, const int32_t shift) {
 #define sg_sl_imm_pi32 vshlq_n_s32
 #endif
 
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
+static inline sg_pi64 sg_sl_pi64(const sg_pi64 a, const sg_pi64 shift) {
+    #ifdef SIMD_GRANODI_FORCE_GENERIC
+    sg_pi64 result;
+    result.l0 = a.l0 << shift.l0; result.l1 = a.l1 << shift.l1;
+    return result;
+    #elif defined SIMD_GRANODI_SSE2
+    __m128i result = _mm_and_si128(_mm_set_epi64x(0,-1),
+        _mm_sll_epi64(a, shift));
+    result = _mm_or_si128(result, _mm_and_si128(_mm_set_epi64x(-1,0),
+        _mm_sll_epi64(a,
+            _mm_shuffle_epi32(shift, sg_sse2_shuffle32_imm(3,2,3,2)))));
+    return result;
+    #endif
+}
+#elif defined SIMG_GRANODI_NEON
+#define sg_sl_pi64 vshlq_s64
+#endif
+
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_sl_imm_pi64(const sg_pi64 a, const int32_t shift) {
     sg_pi64 result;
@@ -2766,6 +2814,38 @@ static inline sg_pi64 sg_sl_imm_pi64(const sg_pi64 a, const int32_t shift) {
 #define sg_sl_imm_pi64 _mm_slli_epi64
 #elif defined SIMD_GRANODI_NEON
 #define sg_sl_imm_pi64 vshlq_n_s64
+#endif
+
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
+static inline sg_pi32 sg_srl_pi32(const sg_pi32 a, const sg_pi32 shift) {
+    #ifdef SIMD_GRANODI_FORCE_GENERIC
+    sg_pi32 result;
+    result.i0 = sg_scast_u32_s32((sg_scast_s32_u32(a.i0) >>
+        sg_scast_s32_u32(shift.i0)));
+    result.i1 = sg_scast_u32_s32((sg_scast_s32_u32(a.i1) >>
+        sg_scast_s32_u32(shift.i1)));
+    result.i2 = sg_scast_u32_s32((sg_scast_s32_u32(a.i2) >>
+        sg_scast_s32_u32(shift.i2)));
+    result.i3 = sg_scast_u32_s32((sg_scast_s32_u32(a.i3) >>
+        sg_scast_s32_u32(shift.i3)));
+    return result;
+    #elif defined SIMD_GRANODI_SSE2
+    __m128i result = _mm_and_si128(_mm_set_epi32(0,0,0,-1),
+        _mm_srl_epi32(a, _mm_and_si128(shift, _mm_set_epi32(0,0,0,-1))));
+    result = _mm_or_si128(result, _mm_and_si128(_mm_set_epi32(0,0,-1,0),
+        _mm_srl_epi32(a, _mm_and_si128(_mm_set_epi32(0,0,0,-1),
+            _mm_shuffle_epi32(shift, sg_sse2_shuffle32_imm(3,2,1,1))))));
+    result = _mm_or_si128(result, _mm_and_si128(_mm_set_epi32(0,-1,0,0),
+        _mm_srl_epi32(a, _mm_and_si128(_mm_set_epi32(0,0,0,-1),
+            _mm_shuffle_epi32(shift, sg_sse2_shuffle32_imm(3,2,1,2))))));
+    result = _mm_or_si128(result, _mm_and_si128(_mm_set_epi32(-1,0,0,0),
+        _mm_srl_epi32(a, _mm_and_si128(_mm_set_epi32(0,0,0,-1),
+            _mm_shuffle_epi32(shift, sg_sse2_shuffle32_imm(3,2,1,3))))));
+    return result;
+    #endif
+}
+#elif defined SIMD_GRANODI_NEON
+#define sg_srl_pi32(a, shift) vshlq_s32(a, vnegq_s32(shift))
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
@@ -2784,11 +2864,35 @@ static inline sg_pi32 sg_srl_imm_pi32(const sg_pi32 a, const int32_t shift) {
     vshrq_n_u32(vreinterpretq_u32_s32(a), (shift)))
 #endif
 
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
+static inline sg_pi64 sg_srl_pi64(const sg_pi64 a, const sg_pi64 shift) {
+    #ifdef SIMD_GRANODI_FORCE_GENERIC
+    sg_pi64 result;
+    result.l0 = sg_scast_u64_s64(sg_scast_s64_u64(a.l0) >>
+        (uint64_t) sg_scast_s32_u32(shift.l0));
+    result.l1 = sg_scast_u64_s64(sg_scast_s64_u64(a.l1) >>
+        (uint64_t) sg_scast_s32_u32(shift.l1));
+    return result;
+    #elif defined SIMD_GRANODI_SSE2
+    __m128i result = _mm_and_si128(_mm_set_epi64x(0,-1),
+        _mm_srl_epi64(a, shift));
+    result = _mm_or_si128(result, _mm_and_si128(_mm_set_epi64x(-1,0),
+        _mm_srl_epi64(a,
+            _mm_shuffle_epi32(shift, sg_sse2_shuffle32_imm(3,2,3,2)))));
+    return result;
+    #endif
+}
+#elif defined SIMD_GRANODI_NEON
+#define sg_srl_pi64(a, shift) vshlq_s64(a, vnegq_s64(shift))
+#endif
+
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_srl_imm_pi64(const sg_pi64 a, const int32_t shift) {
     sg_pi64 result;
-    result.l0 = sg_scast_u64_s64(sg_scast_s64_u64(a.l0) >> (uint64_t) shift);
-    result.l1 = sg_scast_u64_s64(sg_scast_s64_u64(a.l1) >> (uint64_t) shift);
+    result.l0 = sg_scast_u64_s64(sg_scast_s64_u64(a.l0) >>
+        (uint64_t) sg_scast_s32_u32(shift));
+    result.l1 = sg_scast_u64_s64(sg_scast_s64_u64(a.l1) >>
+        (uint64_t) sg_scast_s32_u32(shift));
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
@@ -2797,6 +2901,28 @@ static inline sg_pi64 sg_srl_imm_pi64(const sg_pi64 a, const int32_t shift) {
 #define sg_srl_imm_pi64(a, shift) vreinterpretq_s64_u64( \
     vshrq_n_u64(vreinterpretq_u64_s64(a), (shift)))
 #endif
+
+static inline sg_pi32 sg_sra_pi32(const sg_pi32 a, const sg_pi32 shift) {
+    #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_NEON
+    sg_generic_pi32 ag = sg_getg_pi32(a), shiftg = sg_getg_pi32(shift), result;
+    result.i0 = ag.i0 >> shiftg.i0; result.i1 = ag.i1 >> shiftg.i1;
+    result.i2 = ag.i2 >> shiftg.i2; result.i3 = ag.i3 >> shiftg.i3;
+    return sg_set_fromg_pi32(result);
+    #elif defined SIMD_GRANODI_SSE2
+    __m128i result = _mm_and_si128(_mm_set_epi32(0,0,0,-1),
+        _mm_sra_epi32(a, _mm_and_si128(shift, _mm_set_epi32(0,0,0,-1))));
+    result = _mm_or_si128(result, _mm_and_si128(_mm_set_epi32(0,0,-1,0),
+        _mm_sra_epi32(a, _mm_and_si128(_mm_set_epi32(0,0,0,-1),
+            _mm_shuffle_epi32(shift, sg_sse2_shuffle32_imm(3,2,1,1))))));
+    result = _mm_or_si128(result, _mm_and_si128(_mm_set_epi32(0,-1,0,0),
+        _mm_sra_epi32(a, _mm_and_si128(_mm_set_epi32(0,0,0,-1),
+            _mm_shuffle_epi32(shift, sg_sse2_shuffle32_imm(3,2,1,2))))));
+    result = _mm_or_si128(result, _mm_and_si128(_mm_set_epi32(-1,0,0,0),
+        _mm_sra_epi32(a, _mm_and_si128(_mm_set_epi32(0,0,0,-1),
+            _mm_shuffle_epi32(shift, sg_sse2_shuffle32_imm(3,2,1,3))))));
+    return result;
+    #endif
+}
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_sra_imm_pi32(const sg_pi32 a, const int32_t shift) {
@@ -2810,6 +2936,12 @@ static inline sg_pi32 sg_sra_imm_pi32(const sg_pi32 a, const int32_t shift) {
 #elif defined SIMD_GRANODI_NEON
 #define sg_sra_imm_pi32 vshrq_n_s32
 #endif
+
+static inline sg_pi64 sg_sra_pi64(const sg_pi64 a, const sg_pi64 shift) {
+    sg_generic_pi64 ag = sg_getg_pi64(a), shiftg = sg_getg_pi64(shift), result;
+    result.l0 = ag.l0 >> shiftg.l0; result.l1 = ag.l1 >> shiftg.l1;
+    return sg_set_fromg_pi64(result);
+}
 
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_pi64 sg_sra_imm_pi64(const sg_pi64 a,
