@@ -740,6 +740,9 @@ void test_shift() {
         -32, -8, -2, -1);
     #endif
 
+    // Test shift with negative numbers
+    //print_pi32(sg_sl_imm_pi32(sg_set1_pi32(2), -1)); printf("\n");
+
     printf("Shift test succeeeded\n");
 }
 

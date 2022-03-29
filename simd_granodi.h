@@ -82,6 +82,7 @@ so it is recommended to set your compiler to generate SSE2 code for all floats
 if you wish to disable denormal numbers with mixed intrinsic / scalar code.
 
 TODO:
+- Find efficient right shifting implementations for NEON
 - Add truncate, and round, intrinsics
 - Investigate rounding for sg_cvt_pd_ps()
 - sg_abs_pi64() on SSE2 might be easy to implement in-vector
