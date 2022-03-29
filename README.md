@@ -12,7 +12,7 @@ Currently has full test coverage, but not used in production yet. Code examples 
 
 The following example code computes 4 approximate `log2(x)` values at the same time, using a cubic approximation in the interval [1, 2]. (A smooth but inaccurate approximation, useful for envelope generation in music etc). This uses the C++ classes, but could be re-written (in a few more lines) using the equivalent C macros from the simd_granodi.h. (It also returns 0 for "invalid" input, whereas a more mathematically correct version might return -inf for 0, etc).
 
-```
+```cpp
 Vec_ps log2_p3(const Vec_ps& x) {
     Vec_ps exponent = ((x.bitcast_to_pi32().shift_rl_imm<23>() & 0xff) - 127)
         .convert_to_ps(),
