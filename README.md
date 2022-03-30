@@ -19,8 +19,8 @@ Vec_ps log2_p3(const Vec_ps& x) {
     mantissa = ((x.bitcast_to_pi32() & 0x807fffff) | 0x3f800000)
         .bitcast_to_ps();
 
-    mantissa = ((1.6404256133344508e-1f*mantissa + -1.0988652862227437f)*mantissa +
-        3.1482979293341158f)*mantissa + -2.2134752044448169f;
+    mantissa = ((1.640425613e-1f*mantissa - 1.098865286f)*mantissa +
+        3.148297929f)*mantissa - 2.213475204f;
 
     return (x > 0.0f).choose_else_zero(exponent + mantissa);
 }
