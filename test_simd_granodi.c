@@ -418,29 +418,39 @@ void test_convert() {
 
     sg_ps psp = sg_set_ps(4.0f, 3.0f, 2.0f, 1.0f);
     assert_eq_pd(sg_cvt_ps_pd(psp), 2.0, 1.0);
+
     psp = sg_set_ps(3.7f, 2.7f, 1.7f, 0.7f);
     sg_ps psn = sg_neg_ps(psp);
     assert_eq_pi32(sg_cvt_ps_pi32(psp), 4, 3, 2, 1);
     assert_eq_pi32(sg_cvtt_ps_pi32(psp), 3, 2, 1, 0);
+    assert_eq_pi32(sg_cvtf_ps_pi32(psp), 3, 2, 1, 0);
     assert_eq_pi32(sg_cvt_ps_pi32(psn), -4, -3, -2, -1);
     assert_eq_pi32(sg_cvtt_ps_pi32(psn), -3, -2, -1, 0);
+    assert_eq_pi32(sg_cvtf_ps_pi32(psn), -4, -3, -2, -1);
     assert_eq_pi64(sg_cvt_ps_pi64(psp), 2, 1);
     assert_eq_pi64(sg_cvtt_ps_pi64(psp), 1, 0);
+    assert_eq_pi64(sg_cvtf_ps_pi64(psp), 1, 0);
     assert_eq_pi64(sg_cvt_ps_pi64(psn), -2, -1);
     assert_eq_pi64(sg_cvtt_ps_pi64(psn), -1, 0);
+    assert_eq_pi64(sg_cvtf_ps_pi64(psn), -2, -1);
 
     sg_pd pdp = sg_set_pd(2.0, 1.0);
     assert_eq_ps(sg_cvt_pd_ps(pdp), 0.0f, 0.0f, 2.0f, 1.0f);
+
     pdp = sg_set_pd(1.7, 0.7);
     sg_pd pdn = sg_neg_pd(pdp);
     assert_eq_pi32(sg_cvt_pd_pi32(pdp), 0, 0, 2, 1);
     assert_eq_pi32(sg_cvtt_pd_pi32(pdp), 0, 0, 1, 0);
+    assert_eq_pi32(sg_cvtf_pd_pi32(pdp), 0, 0, 1, 0);
     assert_eq_pi32(sg_cvt_pd_pi32(pdn), 0, 0, -2, -1);
     assert_eq_pi32(sg_cvtt_pd_pi32(pdn), 0, 0, -1, 0);
+    assert_eq_pi32(sg_cvtf_pd_pi32(pdn), 0, 0, -2, -1);
     assert_eq_pi64(sg_cvt_pd_pi64(pdp), 2, 1);
     assert_eq_pi64(sg_cvtt_pd_pi64(pdp), 1, 0);
+    assert_eq_pi64(sg_cvtf_pd_pi64(pdp), 1, 0);
     assert_eq_pi64(sg_cvt_pd_pi64(pdn), -2, -1);
     assert_eq_pi64(sg_cvtt_pd_pi64(pdn), -1, 0);
+    assert_eq_pi64(sg_cvtf_pd_pi64(pdn), -2, -1);
 
     // Test half way rounding
     assert_eq_pi32(sg_cvt_ps_pi32(sg_set1_ps(2.5f)), 2, 2, 2, 2);
@@ -1609,14 +1619,22 @@ static void test_opover() {
 
     sg_assert(Vec_ps{1.7f}.convert_to_nearest_pi32().debug_eq(2));
     sg_assert(Vec_ps{1.7f}.truncate_to_pi32().debug_eq(1));
+    sg_assert(Vec_ps{1.7f}.floor_to_pi32().debug_eq(1));
+    sg_assert(Vec_ps{-1.7f}.floor_to_pi32().debug_eq(-2));
     sg_assert(Vec_ps{1.7f}.convert_to_nearest_pi64().debug_eq(2));
     sg_assert(Vec_ps{1.7f}.truncate_to_pi64().debug_eq(1));
+    sg_assert(Vec_ps{1.7f}.floor_to_pi64().debug_eq(1));
+    sg_assert(Vec_ps{-1.7f}.floor_to_pi64().debug_eq(-2));
     sg_assert(Vec_ps{1.0f}.convert_to_pd().debug_eq(1.0));
 
     sg_assert(Vec_pd{1.7}.convert_to_nearest_pi32().debug_eq(0, 0, 2, 2));
     sg_assert(Vec_pd{1.7}.truncate_to_pi32().debug_eq(0, 0, 1, 1));
+    sg_assert(Vec_pd{1.7}.floor_to_pi32().debug_eq(0, 0, 1, 1));
+    sg_assert(Vec_pd{-1.7}.floor_to_pi32().debug_eq(0, 0, -2, -2));
     sg_assert(Vec_pd{1.7}.convert_to_nearest_pi64().debug_eq(2));
     sg_assert(Vec_pd{1.7}.truncate_to_pi64().debug_eq(1));
+    sg_assert(Vec_pd{1.7}.floor_to_pi64().debug_eq(1));
+    sg_assert(Vec_pd{-1.7}.floor_to_pi64().debug_eq(-2));
     sg_assert(Vec_pd{1.0}.convert_to_ps().debug_eq(0.0f, 0.0f, 1.0f, 1.0f));
 
     printf("Vector operator overloading test succeeded\n");
