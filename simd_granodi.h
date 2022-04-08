@@ -5310,6 +5310,14 @@ public:
     Vec_ps(const sg_generic_ps& g_ps) : data_(sg_set_fromg_ps(g_ps)) {}
     #endif
 
+    // Useful for writing templated code that might be of the form:
+    //     var = vec_ps_arg * (0.312 * double_function_arg);
+    // into:
+    //     var = vec_ps_arg * (Vec_ps::scalar(0.312) *
+    //         Vec_ps::scalar(double_function_arg));
+    static float base(const double f64) { return static_cast<float>(f64); }
+    static float base(const float f32) { return f32; }
+
     static Vec_ps bitcast_from_u32(const uint32_t i) {
         return sg_set1_from_u32_ps(i);
     }
@@ -5465,6 +5473,9 @@ public:
     #ifndef SIMD_GRANODI_FORCE_GENERIC
     Vec_pd(const sg_generic_pd& g_pd) : data_(sg_set_fromg_pd(g_pd)) {}
     #endif
+
+    static double base(const float f32) { return static_cast<double>(f32); }
+    static double base(const double f64) { return f64; }
 
     static Vec_pd bitcast_from_u64(const uint64_t l) {
         return sg_set1_from_u64_pd(l);
