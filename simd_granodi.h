@@ -34,6 +34,10 @@ Behaviour of corner cases may NOT be identical on separate platforms
 (eg min / max of signed floating point zero, abs(INT_MIN), some conversion
 corner cases, rounding when converting double -> float)
 
+In some cases, separate multiply->add intrinsics may get optimized into fma,
+giving slightly different results on different platforms (this happens on
+ARM64 gcc with -O3)
+
 Naming conventions are based on SSE2
 
 
@@ -140,9 +144,10 @@ TODO:
 
 // For rint, rintf, fabs, fabsf
 // SSE2 uses rintf() for sg_cvt_ps_pi64()
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
+// Now we always include for wrapping std math lib functions (sin etc)
+//#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 #include <math.h>
-#endif
+//#endif
 
 #ifdef SIMD_GRANODI_DENORMAL_SSE
 #include <emmintrin.h>
@@ -5760,6 +5765,48 @@ inline Vec_pi64 Vec_pd::floor_to_pi64() const {
 }
 inline Vec_ps Vec_pd::convert_to_ps() const {
     return sg_cvt_pd_ps(data_);
+}
+
+// Convenient overloaded wrappers for std lib math functions, slow but allows
+// use in templated classes
+inline float std_log_vec(const float x) { return std::log(x); }
+inline double std_log_vec(const double x) { return std::log(x); }
+inline Vec_ps std_log_vec(const Vec_ps& x) {
+    return Vec_ps { std::log(x.f3()), std::log(x.f2()),
+        std::log(x.f1()), std::log(x.f0()) };
+}
+inline Vec_pd std_log_vec(const Vec_pd& x) {
+    return Vec_pd { std::log(x.d1()), std::log(x.d0()) };
+}
+
+inline float std_exp_vec(const float x) { return std::exp(x); }
+inline double std_exp_vec(const double x) { return std::exp(x); }
+inline Vec_ps std_exp_vec(const Vec_ps& x) {
+    return Vec_ps { std::exp(x.f3()), std::exp(x.f2()),
+        std::exp(x.f1()), std::exp(x.f0()) };
+}
+inline Vec_pd std_exp_vec(const Vec_pd& x) {
+    return Vec_pd { std::exp(x.d1()), std::exp(x.d0()) };
+}
+
+inline float std_sin_vec(const float x) { return std::sin(x); }
+inline double std_sin_vec(const double x) { return std::sin(x); }
+inline Vec_ps std_sin_vec(const Vec_ps& x) {
+    return Vec_ps { std::sin(x.f3()), std::sin(x.f2()),
+        std::sin(x.f1()), std::sin(x.f0()) };
+}
+inline Vec_pd std_sin_vec(const Vec_pd& x) {
+    return Vec_pd { std::sin(x.d1()), std::sin(x.d0()) };
+}
+
+inline float std_cos_vec(const float x) { return std::cos(x); }
+inline double std_cos_vec(const double x) { return std::cos(x); }
+inline Vec_ps std_cos_vec(const Vec_ps& x) {
+    return Vec_ps { std::cos(x.f3()), std::cos(x.f2()),
+        std::cos(x.f1()), std::cos(x.f0()) };
+}
+inline Vec_pd std_cos_vec(const Vec_pd& x) {
+    return Vec_pd { std::cos(x.d1()), std::cos(x.d0()) };
 }
 
 } // namespace simd_granodi
