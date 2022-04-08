@@ -18,10 +18,12 @@ using namespace simd_granodi;
 
 static void print_platform_start();
 
+#ifdef SG_PRINT
 static void print_pi32(const sg_pi32);
 static void print_pi64(const sg_pi64);
 static void print_ps(const sg_ps);
 static void print_pd(const sg_pd);
+#endif
 
 static void test_128endian();
 static void test_cast();
@@ -76,42 +78,41 @@ int main() {
 }
 
 void print_platform_start() {
+    printf("Implementation: ");
     #ifdef SIMD_GRANODI_FORCE_GENERIC
-    printf("Generic test start\n");
-    printf("==================\n");
+    printf("generic\n");
     #elif defined SIMD_GRANODI_SSE2
-    printf("SSE2 test start\n");
-    printf("===============\n");
+    printf("SSE2\n");
     #elif defined SIMD_GRANODI_NEON
-    printf("NEON test start\n");
-    printf("===============\n");
+    printf("NEON\n");
     #else
     sg_assert(false);
     #endif
 
+    printf("Denormal disable implementation: ");
     #ifdef SIMD_GRANODI_DENORMAL_SSE
-    printf("SSE denormals\n");
+    printf("SSE\n");
     #elif defined SIMD_GRANODI_DENORMAL_ARM64
-    printf("ARM64 denormals\n");
+    printf("ARM64\n");
     #elif defined SIMD_GRANODI_DENORMAL_ARM32
-    printf("ARM32 denormals\n");
+    printf("ARM32\n");
     #else
     sg_assert(false);
     #endif
 
-    #ifdef NDEBUG
-    printf("NDEBUG defined\n");
-    #else
-    printf("NDEBUG not defined\n");
-    #endif
+    //#ifdef NDEBUG
+    //printf("NDEBUG defined\n");
+    //#else
+    //printf("NDEBUG not defined\n");
+    //#endif
 
-    // Use these functions so we don't get compiler warnings
-    print_pi32(sg_set1_pi32(0)); printf("\n");
-    print_pi64(sg_set1_pi64(0)); printf("\n");
-    print_ps(sg_set1_ps(0.0f)); printf("\n");
-    print_pd(sg_set1_pd(0.0)); printf("\n");
+    /*print_pi32(sg_set1_pi32(0)); printf(", ");
+    print_pi64(sg_set1_pi64(0)); printf(", ");
+    print_ps(sg_set1_ps(0.0f)); printf(", ");
+    print_pd(sg_set1_pd(0.0)); printf("\n");*/
 }
 
+#ifdef SG_PRINT
 void print_pi32(const sg_pi32 a) {
     sg_generic_pi32 ag = sg_getg_pi32(a);
     printf("[i3: %d, i2: %d, i1: %d, i0: %d]", ag.i3, ag.i2, ag.i1, ag.i0);
@@ -132,6 +133,7 @@ void print_pd(const sg_pd a) {
     sg_generic_pd ag = sg_getg_pd(a);
     printf("[d1: %.2f, d0: %.2f]", ag.d1, ag.d0);
 }
+#endif
 
 //
 //
@@ -212,7 +214,7 @@ void test_128endian() {
         }
     }
     #else
-    printf("Using generic code, cannot test endianness\n");
+    printf("Using generic code, cannot test 128-bit endianness\n");
     #endif
 }
 
@@ -256,7 +258,7 @@ void test_cast() {
     assert_eq_pd(_mm_castps_pd(_mm_castpd_ps(mpd)), 1.0, 0.0);
     #endif
 
-    printf("Cast test succeeeded\n");
+    //printf("Cast test succeeeded\n");
 }
 
 void test_shuffle() {
@@ -303,7 +305,7 @@ void test_shuffle() {
         #endif
     } }
 
-    printf("Shuffle test succeeeded\n");
+    //printf("Shuffle test succeeeded\n");
 }
 
 void test_set() {
@@ -357,7 +359,7 @@ void test_set() {
     assert_eq_pd(_mm_setzero_pd(), 0.0, 0.0);
     #endif
 
-    printf("Set test succeeeded\n");
+    //printf("Set test succeeeded\n");
 }
 
 void test_get() {
@@ -402,7 +404,7 @@ void test_get() {
         _mm_set_pd(4.0, 3.0)), 4.0, 6.0);
     #endif
 
-    printf("Get test succeeeded\n");
+    //printf("Get test succeeeded\n");
 }
 
 void test_convert() {
@@ -486,7 +488,7 @@ void test_convert() {
     assert_eq_pd(_mm_cvtps_pd(_mm_set_ps(3.0f, 2.0f, 1.0f, 0.0f)), 1.0, 0.0);
     #endif
 
-    printf("Convert test succeeeded\n");
+    //printf("Convert test succeeeded\n");
 }
 
 void test_add_sub() {
@@ -523,7 +525,7 @@ void test_add_sub() {
     assert_eq_pd(_mm_sub_pd(g, h), -6.0, -1.0);
     #endif
 
-    printf("Add subtract test succeeeded\n");
+    //printf("Add subtract test succeeeded\n");
 }
 
 void test_mul_div() {
@@ -618,7 +620,7 @@ void test_mul_div() {
     assert_eq_pd(sg_safediv_pd(sg_set_pd(8.0, 8.0),
         sg_set_pd(-0.0, 4.0)), 8.0, 2.0);
 
-    printf("Multiply divide test succeeeded\n");
+    //printf("Multiply divide test succeeeded\n");
 }
 
 void test_bitwise() {
@@ -701,7 +703,7 @@ void test_bitwise() {
 
     } } } } } } } }
 
-    printf("Bitwise test succeeeded\n");
+    //printf("Bitwise test succeeeded\n");
 }
 
 void test_shift() {
@@ -753,7 +755,7 @@ void test_shift() {
     // Test shift with negative numbers
     //print_pi32(sg_sl_imm_pi32(sg_set1_pi32(2), -1)); printf("\n");
 
-    printf("Shift test succeeeded\n");
+    //printf("Shift test succeeeded\n");
 }
 
 void test_cmp() {
@@ -974,9 +976,6 @@ void test_cmp() {
         assert_eqg_cmp_ps(sg_or_cmp_ps(a_ps, b_ps), a_or_b);
         assert_eqg_cmp_pd(sg_or_cmp_pd(a_pd, b_pd), a_or_b_2);
 
-        //printf("a_pi32: [%d, %d, %d, %d], b_pi32: [%d, %d, %d, %d]\n",
-            //a_gcmp4.b0, a_gcmp4.b1, a_gcmp4.b2, a_gcmp4.b3,
-            //b_gcmp4.b0, b_gcmp4.b1, b_gcmp4.b2, b_gcmp4.b3);
         assert_eqg_cmp_pi32(sg_xor_cmp_pi32(a_pi32, b_pi32), a_xor_b);
         assert_eqg_cmp_pi64(sg_xor_cmp_pi64(a_pi64, b_pi64), a_xor_b_2);
         assert_eqg_cmp_ps(sg_xor_cmp_ps(a_ps, b_ps), a_xor_b);
@@ -1050,7 +1049,7 @@ void test_cmp() {
             exp_oz_pd.d1, exp_oz_pd.d0);
     }}}}
 
-    printf("Comparison test succeeeded\n");
+    //printf("Comparison test succeeeded\n");
 }
 
 void test_abs_neg() {
@@ -1090,7 +1089,7 @@ void test_abs_neg() {
         sg_remove_signed_zero_ps(sg_set_ps(-0.0f, -0.0f, -0.0f, -0.0f))),
         0, 0, 0, 0);
 
-    printf("Abs and neg test succeeeded\n");
+    //printf("Abs and neg test succeeeded\n");
 }
 
 void test_min_max() {
@@ -1177,7 +1176,7 @@ void test_min_max() {
     assert_eq_pd(_mm_max_pd(sg_set1_pd(1.0), sg_set1_pd(2.0)), 2.0, 2.0);
     #endif
 
-    printf("Min max test succeeded\n");
+    //printf("Min max test succeeded\n");
 }
 
 void test_constrain() {
@@ -1209,7 +1208,7 @@ void test_constrain() {
     assert_eq_pd(sg_constrain_pd(sg_set1_pd(1.0), sg_set1_pd(3.0),
         sg_set1_pd(4.0)), 3.0, 3.0);
 
-    printf("Constrain test succeeded\n");
+    //printf("Constrain test succeeded\n");
 }
 
 void test_denormals() {
@@ -1218,8 +1217,13 @@ void test_denormals() {
     // constant will be calculated in an environment where denormals are
     // enabled.
 
-    volatile float prev_smallest_noden_f = 1.0f;
-    volatile double prev_smallest_noden_d = 1.0;
+    volatile float prev_nd_f = 1.0f;
+    volatile double prev_nd_d = 1.0;
+
+    volatile int32_t prev_nd_ps = sg_scast_f32_s32(1.0f);
+    volatile int64_t prev_nd_pd = sg_scast_f64_s64(1.0);
+
+    bool zero;
 
     #ifdef __cplusplus
     {
@@ -1228,15 +1232,34 @@ void test_denormals() {
     sg_fp_status previous_status = sg_disable_denormals();
     #endif
 
-    while (true) {
-        const float new_smallest_f = prev_smallest_noden_f * 0.5f;
-        if (new_smallest_f == 0.0f) break;
-        else prev_smallest_noden_f = new_smallest_f;
+    zero = false;
+    while (!zero) {
+        const float new_smallest_f = prev_nd_f * 0.5f;
+        if (new_smallest_f == 0.0f) zero = true;
+        else prev_nd_f = new_smallest_f;
     }
-    while (true) {
-        const double new_smallest_d = prev_smallest_noden_d * 0.5f;
-        if (new_smallest_d == 0.0) break;
-        else prev_smallest_noden_d = new_smallest_d;
+    zero = false;
+    while (!zero) {
+        const double new_smallest_d = prev_nd_d * 0.5;
+        if (new_smallest_d == 0.0) zero = true;
+        else prev_nd_d = new_smallest_d;
+    }
+
+    zero = false;
+    while (!zero) {
+        const int32_t new_smallest_ps = sg_get0_pi32(sg_cast_ps_pi32(
+            sg_mul_ps(sg_cast_pi32_ps(sg_set1_pi32(prev_nd_ps)),
+                sg_set1_ps(0.5f))));
+        if (new_smallest_ps == 0) zero = true;
+        else prev_nd_ps = new_smallest_ps;
+    }
+    zero = false;
+    while (!zero) {
+        const int64_t new_smallest_pd = sg_get0_pi64(sg_cast_pd_pi64(
+            sg_mul_pd(sg_cast_pi64_pd(sg_set1_pi64(prev_nd_pd)),
+                sg_set1_pd(0.5))));
+        if (new_smallest_pd == 0) zero = true;
+        else prev_nd_pd = new_smallest_pd;
     }
 
     #ifdef __cplusplus
@@ -1245,23 +1268,56 @@ void test_denormals() {
     sg_restore_fp_status_after_denormals_disabled(previous_status);
     #endif
 
-    volatile float prev_smallest_den_f = prev_smallest_noden_f;
-    volatile double prev_smallest_den_d = prev_smallest_noden_d;
+    volatile float prev_f = prev_nd_f;
+    volatile double prev_d = prev_nd_d;
 
-    while(true) {
-        const float new_smallest_f = prev_smallest_den_f * 0.5f;
-        if (new_smallest_f == 0.0f) break;
-        else prev_smallest_den_f = new_smallest_f;
+    volatile int32_t prev_ps = prev_nd_ps;
+    volatile int64_t prev_pd = prev_nd_pd;
+
+    zero = false;
+    while (!zero) {
+        const float new_smallest_f = prev_f * 0.5f;
+        if (new_smallest_f == 0.0f) zero = true;
+        else prev_f = new_smallest_f;
     }
-    while (true) {
-        const double new_smallest_d = prev_smallest_den_d * 0.5f;
-        if (new_smallest_d == 0.0) break;
-        else prev_smallest_den_d = new_smallest_d;
+    zero = false;
+    while (!zero) {
+        const double new_smallest_d = prev_d * 0.5;
+        if (new_smallest_d == 0.0) zero = true;
+        else prev_d = new_smallest_d;
     }
 
-    sg_assert(prev_smallest_den_f < prev_smallest_noden_f);
-    sg_assert(prev_smallest_den_d < prev_smallest_noden_d);
-    printf("Denormal disable test succeeded\n");
+    zero = false;
+    while (!zero) {
+        const int32_t new_smallest_ps = sg_get0_pi32(sg_cast_ps_pi32(
+            sg_mul_ps(sg_cast_pi32_ps(sg_set1_pi32(prev_ps)),
+                sg_set1_ps(0.5f))));
+        if (new_smallest_ps == 0) zero = true;
+        else prev_ps = new_smallest_ps;
+    }
+
+    zero = false;
+    while (!zero) {
+        const int64_t new_smallest_pd = sg_get0_pi64(sg_cast_pd_pi64(
+            sg_mul_pd(sg_cast_pi64_pd(sg_set1_pi64(prev_pd)),
+                sg_set1_pd(0.5))));
+        if (new_smallest_pd == 0) zero = true;
+        else prev_pd = new_smallest_pd;
+    }
+
+    // If either of the following assertions fail, denormals could not be
+    // disabled on regular float / double scalar code
+    sg_assert(prev_f < prev_nd_f);
+    sg_assert(prev_d < prev_nd_d);
+
+    // If either of the following assertions fail, denormals were successfully
+    // disabled for regular float / double scalar code (due to above
+    // assertions succeeding), but denormals were not disabled for SIMD
+    // code.
+    sg_assert(sg_scast_s32_f32(prev_ps) < sg_scast_s32_f32(prev_nd_ps));
+    sg_assert(sg_scast_s64_f64(prev_pd) < sg_scast_s64_f64(prev_nd_pd));
+
+    //printf("Denormal disable test succeeded\n");
 }
 
 #ifdef __cplusplus
@@ -1637,7 +1693,7 @@ static void test_opover() {
     sg_assert(Vec_pd{-1.7}.floor_to_pi64().debug_eq(-2));
     sg_assert(Vec_pd{1.0}.convert_to_ps().debug_eq(0.0f, 0.0f, 1.0f, 1.0f));
 
-    printf("Vector operator overloading test succeeded\n");
+    //printf("Vector operator overloading test succeeded\n");
 }
 
 static void test_opover_cmp() {
@@ -1806,6 +1862,6 @@ static void test_opover_cmp() {
     sg_assert(Compare_pd{false}.choose(2.0, 3.0).debug_eq(3.0));
     sg_assert(Compare_pd{true}.choose(2.0, 3.0).debug_eq(2.0));
 
-    printf("Comparison operator overloading test succeeded\n");
+    //printf("Comparison operator overloading test succeeded\n");
 }
 #endif
