@@ -2590,7 +2590,7 @@ static inline sg_ps sg_mul_add_ps(const sg_ps a, const sg_ps b, const sg_ps c) {
 #elif defined SIMD_GRANODI_SSE2
 #define sg_mul_add_ps(a, b, c) _mm_add_ps(_mm_mul_ps(a, b), c)
 #elif defined SIMD_GRANODI_NEON
-#define sg_mul_add_ps vfmaq_f32
+#define sg_mul_add_ps(a, b, c) vfmaq_f32(c, a, b)
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
@@ -2602,7 +2602,7 @@ static inline sg_pd sg_mul_add_pd(const sg_pd a, const sg_pd b, const sg_pd c) {
 #elif defined SIMD_GRANODI_SSE2
 #define sg_mul_add_pd(a, b, c) _mm_add_pd(_mm_mul_pd(a, b), c)
 #elif defined SIMD_GRANODI_NEON
-#define sg_mul_add_pd vfmaq_f64
+#define sg_mul_add_pd(a, b, c) vfmaq_f64(c, a, b)
 #endif
 
 // Bitwise logic
