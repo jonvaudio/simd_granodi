@@ -575,6 +575,14 @@ void test_mul_div() {
         _mm_set_pd(6.0, 4.0)), 3.0, 2.0);
     #endif
 
+    // Test mul_add
+    assert_eq_ps(sg_mul_add_ps(sg_set_ps(1.0f, 2.0f, 3.0f, 4.0f),
+        sg_set_ps(5.0f, 6.0f, 7.0f, 8.0f),
+        sg_set_ps(9.0f, 10.0f, 11.0f, 12.0f)),
+        14.0f, 22.0f, 32.0f, 44.0f);
+    assert_eq_pd(sg_mul_add_pd(sg_set_pd(1.0, 2.0), sg_set_pd(5.0, 6.0),
+        sg_set_pd(9.0, 10.0)), 14.0, 22.0);
+
     // Test safediv
     assert_eq_pi32(sg_safediv_pi32(sg_set_pi32(8, 8, 8, 8),
         sg_set_pi32(4, 4, 4, 0)), 2, 2, 2, 8);
@@ -1458,6 +1466,12 @@ static void test_opover() {
     sg_assert(rv_ps.debug_eq(4.0f) && ps.debug_eq(8.0f));
     sg_assert(rv_pd.debug_eq(4.0) && pd.debug_eq(8.0));
 
+    // Tes mul add
+    sg_assert((Vec_ps{1.0f, 2.0f, 3.0f, 4.0f}.mul_add(
+        Vec_ps{5.0f, 6.0f, 7.0f, 8.0f}, Vec_ps{9.0f, 10.0f, 11.0f, 12.0f})
+        .debug_eq(14.0f, 22.0f, 32.0f, 44.0f)));
+    sg_assert((Vec_pd{1.0, 2.0}.mul_add(Vec_pd{5.0, 6.0}, Vec_pd{9.0, 10.0})
+        .debug_eq(14.0, 22.0)));
 
     // Bitwise logic
     for (int32_t i1 = 0; i1 < 2; ++i1) {
