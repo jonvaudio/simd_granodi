@@ -88,6 +88,7 @@ so it is recommended to set your compiler to generate SSE2 code for all floats
 if you wish to disable denormal numbers with mixed intrinsic / scalar code.
 
 TODO:
+- Add class methods for shifting by in-register values
 - Find efficient right shifting implementations for NEON
 - Add truncate, and round, intrinsics
 - Investigate rounding for sg_cvt_pd_ps()
@@ -133,6 +134,10 @@ TODO:
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 #undef SIMD_GRANODI_SSE2
 #undef SIMD_GRANODI_NEON
+#endif
+
+#ifdef __cplusplus
+#include <algorithm> // for std::min(), std::max()
 #endif
 
 #ifndef __cplusplus
@@ -2925,17 +2930,18 @@ static inline sg_pi64 sg_sl_imm_pi64(const sg_pi64 a, const int32_t shift) {
 #define sg_sl_imm_pi64 vshlq_n_s64
 #endif
 
+#define sg_srl_s32(a, shift) sg_scast_u32_s32((sg_scast_s32_u32(a) >> \
+    sg_scast_s32_u32(shift)))
+#define sg_srl_s64(a, shift) sg_scast_u64_s64((sg_scast_s64_u64(a) >> \
+    sg_scast_s64_u64(shift)))
+
 static inline sg_pi32 sg_srl_pi32(const sg_pi32 a, const sg_pi32 shift) {
     #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_NEON
     sg_generic_pi32 ag = sg_getg_pi32(a), shiftg = sg_getg_pi32(shift), result;
-    result.i0 = sg_scast_u32_s32((sg_scast_s32_u32(ag.i0) >>
-        sg_scast_s32_u32(shiftg.i0)));
-    result.i1 = sg_scast_u32_s32((sg_scast_s32_u32(ag.i1) >>
-        sg_scast_s32_u32(shiftg.i1)));
-    result.i2 = sg_scast_u32_s32((sg_scast_s32_u32(ag.i2) >>
-        sg_scast_s32_u32(shiftg.i2)));
-    result.i3 = sg_scast_u32_s32((sg_scast_s32_u32(ag.i3) >>
-        sg_scast_s32_u32(shiftg.i3)));
+    result.i0 = sg_srl_s32(ag.i0, shiftg.i0);
+    result.i1 = sg_srl_s32(ag.i1, shiftg.i1);
+    result.i2 = sg_srl_s32(ag.i2, shiftg.i2);
+    result.i3 = sg_srl_s32(ag.i3, shiftg.i3);
     return sg_set_fromg_pi32(result);
     #elif defined SIMD_GRANODI_SSE2
     __m128i result = _mm_and_si128(_mm_set_epi32(0,0,0,-1),
@@ -2956,10 +2962,10 @@ static inline sg_pi32 sg_srl_pi32(const sg_pi32 a, const sg_pi32 shift) {
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_srl_imm_pi32(const sg_pi32 a, const int32_t shift) {
     sg_pi32 result;
-    result.i0 = sg_scast_u32_s32((sg_scast_s32_u32(a.i0) >> shift));
-    result.i1 = sg_scast_u32_s32((sg_scast_s32_u32(a.i1) >> shift));
-    result.i2 = sg_scast_u32_s32((sg_scast_s32_u32(a.i2) >> shift));
-    result.i3 = sg_scast_u32_s32((sg_scast_s32_u32(a.i3) >> shift));
+    result.i0 = sg_srl_s32(a.i0, shift);
+    result.i1 = sg_srl_s32(a.i1, shift);
+    result.i2 = sg_srl_s32(a.i2, shift);
+    result.i3 = sg_srl_s32(a.i3, shift);
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
@@ -2972,10 +2978,8 @@ static inline sg_pi32 sg_srl_imm_pi32(const sg_pi32 a, const int32_t shift) {
 static inline sg_pi64 sg_srl_pi64(const sg_pi64 a, const sg_pi64 shift) {
     #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_NEON
     sg_generic_pi64 ag = sg_getg_pi64(a), shiftg = sg_getg_pi64(shift), result;
-    result.l0 = sg_scast_u64_s64(sg_scast_s64_u64(ag.l0) >>
-        (uint64_t) sg_scast_s32_u32(shiftg.l0));
-    result.l1 = sg_scast_u64_s64(sg_scast_s64_u64(ag.l1) >>
-        (uint64_t) sg_scast_s32_u32(shiftg.l1));
+    result.l0 = sg_srl_s64(ag.l0, shiftg.l0);
+    result.l1 = sg_srl_s64(ag.l1, shiftg.l1);
     return sg_set_fromg_pi64(result);
     #elif defined SIMD_GRANODI_SSE2
     __m128i result = _mm_and_si128(_mm_set_epi64x(0,-1),
@@ -2990,10 +2994,8 @@ static inline sg_pi64 sg_srl_pi64(const sg_pi64 a, const sg_pi64 shift) {
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_srl_imm_pi64(const sg_pi64 a, const int32_t shift) {
     sg_pi64 result;
-    result.l0 = sg_scast_u64_s64(sg_scast_s64_u64(a.l0) >>
-        (uint64_t) sg_scast_s32_u32(shift));
-    result.l1 = sg_scast_u64_s64(sg_scast_s64_u64(a.l1) >>
-        (uint64_t) sg_scast_s32_u32(shift));
+    result.l0 = sg_srl_s64(a.l0, shift);
+    result.l1 = sg_srl_s64(a.l1, shift);
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
@@ -4300,28 +4302,28 @@ Note that
 static inline sg_pi32 sg_safediv_pi32(const sg_pi32 a, const sg_pi32 b) {
     const sg_generic_pi32 ag = sg_getg_pi32(a), bg = sg_getg_pi32(b);
     sg_generic_pi32 result;
-    result.i0 = ag.i0 / (bg.i0 != 0 ? bg.i0 : 1);
-    result.i1 = ag.i1 / (bg.i1 != 0 ? bg.i1 : 1);
-    result.i2 = ag.i2 / (bg.i2 != 0 ? bg.i2 : 1);
-    result.i3 = ag.i3 / (bg.i3 != 0 ? bg.i3 : 1);
+    result.i0 = bg.i0 == 0 ? ag.i0 : ag.i0 / bg.i0;
+    result.i1 = bg.i1 == 0 ? ag.i1 : ag.i1 / bg.i1;
+    result.i2 = bg.i2 == 0 ? ag.i2 : ag.i2 / bg.i2;
+    result.i3 = bg.i3 == 0 ? ag.i3 : ag.i3 / bg.i3;
     return sg_set_fromg_pi32(result);
 }
 
 static inline sg_pi64 sg_safediv_pi64(const sg_pi64 a, const sg_pi64 b) {
     const sg_generic_pi64 ag = sg_getg_pi64(a), bg = sg_getg_pi64(b);
     sg_generic_pi64 result;
-    result.l0 = ag.l0 / (bg.l0 != 0 ? bg.l0 : 1);
-    result.l1 = ag.l1 / (bg.l1 != 0 ? bg.l1 : 1);
+    result.l0 = bg.l0 == 0 ? ag.l0 : ag.l0 / bg.l0;
+    result.l1 = bg.l1 == 0 ? ag.l1 : ag.l1 / bg.l1;
     return sg_set_fromg_pi64(result);
 }
 
 static inline sg_ps sg_safediv_ps(const sg_ps a, const sg_ps b) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
     sg_ps result;
-    result.f0 = a.f0 / (b.f0 != 0.0f ? b.f0 : 1.0f);
-    result.f1 = a.f1 / (b.f1 != 0.0f ? b.f1 : 1.0f);
-    result.f2 = a.f2 / (b.f2 != 0.0f ? b.f2 : 1.0f);
-    result.f3 = a.f3 / (b.f3 != 0.0f ? b.f3 : 1.0f);
+    result.f0 = b.f0 == 0.0f ? a.f0 : a.f0 / b.f0;
+    result.f1 = b.f1 == 0.0f ? a.f1 : a.f1 / b.f1;
+    result.f2 = b.f2 == 0.0f ? a.f2 : a.f2 / b.f2;
+    result.f3 = b.f3 == 0.0f ? a.f3 : a.f3 / b.f3;
     return result;
     #elif defined SIMD_GRANODI_SSE2
     const __m128 safe_mask = _mm_cmpneq_ps(_mm_setzero_ps(), b);
@@ -4337,8 +4339,8 @@ static inline sg_ps sg_safediv_ps(const sg_ps a, const sg_ps b) {
 static inline sg_pd sg_safediv_pd(const sg_pd a, const sg_pd b) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
     sg_pd result;
-    result.d0 = a.d0 / (b.d0 != 0.0 ? b.d0 : 1.0);
-    result.d1 = a.d1 / (b.d1 != 0.0 ? b.d1 : 1.0);
+    result.d0 = b.d0 == 0.0 ? a.d0 : a.d0 / b.d0;
+    result.d1 = b.d1 == 0.0 ? a.d1 : a.d1 / b.d1;
     return result;
     #elif defined SIMD_GRANODI_SSE2
     const __m128d safe_mask = _mm_cmpneq_pd(_mm_setzero_pd(), b);
@@ -4737,41 +4739,20 @@ public:
 
     sg_cmp_pi32 data() const { return data_; }
 
-    Compare_pi32& operator&=(const Compare_pi32& rhs) {
-        data_ = sg_and_cmp_pi32(data_, rhs.data());
-        return *this;
-    }
-    friend Compare_pi32 operator&(Compare_pi32 lhs, const Compare_pi32& rhs) {
-        lhs &= rhs;
-        return lhs;
-    }
     Compare_pi32 operator&&(const Compare_pi32& rhs) const {
-        return *this & rhs;
+        return sg_and_cmp_pi32(data_, rhs.data());
     }
 
-    Compare_pi32& operator|=(const Compare_pi32& rhs) {
-        data_ = sg_or_cmp_pi32(data_, rhs.data());
-        return *this;
-    }
-    friend Compare_pi32 operator|(Compare_pi32 lhs, const Compare_pi32& rhs) {
-        lhs |= rhs;
-        return lhs;
-    }
     Compare_pi32 operator||(const Compare_pi32& rhs) const {
-        return *this | rhs;
+        return sg_or_cmp_pi32(data_, rhs.data());
     }
 
-    Compare_pi32& operator^=(const Compare_pi32& rhs) {
-        data_ = sg_xor_cmp_pi32(data_, rhs.data());
-        return *this;
-    }
-    friend Compare_pi32 operator^(Compare_pi32 lhs, const Compare_pi32& rhs) {
-        lhs ^= rhs;
-        return lhs;
+    // xor is a keyword, unfortunately
+    Compare_pi32 eor(const Compare_pi32& rhs) const {
+        return sg_xor_cmp_pi32(data_, rhs.data());
     }
 
-    Compare_pi32 operator~() const { return sg_not_cmp_pi32(data_); }
-    Compare_pi32 operator!() const { return ~*this; }
+    Compare_pi32 operator!() const { return sg_not_cmp_pi32(data_); }
 
     bool debug_valid_eq(const bool b3, const bool b2,
         const bool b1, const bool b0) const
@@ -4805,41 +4786,19 @@ public:
 
     sg_cmp_pi64 data() const { return data_; }
 
-    Compare_pi64& operator&=(const Compare_pi64& rhs) {
-        data_ = sg_and_cmp_pi64(data_, rhs.data());
-        return *this;
-    }
-    friend Compare_pi64 operator&(Compare_pi64 lhs, const Compare_pi64& rhs) {
-        lhs &= rhs;
-        return lhs;
-    }
     Compare_pi64 operator&&(const Compare_pi64& rhs) const {
-        return *this & rhs;
+        return sg_and_cmp_pi64(data_, rhs.data());
     }
 
-    Compare_pi64& operator|=(const Compare_pi64& rhs) {
-        data_ = sg_or_cmp_pi64(data_, rhs.data());
-        return *this;
-    }
-    friend Compare_pi64 operator|(Compare_pi64 lhs, const Compare_pi64& rhs) {
-        lhs |= rhs;
-        return lhs;
-    }
     Compare_pi64 operator||(const Compare_pi64& rhs) const {
-        return *this | rhs;
+        return sg_or_cmp_pi64(data_, rhs.data());
     }
 
-    Compare_pi64& operator^=(const Compare_pi64& rhs) {
-        data_ = sg_xor_cmp_pi64(data_, rhs.data());
-        return *this;
-    }
-    friend Compare_pi64 operator^(Compare_pi64 lhs, const Compare_pi64& rhs) {
-        lhs ^= rhs;
-        return lhs;
+    Compare_pi64 eor(const Compare_pi64& rhs) const {
+        return sg_xor_cmp_pi64(data_, rhs.data());
     }
 
-    Compare_pi64 operator~() const { return sg_not_cmp_pi64(data_); }
-    Compare_pi64 operator!() const { return ~*this; }
+    Compare_pi64 operator!() const { return sg_not_cmp_pi64(data_); }
 
     bool debug_valid_eq(const bool b1, const bool b0) const {
         return sg_debug_cmp_valid_eq_pi64(data_, b1, b0);
@@ -4869,41 +4828,19 @@ public:
 
     sg_cmp_ps data() const { return data_; }
 
-    Compare_ps& operator&=(const Compare_ps& rhs) {
-        data_ = sg_and_cmp_ps(data_, rhs.data());
-        return *this;
-    }
-    friend Compare_ps operator&(Compare_ps lhs, const Compare_ps& rhs) {
-        lhs &= rhs;
-        return lhs;
-    }
     Compare_ps operator&&(const Compare_ps& rhs) const {
-        return *this & rhs;
+        return sg_and_cmp_ps(data_, rhs.data());
     }
 
-    Compare_ps& operator|=(const Compare_ps& rhs) {
-        data_ = sg_or_cmp_ps(data_, rhs.data());
-        return *this;
-    }
-    friend Compare_ps operator|(Compare_ps lhs, const Compare_ps& rhs) {
-        lhs |= rhs;
-        return lhs;
-    }
     Compare_ps operator||(const Compare_ps& rhs) const {
-        return *this | rhs;
+        return sg_or_cmp_ps(data_, rhs.data());
     }
 
-    Compare_ps& operator^=(const Compare_ps& rhs) {
-        data_ = sg_xor_cmp_ps(data_, rhs.data());
-        return *this;
-    }
-    friend Compare_ps operator^(Compare_ps lhs, const Compare_ps& rhs) {
-        lhs ^= rhs;
-        return lhs;
+    Compare_ps eor(const Compare_ps& rhs) const {
+        return sg_xor_cmp_ps(data_, rhs.data());
     }
 
-    Compare_ps operator~() const { return sg_not_cmp_ps(data_); }
-    Compare_ps operator!() const { return ~*this; }
+    Compare_ps operator!() const { return sg_not_cmp_ps(data_); }
 
     bool debug_valid_eq(const bool b3, const bool b2,
         const bool b1, const bool b0) const
@@ -4934,41 +4871,19 @@ public:
 
     sg_cmp_pd data() const { return data_; }
 
-    Compare_pd& operator&=(const Compare_pd& rhs) {
-        data_ = sg_and_cmp_pd(data_, rhs.data());
-        return *this;
-    }
-    friend Compare_pd operator&(Compare_pd lhs, const Compare_pd& rhs) {
-        lhs &= rhs;
-        return lhs;
-    }
     Compare_pd operator&&(const Compare_pd& rhs) const {
-        return *this & rhs;
+        return sg_and_cmp_pd(data_, rhs.data());
     }
 
-    Compare_pd& operator|=(const Compare_pd& rhs) {
-        data_ = sg_or_cmp_pd(data_, rhs.data());
-        return *this;
-    }
-    friend Compare_pd operator|(Compare_pd lhs, const Compare_pd& rhs) {
-        lhs |= rhs;
-        return lhs;
-    }
     Compare_pd operator||(const Compare_pd& rhs) const {
-        return *this | rhs;
+        return sg_or_cmp_pd(data_, rhs.data());
     }
 
-    Compare_pd& operator^=(const Compare_pd& rhs) {
-        data_ = sg_xor_cmp_pd(data_, rhs.data());
-        return *this;
-    }
-    friend Compare_pd operator^(Compare_pd lhs, const Compare_pd& rhs) {
-        lhs ^= rhs;
-        return lhs;
+    Compare_pd eor(const Compare_pd& rhs) const {
+        return sg_xor_cmp_pd(data_, rhs.data());
     }
 
-    Compare_pd operator~() const { return sg_not_cmp_pd(data_); }
-    Compare_pd operator!() const { return ~*this; }
+    Compare_pd operator!() const { return sg_not_cmp_pd(data_); }
 
     bool debug_valid_eq(const bool b1, const bool b0) const {
         return sg_debug_cmp_valid_eq_pd(data_, b1, b0);
@@ -5860,6 +5775,183 @@ inline Vec_ps std_cos_vec(const Vec_ps& x) {
 inline Vec_pd std_cos_vec(const Vec_pd& x) {
     return Vec_pd { std::cos(x.d1()), std::cos(x.d0()) };
 }
+
+// Shim types - for using double / float etc in template code that expects
+// a vector type
+
+class Compare_shim {
+    bool data_;
+public:
+    Compare_shim() : data_{false} {}
+    Compare_shim(const bool b) : data_{b} {}
+    Compare_shim(const Compare_shim& cmp) : data_{cmp.data()} {}
+
+    bool data() const { return data_; }
+
+    Compare_shim operator&&(const Compare_shim& rhs) const {
+        return data_ && rhs.data();
+    }
+    Compare_shim operator||(const Compare_shim& rhs) const {
+        return data_ || rhs.data();
+    }
+
+    Compare_shim eor(const Compare_shim& rhs) const {
+        return !data_ != !rhs.data();
+    }
+
+    Compare_shim operator!() const { return !data_; }
+
+    template <typename T>
+    T choose_else_zero(const T& if_true) const {
+        return data_ ? if_true : T{0};
+    }
+
+    template <typename T>
+    T choose(const T& if_true, const T& if_false) const {
+        return data_ ? if_true : if_false;
+    }
+
+    bool debug_valid_eq(const bool b) { return data_ == b; }
+};
+
+class Shim_s32 {
+    int32_t data_;
+public:
+    Shim_s32() : data_{0} {}
+    Shim_s32(const int32_t i) : data_{i} {}
+
+    static Shim_s32 bitcast_from_u32(const uint32_t i) {
+        return sg_scast_s32_u32(i);
+    }
+
+    int32_t data() const { return data_; }
+
+    Shim_s32& operator++() {
+        ++data_;
+        return *this;
+    }
+    Shim_s32 operator++(int) {
+        Shim_s32 old = *this;
+        operator++();
+        return old;
+    }
+
+    Shim_s32& operator--() {
+        --data_;
+        return *this;
+    }
+    Shim_s32 operator--(int) {
+        Shim_s32 old = *this;
+        operator--();
+        return old;
+    }
+
+    Shim_s32& operator+=(const Shim_s32& rhs) {
+        data_ += rhs.data();
+        return *this;
+    }
+    friend Shim_s32 operator+(Shim_s32 lhs, const Shim_s32& rhs) {
+        lhs += rhs;
+        return lhs;
+    }
+    Shim_s32 operator+() const { return *this; }
+
+    Shim_s32& operator-=(const Shim_s32& rhs) {
+        data_ -= rhs.data();
+        return *this;
+    }
+    friend Shim_s32 operator-(Shim_s32 lhs, const Shim_s32& rhs) {
+        lhs -= rhs;
+        return lhs;
+    }
+    Shim_s32 operator-() const { return -data_; }
+
+    Shim_s32& operator*=(const Shim_s32& rhs) {
+        data_ *= rhs.data();
+        return *this;
+    }
+    friend Shim_s32 operator*(Shim_s32 lhs, const Shim_s32& rhs) {
+        lhs *= rhs;
+        return lhs;
+    }
+
+    Shim_s32& operator/=(const Shim_s32& rhs) {
+        data_ /= rhs.data();
+        return *this;
+    }
+    friend Shim_s32 operator/(Shim_s32 lhs, const Shim_s32& rhs) {
+        lhs /= rhs;
+        return lhs;
+    }
+
+    Shim_s32& operator&=(const Shim_s32& rhs) {
+        data_ &= rhs.data();
+        return *this;
+    }
+    friend Shim_s32 operator&(Shim_s32 lhs, const Shim_s32& rhs) {
+        lhs &= rhs.data();
+        return lhs;
+    }
+
+    Shim_s32& operator|=(const Shim_s32& rhs) {
+        data_ &= rhs.data();
+        return *this;
+    }
+    friend Shim_s32 operator|(Shim_s32 lhs, const Shim_s32& rhs) {
+        lhs |= rhs.data();
+        return lhs;
+    }
+
+    Shim_s32& operator^=(const Shim_s32& rhs) {
+        data_ ^= rhs.data();
+        return *this;
+    }
+    friend Shim_s32 operator^(Shim_s32 lhs, const Shim_s32& rhs) {
+        lhs ^= rhs.data();
+        return lhs;
+    }
+
+    Shim_s32 operator~() const { return ~data_; }
+
+    Compare_shim operator<(const Shim_s32& rhs) const {
+        return data_ < rhs.data();
+    }
+    Compare_shim operator<=(const Shim_s32& rhs) const {
+        return data_ <= rhs.data();
+    }
+    Compare_shim operator==(const Shim_s32& rhs) const {
+        return data_ == rhs.data();
+    }
+    Compare_shim operator>=(const Shim_s32& rhs) const {
+        return data_ >= rhs.data();
+    }
+    Compare_shim operator>(const Shim_s32& rhs) const {
+        return data_ > rhs.data();
+    }
+
+    template<int shift>
+    Shim_s32 shift_l_imm() const { return data_ << shift; }
+    template<int shift>
+    Shim_s32 shift_rl_imm() const { return sg_srl_s32(data_, shift); }
+    template<int shift>
+    Shim_s32 shft_ra_imm() const { return data_ >> shift; }
+
+    Shim_s32 safe_divide_by(const Shim_s32& rhs) const {
+        return rhs.data() == 0 ? data_ : data_ / rhs.data();
+    }
+    Shim_s32 abs() const { return std::abs(data_); }
+    static Shim_s32 min(const Shim_s32& a, const Shim_s32& b) {
+        return std::min(a.data(), b.data());
+    }
+    static Shim_s32 max(const Shim_s32& a, const Shim_s32& b) {
+        return std::max(a.data(), b.data());
+    }
+    Shim_s32 constrain(const Shim_s32& lowerb, const Shim_s32& upperb) const {
+        return Shim_s32::min(Shim_s32::max(lowerb, data_), upperb);
+    }
+
+    bool debug_eq(int32_t i) const { return data_ == i; }
+};
 
 } // namespace simd_granodi
 

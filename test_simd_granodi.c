@@ -1336,10 +1336,12 @@ static void test_opover() {
     // Constructors and some getters
     sg_assert(Vec_pi32{}.debug_eq(0)); sg_assert(Vec_pi64{}.debug_eq(0));
     sg_assert(Vec_ps{}.debug_eq(0.f)); sg_assert(Vec_pd{}.debug_eq(0.0));
+    sg_assert(Shim_s32{}.debug_eq(0));
 
     sg_assert(Vec_pi32{5}.debug_eq(5)); sg_assert(Vec_pi64{5}.debug_eq(5));
     sg_assert(Vec_ps{5.0f}.debug_eq(5.0f));
     sg_assert(Vec_pd{5.0}.debug_eq(5.0));
+    sg_assert(Shim_s32{5}.debug_eq(5));
 
     sg_assert((Vec_pi32{5, 4, 3, 2}.debug_eq(5, 4, 3, 2)));
     sg_assert((Vec_pi64{5, 4}.debug_eq(5, 4)));
@@ -1377,94 +1379,119 @@ static void test_opover() {
 
     // Arithmetic
     Vec_pi32 pi32, rv_pi32; Vec_pi64 pi64, rv_pi64;
+    Shim_s32 s32, rv_s32;
 
-    rv_pi32 = pi32++; rv_pi64 = pi64++;
+    rv_pi32 = pi32++; rv_pi64 = pi64++; rv_s32 = s32++;
     sg_assert(rv_pi32.debug_eq(0) && pi32.debug_eq(1));
     sg_assert(rv_pi64.debug_eq(0) && pi64.debug_eq(1));
+    sg_assert(rv_s32.debug_eq(0) && s32.debug_eq(1));
 
-    rv_pi32 = ++pi32; rv_pi64 = ++ pi64;
+    rv_pi32 = ++pi32; rv_pi64 = ++ pi64; rv_s32 = ++s32;
     sg_assert(rv_pi32.debug_eq(2) && pi32.debug_eq(2));
     sg_assert(rv_pi64.debug_eq(2) && pi64.debug_eq(2));
+    sg_assert(rv_s32.debug_eq(2) && s32.debug_eq(2));
 
-    rv_pi32 = pi32--; rv_pi64 = pi64--;
+    rv_pi32 = pi32--; rv_pi64 = pi64--; rv_s32 = s32--;
     sg_assert(rv_pi32.debug_eq(2) && pi32.debug_eq(1));
     sg_assert(rv_pi64.debug_eq(2) && pi64.debug_eq(1));
+    sg_assert(rv_s32.debug_eq(2) && s32.debug_eq(1));
 
-    rv_pi32 = --pi32; rv_pi64 = --pi64;
+    rv_pi32 = --pi32; rv_pi64 = --pi64; rv_s32 = --s32;
     sg_assert(rv_pi32.debug_eq(0) && pi32.debug_eq(0));
     sg_assert(rv_pi64.debug_eq(0) && pi64.debug_eq(0));
+    sg_assert(rv_s32.debug_eq(0) && s32.debug_eq(0));
 
     Vec_ps ps, rv_ps; Vec_pd pd, rv_pd;
 
     rv_pi32 = (pi32 += 1); rv_pi64 = (pi64 += 1);
     rv_ps = (ps += 1.0f); rv_pd = (pd += 1.0);
+    rv_s32 = (s32 += 1);
     sg_assert(rv_pi32.debug_eq(1) && pi32.debug_eq(1));
     sg_assert(rv_pi64.debug_eq(1) && pi64.debug_eq(1));
     sg_assert(rv_ps.debug_eq(1.0f) && ps.debug_eq(1.0f));
     sg_assert(rv_pd.debug_eq(1.0) && pd.debug_eq(1.0));
+    sg_assert(rv_s32.debug_eq(1) && s32.debug_eq(1));
 
     rv_pi32 = pi32 + 1; rv_pi64 = pi64 + 1;
     rv_ps = ps + 1.0f; rv_pd = pd + 1.0;
+    rv_s32 = s32 + 1;
     sg_assert(rv_pi32.debug_eq(2) && pi32.debug_eq(1));
     sg_assert(rv_pi64.debug_eq(2) && pi64.debug_eq(1));
     sg_assert(rv_ps.debug_eq(2.0f) && ps.debug_eq(1.0f));
     sg_assert(rv_pd.debug_eq(2.0) && pd.debug_eq(1.0));
+    sg_assert(rv_s32.debug_eq(2) && s32.debug_eq(1));
 
     rv_pi32 = +pi32; rv_pi64 = +pi64;
     rv_ps = +ps; rv_pd = +pd;
+    rv_s32 = +s32;
     sg_assert(rv_pi32.debug_eq(1) && pi32.debug_eq(1));
     sg_assert(rv_pi64.debug_eq(1) && pi64.debug_eq(1));
     sg_assert(rv_ps.debug_eq(1.0f) && ps.debug_eq(1.0f));
     sg_assert(rv_pd.debug_eq(1.0) && pd.debug_eq(1.0));
+    sg_assert(rv_s32.debug_eq(1) && s32.debug_eq(1));
 
     rv_pi32 = (pi32 -= 2); rv_pi64 = (pi64 -= 2);
     rv_ps = (ps -= 2.0f); rv_pd = (pd -= 2.0);
+    rv_s32 = (s32 -= 2);
     sg_assert(rv_pi32.debug_eq(-1) && pi32.debug_eq(-1));
     sg_assert(rv_pi64.debug_eq(-1) && pi64.debug_eq(-1));
     sg_assert(rv_ps.debug_eq(-1.0f) && ps.debug_eq(-1.0f));
     sg_assert(rv_pd.debug_eq(-1.0) && pd.debug_eq(-1.0));
+    sg_assert(rv_s32.debug_eq(-1) && s32.debug_eq(-1));
 
     rv_pi32 = pi32 - 1; rv_pi64 = pi64 - 1;
     rv_ps = ps - 1.0f; rv_pd = pd - 1.0;
+    rv_s32 = s32 - 1;
     sg_assert(rv_pi32.debug_eq(-2) && pi32.debug_eq(-1));
     sg_assert(rv_pi64.debug_eq(-2) && pi64.debug_eq(-1));
     sg_assert(rv_ps.debug_eq(-2.0f) && ps.debug_eq(-1.0f));
     sg_assert(rv_pd.debug_eq(-2.0) && pd.debug_eq(-1.0));
+    sg_assert(rv_s32.debug_eq(-2) && s32.debug_eq(-1));
 
     rv_pi32 = -pi32; rv_pi64 = -pi64;
     rv_ps = -ps; rv_pd = -pd;
+    rv_s32 = -s32;
     sg_assert(rv_pi32.debug_eq(1) && pi32.debug_eq(-1));
     sg_assert(rv_pi64.debug_eq(1) && pi64.debug_eq(-1));
     sg_assert(rv_ps.debug_eq(1.0f) && ps.debug_eq(-1.0f));
     sg_assert(rv_pd.debug_eq(1.0) && pd.debug_eq(-1.0));
+    sg_assert(rv_s32.debug_eq(1) && s32.debug_eq(-1));
 
     rv_pi32 = (pi32 *= -16); rv_pi64 = (pi64 *= -16);
     rv_ps = (ps *= -16.0f); rv_pd = (pd *= -16.0);
+    rv_s32 = (s32 *= -16);
     sg_assert(rv_pi32.debug_eq(16) && pi32.debug_eq(16));
     sg_assert(rv_pi64.debug_eq(16) && pi64.debug_eq(16));
     sg_assert(rv_ps.debug_eq(16.0f) && ps.debug_eq(16.0f));
     sg_assert(rv_pd.debug_eq(16.0) && pd.debug_eq(16.0));
+    sg_assert(rv_s32.debug_eq(16) && s32.debug_eq(16));
 
     rv_pi32 = pi32 * 2; rv_pi64 = pi64 * 2;
     rv_ps = ps * 2.0f; rv_pd = pd * 2.0;
+    rv_s32 = s32 * 2;
     sg_assert(rv_pi32.debug_eq(32) && pi32.debug_eq(16));
     sg_assert(rv_pi64.debug_eq(32) && pi64.debug_eq(16));
     sg_assert(rv_ps.debug_eq(32.0f) && ps.debug_eq(16.0f));
     sg_assert(rv_pd.debug_eq(32.0) && pd.debug_eq(16.0));
+    sg_assert(rv_s32.debug_eq(32) && s32.debug_eq(16));
 
     rv_pi32 = (pi32 /= 2); rv_pi64 = (pi64 /= 2);
     rv_ps = (ps /= 2.0f); rv_pd = (pd /= 2.0);
+    rv_s32 = (s32 /= 2);
     sg_assert(rv_pi32.debug_eq(8) && pi32.debug_eq(8));
     sg_assert(rv_pi64.debug_eq(8) && pi64.debug_eq(8));
     sg_assert(rv_ps.debug_eq(8.0f) && ps.debug_eq(8.0f));
     sg_assert(rv_pd.debug_eq(8.0) && pd.debug_eq(8.0));
+    sg_assert(rv_s32.debug_eq(8) && s32.debug_eq(8));
 
     rv_pi32 = pi32 / 2; rv_pi64 = pi64 / 2;
     rv_ps = ps / 2.0f; rv_pd = pd / 2.0;
+    rv_s32 = s32 / 2;
     sg_assert(rv_pi32.debug_eq(4) && pi32.debug_eq(8));
     sg_assert(rv_pi64.debug_eq(4) && pi64.debug_eq(8));
     sg_assert(rv_ps.debug_eq(4.0f) && ps.debug_eq(8.0f));
     sg_assert(rv_pd.debug_eq(4.0) && pd.debug_eq(8.0));
+    sg_assert(rv_s32.debug_eq(4) && s32.debug_eq(8));
 
     // Tes mul add
     sg_assert((Vec_ps{1.0f, 2.0f, 3.0f, 4.0f}.mul_add(
@@ -1715,11 +1742,13 @@ static void test_opover_cmp() {
     sg_assert(Compare_pi64{}.debug_valid_eq(false));
     sg_assert(Compare_ps{}.debug_valid_eq(false));
     sg_assert(Compare_pd{}.debug_valid_eq(false));
+    sg_assert(Compare_shim{}.debug_valid_eq(false));
 
     sg_assert(Compare_pi32{true}.debug_valid_eq(true));
     sg_assert(Compare_pi64{true}.debug_valid_eq(true));
     sg_assert(Compare_ps{true}.debug_valid_eq(true));
     sg_assert(Compare_pd{true}.debug_valid_eq(true));
+    sg_assert(Compare_shim{true}.debug_valid_eq(true));
 
     sg_assert((Compare_pi32{true, false, false, true}
         .debug_valid_eq(true, false, false, true)));
@@ -1739,120 +1768,63 @@ static void test_opover_cmp() {
         const bool b1 = static_cast<bool>(i), b2 = static_cast<bool>(j);
 
         // AND
-        sg_assert((Compare_pi32{b1} & Compare_pi32{b2})
-            .debug_valid_eq(b1 && b2));
         sg_assert((Compare_pi32{b1} && Compare_pi32{b2})
             .debug_valid_eq(b1 && b2));
-        Compare_pi32 pi32{b1};
-        Compare_pi32 rv_pi32 = pi32 &= b2;
-        sg_assert(pi32.debug_valid_eq(b1 && b2));
-        sg_assert(rv_pi32.debug_valid_eq(b1 && b2));
 
-        sg_assert((Compare_pi64{b1} & Compare_pi64{b2})
-            .debug_valid_eq(b1 && b2));
         sg_assert((Compare_pi64{b1} && Compare_pi64{b2})
             .debug_valid_eq(b1 && b2));
-        Compare_pi64 pi64{b1};
-        Compare_pi64 rv_pi64 = pi64 &= b2;
-        sg_assert(pi64.debug_valid_eq(b1 && b2));
-        sg_assert(rv_pi64.debug_valid_eq(b1 && b2));
 
-        sg_assert((Compare_ps{b1} & Compare_ps{b2})
-            .debug_valid_eq(b1 && b2));
         sg_assert((Compare_ps{b1} && Compare_ps{b2})
             .debug_valid_eq(b1 && b2));
-        Compare_ps ps{b1};
-        Compare_ps rv_ps = ps &= b2;
-        sg_assert(ps.debug_valid_eq(b1 && b2));
-        sg_assert(rv_ps.debug_valid_eq(b1 && b2));
 
-        sg_assert((Compare_pd{b1} & Compare_pd{b2})
-            .debug_valid_eq(b1 && b2));
         sg_assert((Compare_pd{b1} && Compare_pd{b2})
             .debug_valid_eq(b1 && b2));
-        Compare_pd pd{b1};
-        Compare_pd rv_pd = pd &= b2;
-        sg_assert(pd.debug_valid_eq(b1 && b2));
-        sg_assert(rv_pd.debug_valid_eq(b1 && b2));
+
+        sg_assert((Compare_shim{b1} && Compare_shim{b2})
+            .debug_valid_eq(b1 && b2));
 
         // OR
-        sg_assert((Compare_pi32{b1} | Compare_pi32{b2})
-            .debug_valid_eq(b1 || b2));
         sg_assert((Compare_pi32{b1} || Compare_pi32{b2})
             .debug_valid_eq(b1 || b2));
-        pi32 = b1;
-        rv_pi32 = pi32 |= b2;
-        sg_assert(pi32.debug_valid_eq(b1 || b2));
-        sg_assert(rv_pi32.debug_valid_eq(b1 || b2));
 
-        sg_assert((Compare_pi64{b1} | Compare_pi64{b2})
-            .debug_valid_eq(b1 || b2));
         sg_assert((Compare_pi64{b1} || Compare_pi64{b2})
             .debug_valid_eq(b1 || b2));
-        pi64 = b1;
-        rv_pi64 = pi64 |= b2;
-        sg_assert(pi64.debug_valid_eq(b1 || b2));
-        sg_assert(rv_pi64.debug_valid_eq(b1 || b2));
 
-        sg_assert((Compare_ps{b1} | Compare_ps{b2})
-            .debug_valid_eq(b1 || b2));
         sg_assert((Compare_ps{b1} || Compare_ps{b2})
             .debug_valid_eq(b1 || b2));
-        ps = b1;
-        rv_ps = ps |= b2;
-        sg_assert(ps.debug_valid_eq(b1 || b2));
-        sg_assert(rv_ps.debug_valid_eq(b1 || b2));
 
-        sg_assert((Compare_pd{b1} | Compare_pd{b2})
-            .debug_valid_eq(b1 || b2));
         sg_assert((Compare_pd{b1} || Compare_pd{b2})
             .debug_valid_eq(b1 || b2));
-        pd = b1;
-        rv_pd = pd |= b2;
-        sg_assert(pd.debug_valid_eq(b1 || b2));
-        sg_assert(rv_pd.debug_valid_eq(b1 || b2));
+
+        sg_assert((Compare_shim{b1} || Compare_shim{b2})
+            .debug_valid_eq(b1 || b2));
 
         // XOR
-        sg_assert((Compare_pi32{b1} ^ Compare_pi32{b2})
+        sg_assert((Compare_pi32{b1}.eor(Compare_pi32{b2}))
             .debug_valid_eq(b1 ^ b2));
-        pi32 = b1;
-        rv_pi32 = pi32 ^= b2;
-        sg_assert(pi32.debug_valid_eq(b1 ^ b2));
-        sg_assert(rv_pi32.debug_valid_eq(b1 ^ b2));
 
-        sg_assert((Compare_pi64{b1} ^ Compare_pi64{b2})
+        sg_assert((Compare_pi64{b1}.eor(Compare_pi64{b2}))
             .debug_valid_eq(b1 ^ b2));
-        pi64 = b1;
-        rv_pi64 = pi64 ^= b2;
-        sg_assert(pi64.debug_valid_eq(b1 ^ b2));
-        sg_assert(rv_pi64.debug_valid_eq(b1 ^ b2));
 
-        sg_assert((Compare_ps{b1} ^ Compare_ps{b2})
+        sg_assert((Compare_ps{b1}.eor(Compare_ps{b2}))
             .debug_valid_eq(b1 ^ b2));
-        ps = b1;
-        rv_ps = ps ^= b2;
-        sg_assert(ps.debug_valid_eq(b1 ^ b2));
-        sg_assert(rv_ps.debug_valid_eq(b1 ^ b2));
 
-        sg_assert((Compare_pd{b1} ^ Compare_pd{b2})
+        sg_assert((Compare_pd{b1}.eor(Compare_pd{b2}))
             .debug_valid_eq(b1 ^ b2));
-        pd = b1;
-        rv_pd = pd ^= b2;
-        sg_assert(pd.debug_valid_eq(b1 ^ b2));
-        sg_assert(rv_pd.debug_valid_eq(b1 ^ b2));
+
+        sg_assert((Compare_shim{b1}.eor(Compare_shim{b2}))
+            .debug_valid_eq(b1 ^ b2));
 
         // NOT
-        sg_assert((~Compare_pi32{b1}).debug_valid_eq(!b1));
         sg_assert((!Compare_pi32{b1}).debug_valid_eq(!b1));
 
-        sg_assert((~Compare_pi64{b1}).debug_valid_eq(!b1));
         sg_assert((!Compare_pi64{b1}).debug_valid_eq(!b1));
 
-        sg_assert((~Compare_ps{b1}).debug_valid_eq(!b1));
         sg_assert((!Compare_ps{b1}).debug_valid_eq(!b1));
 
-        sg_assert((~Compare_pd{b1}).debug_valid_eq(!b1));
         sg_assert((!Compare_pd{b1}).debug_valid_eq(!b1));
+
+        sg_assert((!Compare_shim{b1}).debug_valid_eq(!b1));
 
     } }
 
@@ -1866,6 +1838,15 @@ static void test_opover_cmp() {
     sg_assert((Compare_pd{false}.choose_else_zero(2.0).debug_eq(0.0)));
     sg_assert((Compare_pd{true}.choose_else_zero(2.0).debug_eq(2.0)));
 
+    sg_assert((Compare_shim{false}.choose_else_zero((int32_t) 2) == 0));
+    sg_assert((Compare_shim{true}.choose_else_zero((int32_t) 2) == 2));
+    sg_assert((Compare_shim{false}.choose_else_zero((int64_t) 2) == 0));
+    sg_assert((Compare_shim{true}.choose_else_zero((int64_t) 2) == 2));
+    sg_assert((Compare_shim{false}.choose_else_zero(2.0f) == 0.0f));
+    sg_assert((Compare_shim{true}.choose_else_zero(2.0f) == 2.0f));
+    sg_assert((Compare_shim{false}.choose_else_zero(2.0) == 0.0));
+    sg_assert((Compare_shim{true}.choose_else_zero(2.0) == 2.0));
+
     // Choose
     sg_assert(Compare_pi32{false}.choose(2, 3).debug_eq(3));
     sg_assert(Compare_pi32{true}.choose(2, 3).debug_eq(2));
@@ -1875,6 +1856,15 @@ static void test_opover_cmp() {
     sg_assert(Compare_ps{true}.choose(2.0f, 3.0f).debug_eq(2.0f));
     sg_assert(Compare_pd{false}.choose(2.0, 3.0).debug_eq(3.0));
     sg_assert(Compare_pd{true}.choose(2.0, 3.0).debug_eq(2.0));
+
+    sg_assert(Compare_shim{false}.choose(2, 3) == 3);
+    sg_assert(Compare_shim{true}.choose(2, 3) == 2);
+    sg_assert(Compare_shim{false}.choose(2, 3) == 3);
+    sg_assert(Compare_shim{true}.choose(2, 3) == 2);
+    sg_assert(Compare_shim{false}.choose(2.0f, 3.0f) == 3.0f);
+    sg_assert(Compare_shim{true}.choose(2.0f, 3.0f) == 2.0f);
+    sg_assert(Compare_shim{false}.choose(2.0, 3.0) == 3.0);
+    sg_assert(Compare_shim{true}.choose(2.0, 3.0) == 2.0);
 
     //printf("Comparison operator overloading test succeeded\n");
 }
