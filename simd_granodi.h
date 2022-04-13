@@ -2585,6 +2585,7 @@ static inline sg_pd sg_div_pd(const sg_pd a, const sg_pd b) {
 // On NEON, some compilers will optimize separate mul and add intrinsics into
 // a single fma anyway, so it is nice to be explicit about results varying
 // slightly across platforms
+
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_mul_add_ps(const sg_ps a, const sg_ps b, const sg_ps c) {
     sg_ps result;
@@ -3749,43 +3750,43 @@ static inline sg_cmp_pd sg_cmpgt_pd(const sg_pd a, const sg_pd b) {
 // Cast comparisons (same layout, no conversion)
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_cmp_ps sg_castcmp_pi32_ps(const sg_cmp_pi32 cmp) {
+static inline sg_cmp_ps sg_cvtcmp_pi32_ps(const sg_cmp_pi32 cmp) {
     return cmp;
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_castcmp_pi32_ps _mm_castsi128_ps
+#define sg_cvtcmp_pi32_ps _mm_castsi128_ps
 #elif defined SIMD_GRANODI_NEON
-#define sg_castcmp_pi32_ps(cmp) (cmp)
+#define sg_cvtcmp_pi32_ps(cmp) (cmp)
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_cmp_pi32 sg_castcmp_ps_pi32(const sg_cmp_ps cmp) {
+static inline sg_cmp_pi32 sg_cvtcmp_ps_pi32(const sg_cmp_ps cmp) {
     return cmp;
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_castcmp_ps_pi32 _mm_castps_si128
+#define sg_cvtcmp_ps_pi32 _mm_castps_si128
 #elif defined SIMD_GRANODI_NEON
-#define sg_castcmp_ps_pi32(cmp) (cmp)
+#define sg_cvtcmp_ps_pi32(cmp) (cmp)
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_cmp_pd sg_castcmp_pi64_pd(const sg_cmp_pi64 cmp) {
+static inline sg_cmp_pd sg_cvtcmp_pi64_pd(const sg_cmp_pi64 cmp) {
     return cmp;
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_castcmp_pi64_pd _mm_castsi128_pd
+#define sg_cvtcmp_pi64_pd _mm_castsi128_pd
 #elif defined SIMD_GRANODI_NEON
-#define sg_castcmp_pi64_pd(cmp) (cmp)
+#define sg_cvtcmp_pi64_pd(cmp) (cmp)
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_cmp_pi64 sg_castcmp_pd_pi64(const sg_cmp_pd cmp) {
+static inline sg_cmp_pi64 sg_cvtcmp_pd_pi64(const sg_cmp_pd cmp) {
     return cmp;
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_castcmp_pd_pi64 _mm_castpd_si128
+#define sg_cvtcmp_pd_pi64 _mm_castpd_si128
 #elif defined SIMD_GRANODI_NEON
-#define sg_castcmp_pd_pi64(cmp) (cmp)
+#define sg_cvtcmp_pd_pi64(cmp) (cmp)
 #endif
 
 // Convert comparison results (shuffling)
@@ -4763,9 +4764,10 @@ public:
         return debug_valid_eq(b, b, b, b);
     }
 
-    inline Compare_pi64 convert_to_cmp_pi64() const;
-    inline Compare_ps bitcast_to_cmp_ps() const;
-    inline Compare_pd convert_to_cmp_pd() const;
+    Compare_pi32 convert_to_cmp_s32() const { return *this; }
+    inline Compare_pi64 convert_to_cmp_s64() const;
+    inline Compare_ps convert_to_cmp_f32() const;
+    inline Compare_pd convert_to_cmp_f64() const;
     inline Vec_pi32 choose_else_zero(const Vec_pi32& if_true) const;
     inline Vec_pi32 choose(const Vec_pi32& if_true,
         const Vec_pi32& if_false) const;
@@ -4805,9 +4807,10 @@ public:
     }
     bool debug_valid_eq(const bool b) const { return debug_valid_eq(b, b); }
 
-    inline Compare_pi32 convert_to_cmp_pi32() const;
-    inline Compare_ps convert_to_cmp_ps() const;
-    inline Compare_pd bitcast_to_cmp_pd() const;
+    inline Compare_pi32 convert_to_cmp_s32() const;
+    Compare_pi64 convert_to_cmp_s64() const { return *this; }
+    inline Compare_ps convert_to_cmp_f32() const;
+    inline Compare_pd convert_to_cmp_f64() const;
 
     inline Vec_pi64 choose_else_zero(const Vec_pi64& if_true) const;
     inline Vec_pi64 choose(const Vec_pi64& if_true,
@@ -4849,9 +4852,10 @@ public:
     }
     bool debug_valid_eq(const bool b) { return debug_valid_eq(b, b, b, b); }
 
-    inline Compare_pi32 bitcast_to_cmp_pi32() const;
-    inline Compare_pi64 convert_to_cmp_pi64() const;
-    inline Compare_pd convert_to_cmp_pd() const;
+    inline Compare_pi32 convert_to_cmp_s32() const;
+    inline Compare_pi64 convert_to_cmp_s64() const;
+    Compare_ps convert_to_cmp_f32() const { return *this; }
+    inline Compare_pd convert_to_cmp_f64() const;
 
     inline Vec_ps choose_else_zero(const Vec_ps& if_true) const;
     inline Vec_ps choose(const Vec_ps& if_true, const Vec_ps& if_false) const;
@@ -4890,9 +4894,10 @@ public:
     }
     bool debug_valid_eq(const bool b) const { return debug_valid_eq(b, b); }
 
-    inline Compare_pi32 convert_to_cmp_pi32() const;
-    inline Compare_pi64 bitcast_to_cmp_pi64() const;
-    inline Compare_ps convert_to_cmp_ps() const;
+    inline Compare_pi32 convert_to_cmp_s32() const;
+    inline Compare_pi64 convert_to_cmp_s64() const;
+    inline Compare_ps convert_to_cmp_f32() const;
+    Compare_pd convert_to_cmp_f64() const { return *this; }
 
     inline Vec_pd choose_else_zero(const Vec_pd& if_true) const;
     inline Vec_pd choose(const Vec_pd& if_true, const Vec_pd& if_false) const;
@@ -4911,6 +4916,15 @@ public:
     Vec_pi32(const sg_generic_pi32& g_pi32)
         : data_(sg_set_fromg_pi32(g_pi32)) {}
     #endif
+
+    static int32_t elem_t(const int32_t s32) { return s32; }
+    static int32_t elem_t(const int64_t s64) {
+        return static_cast<int32_t>(s64);
+    }
+    static int32_t elem_t(const float f32) { return static_cast<int32_t>(f32); }
+    static int32_t elem_t(const double f64) {
+        return static_cast<int32_t>(f64);
+    }
 
     static Vec_pi32 bitcast_from_u32(const uint32_t i) {
         return sg_set1_from_u32_pi32(i);
@@ -5068,13 +5082,13 @@ public:
     }
     bool debug_eq(const int32_t i) const { return debug_eq(i, i, i, i); }
 
-    inline Vec_pi64 bitcast_to_pi64() const;
-    inline Vec_ps bitcast_to_ps() const;
-    inline Vec_pd bitcast_to_pd() const;
+    inline Vec_pi64 bitcast_to_s64() const;
+    inline Vec_ps bitcast_to_f32() const;
+    inline Vec_pd bitcast_to_f64() const;
 
-    inline Vec_pi64 convert_to_pi64() const;
-    inline Vec_ps convert_to_ps() const;
-    inline Vec_pd convert_to_pd() const;
+    inline Vec_pi64 convert_to_s64() const;
+    inline Vec_ps convert_to_f32() const;
+    inline Vec_pd convert_to_f64() const;
 };
 
 class Vec_pi64 {
@@ -5088,6 +5102,15 @@ public:
     Vec_pi64(const sg_generic_pi64& g_pi64)
         : data_(sg_set_fromg_pi64(g_pi64)) {}
     #endif
+
+    static int64_t elem_t(const int32_t s32) {
+        return static_cast<int64_t>(s32);
+    }
+    static int64_t elem_t(const int64_t s64) { return s64; }
+    static int64_t elem_t(const float f32) { return static_cast<int64_t>(f32); }
+    static int64_t elem_t(const double f64) {
+        return static_cast<int64_t>(f64);
+    }
 
     static Vec_pi64 bitcast_from_u64(const uint64_t l) {
         return sg_set1_from_u64_pi64(l);
@@ -5237,13 +5260,13 @@ public:
     }
     bool debug_eq(const int64_t l) const { return debug_eq(l, l); }
 
-    inline Vec_pi32 bitcast_to_pi32() const;
-    inline Vec_ps bitcast_to_ps() const;
-    inline Vec_pd bitcast_to_pd() const;
+    inline Vec_pi32 bitcast_to_s32() const;
+    inline Vec_ps bitcast_to_f32() const;
+    inline Vec_pd bitcast_to_f64() const;
 
-    inline Vec_pi32 convert_to_pi32() const;
-    inline Vec_ps convert_to_ps() const;
-    inline Vec_pd convert_to_pd() const;
+    inline Vec_pi32 convert_to_s32() const;
+    inline Vec_ps convert_to_f32() const;
+    inline Vec_pd convert_to_f64() const;
 };
 
 class Vec_ps {
@@ -5263,8 +5286,10 @@ public:
     // into:
     //     var = vec_ps_arg * (Vec_ps::scalar(0.312) *
     //         Vec_ps::scalar(double_function_arg));
-    static float base(const double f64) { return static_cast<float>(f64); }
-    static float base(const float f32) { return f32; }
+    static float elem_t(const int32_t s32) { return static_cast<float>(s32); }
+    static float elem_t(const int64_t s64) { return static_cast<float>(s64); }
+    static float elem_t(const float f32) { return f32; }
+    static float elem_t(const double f64) { return static_cast<float>(f64); }
 
     static Vec_ps bitcast_from_u32(const uint32_t i) {
         return sg_set1_from_u32_ps(i);
@@ -5402,17 +5427,17 @@ public:
     }
     bool debug_eq(const float f) const { return debug_eq(f, f, f, f); }
 
-    inline Vec_pi32 bitcast_to_pi32() const;
-    inline Vec_pi64 bitcast_to_pi64() const;
-    inline Vec_pd bitcast_to_pd() const;
+    inline Vec_pi32 bitcast_to_s32() const;
+    inline Vec_pi64 bitcast_to_s64() const;
+    inline Vec_pd bitcast_to_f64() const;
 
-    inline Vec_pi32 convert_to_nearest_pi32() const;
-    inline Vec_pi32 truncate_to_pi32() const;
-    inline Vec_pi32 floor_to_pi32() const;
-    inline Vec_pi64 convert_to_nearest_pi64() const;
-    inline Vec_pi64 truncate_to_pi64() const;
-    inline Vec_pi64 floor_to_pi64() const;
-    inline Vec_pd convert_to_pd() const;
+    inline Vec_pi32 convert_to_nearest_s32() const;
+    inline Vec_pi32 truncate_to_s32() const;
+    inline Vec_pi32 floor_to_s32() const;
+    inline Vec_pi64 convert_to_nearest_s64() const;
+    inline Vec_pi64 truncate_to_s64() const;
+    inline Vec_pi64 floor_to_s64() const;
+    inline Vec_pd convert_to_f64() const;
 };
 
 class Vec_pd {
@@ -5426,8 +5451,10 @@ public:
     Vec_pd(const sg_generic_pd& g_pd) : data_(sg_set_fromg_pd(g_pd)) {}
     #endif
 
-    static double base(const float f32) { return static_cast<double>(f32); }
-    static double base(const double f64) { return f64; }
+    static double elem_t(const int32_t s32) { return static_cast<double>(s32); }
+    static double elem_t(const int64_t s64) { return static_cast<double>(s64); }
+    static double elem_t(const float f32) { return static_cast<double>(f32); }
+    static double elem_t(const double f64) { return f64; }
 
     static Vec_pd bitcast_from_u64(const uint64_t l) {
         return sg_set1_from_u64_pd(l);
@@ -5557,26 +5584,26 @@ public:
     }
     bool debug_eq(const double d) const { return debug_eq(d, d); }
 
-    inline Vec_pi32 bitcast_to_pi32() const;
-    inline Vec_pi64 bitcast_to_pi64() const;
-    inline Vec_ps bitcast_to_ps() const;
+    inline Vec_pi32 bitcast_to_s32() const;
+    inline Vec_pi64 bitcast_to_s64() const;
+    inline Vec_ps bitcast_to_f32() const;
 
-    inline Vec_pi32 convert_to_nearest_pi32() const;
-    inline Vec_pi32 truncate_to_pi32() const;
-    inline Vec_pi32 floor_to_pi32() const;
-    inline Vec_pi64 convert_to_nearest_pi64() const;
-    inline Vec_pi64 truncate_to_pi64() const;
-    inline Vec_pi64 floor_to_pi64() const;
-    inline Vec_ps convert_to_ps() const;
+    inline Vec_pi32 convert_to_nearest_s32() const;
+    inline Vec_pi32 truncate_to_s32() const;
+    inline Vec_pi32 floor_to_s32() const;
+    inline Vec_pi64 convert_to_nearest_s64() const;
+    inline Vec_pi64 truncate_to_s64() const;
+    inline Vec_pi64 floor_to_s64() const;
+    inline Vec_ps convert_to_f32() const;
 };
 
-inline Compare_pi64 Compare_pi32::convert_to_cmp_pi64() const {
+inline Compare_pi64 Compare_pi32::convert_to_cmp_s64() const {
     return sg_cvtcmp_pi32_pi64(data_);
 }
-inline Compare_ps Compare_pi32::bitcast_to_cmp_ps() const {
-    return sg_castcmp_pi32_ps(data_);
+inline Compare_ps Compare_pi32::convert_to_cmp_f32() const {
+    return sg_cvtcmp_pi32_ps(data_);
 }
-inline Compare_pd Compare_pi32::convert_to_cmp_pd() const {
+inline Compare_pd Compare_pi32::convert_to_cmp_f64() const {
     return sg_cvtcmp_pi32_pd(data_);
 }
 
@@ -5589,14 +5616,14 @@ inline Vec_pi32 Compare_pi32::choose(const Vec_pi32& if_true,
     return sg_choose_pi32(data_, if_true.data(), if_false.data());
 }
 
-inline Compare_pi32 Compare_pi64::convert_to_cmp_pi32() const {
+inline Compare_pi32 Compare_pi64::convert_to_cmp_s32() const {
     return sg_cvtcmp_pi64_pi32(data_);
 }
-inline Compare_ps Compare_pi64::convert_to_cmp_ps() const {
+inline Compare_ps Compare_pi64::convert_to_cmp_f32() const {
     return sg_cvtcmp_pi64_ps(data_);
 }
-inline Compare_pd Compare_pi64::bitcast_to_cmp_pd() const {
-    return sg_castcmp_pi64_pd(data_);
+inline Compare_pd Compare_pi64::convert_to_cmp_f64() const {
+    return sg_cvtcmp_pi64_pd(data_);
 }
 
 inline Vec_pi64 Compare_pi64::choose_else_zero(const Vec_pi64& if_true) const {
@@ -5608,13 +5635,13 @@ inline Vec_pi64 Compare_pi64::choose(const Vec_pi64& if_true,
     return sg_choose_pi64(data_, if_true.data(), if_false.data());
 }
 
-inline Compare_pi32 Compare_ps::bitcast_to_cmp_pi32() const {
-    return sg_castcmp_ps_pi32(data_);
+inline Compare_pi32 Compare_ps::convert_to_cmp_s32() const {
+    return sg_cvtcmp_ps_pi32(data_);
 }
-inline Compare_pi64 Compare_ps::convert_to_cmp_pi64() const {
+inline Compare_pi64 Compare_ps::convert_to_cmp_s64() const {
     return sg_cvtcmp_ps_pi64(data_);
 }
-inline Compare_pd Compare_ps::convert_to_cmp_pd() const {
+inline Compare_pd Compare_ps::convert_to_cmp_f64() const {
     return sg_cvtcmp_ps_pd(data_);
 }
 
@@ -5627,13 +5654,13 @@ inline Vec_ps Compare_ps::choose(const Vec_ps& if_true,
     return sg_choose_ps(data_, if_true.data(), if_false.data());
 }
 
-inline Compare_pi32 Compare_pd::convert_to_cmp_pi32() const {
+inline Compare_pi32 Compare_pd::convert_to_cmp_s32() const {
     return sg_cvtcmp_pd_pi32(data_);
 }
-inline Compare_pi64 Compare_pd::bitcast_to_cmp_pi64() const {
-    return sg_castcmp_pd_pi64(data_);
+inline Compare_pi64 Compare_pd::convert_to_cmp_s64() const {
+    return sg_cvtcmp_pd_pi64(data_);
 }
-inline Compare_ps Compare_pd::convert_to_cmp_ps() const {
+inline Compare_ps Compare_pd::convert_to_cmp_f32() const {
     return sg_cvtcmp_pd_ps(data_);
 }
 
@@ -5646,91 +5673,91 @@ inline Vec_pd Compare_pd::choose(const Vec_pd& if_true,
     return sg_choose_pd(data_, if_true.data(), if_false.data());
 }
 
-inline Vec_pi64 Vec_pi32::bitcast_to_pi64() const {
+inline Vec_pi64 Vec_pi32::bitcast_to_s64() const {
     return sg_cast_pi32_pi64(data_);
 }
-inline Vec_ps Vec_pi32::bitcast_to_ps() const { return sg_cast_pi32_ps(data_); }
-inline Vec_pd Vec_pi32::bitcast_to_pd() const { return sg_cast_pi32_pd(data_); }
-inline Vec_pi64 Vec_pi32::convert_to_pi64() const {
+inline Vec_ps Vec_pi32::bitcast_to_f32() const { return sg_cast_pi32_ps(data_); }
+inline Vec_pd Vec_pi32::bitcast_to_f64() const { return sg_cast_pi32_pd(data_); }
+inline Vec_pi64 Vec_pi32::convert_to_s64() const {
     return sg_cvt_pi32_pi64(data_);
 }
-inline Vec_ps Vec_pi32::convert_to_ps() const {
+inline Vec_ps Vec_pi32::convert_to_f32() const {
     return sg_cvt_pi32_ps(data_);
 }
-inline Vec_pd Vec_pi32::convert_to_pd() const {
+inline Vec_pd Vec_pi32::convert_to_f64() const {
     return sg_cvt_pi32_pd(data_);
 }
 
-inline Vec_pi32 Vec_pi64::bitcast_to_pi32() const {
+inline Vec_pi32 Vec_pi64::bitcast_to_s32() const {
     return sg_cast_pi64_pi32(data_);
 }
-inline Vec_ps Vec_pi64::bitcast_to_ps() const { return sg_cast_pi64_ps(data_); }
-inline Vec_pd Vec_pi64::bitcast_to_pd() const { return sg_cast_pi64_pd(data_); }
-inline Vec_pi32 Vec_pi64::convert_to_pi32() const {
+inline Vec_ps Vec_pi64::bitcast_to_f32() const { return sg_cast_pi64_ps(data_); }
+inline Vec_pd Vec_pi64::bitcast_to_f64() const { return sg_cast_pi64_pd(data_); }
+inline Vec_pi32 Vec_pi64::convert_to_s32() const {
     return sg_cvt_pi64_pi32(data_);
 }
-inline Vec_ps Vec_pi64::convert_to_ps() const {
+inline Vec_ps Vec_pi64::convert_to_f32() const {
     return sg_cvt_pi64_ps(data_);
 }
-inline Vec_pd Vec_pi64::convert_to_pd() const {
+inline Vec_pd Vec_pi64::convert_to_f64() const {
     return sg_cvt_pi64_pd(data_);
 }
 
-inline Vec_pi32 Vec_ps::bitcast_to_pi32() const {
+inline Vec_pi32 Vec_ps::bitcast_to_s32() const {
     return sg_cast_ps_pi32(data_);
 }
-inline Vec_pi64 Vec_ps::bitcast_to_pi64() const {
+inline Vec_pi64 Vec_ps::bitcast_to_s64() const {
     return sg_cast_ps_pi64(data_);
 }
-inline Vec_pd Vec_ps::bitcast_to_pd() const { return sg_cast_ps_pd(data_); }
-inline Vec_pi32 Vec_ps::convert_to_nearest_pi32() const {
+inline Vec_pd Vec_ps::bitcast_to_f64() const { return sg_cast_ps_pd(data_); }
+inline Vec_pi32 Vec_ps::convert_to_nearest_s32() const {
     return sg_cvt_ps_pi32(data_);
 }
-inline Vec_pi32 Vec_ps::truncate_to_pi32() const {
+inline Vec_pi32 Vec_ps::truncate_to_s32() const {
     return sg_cvtt_ps_pi32(data_);
 }
-inline Vec_pi32 Vec_ps::floor_to_pi32() const {
+inline Vec_pi32 Vec_ps::floor_to_s32() const {
     return sg_cvtf_ps_pi32(data_);
 }
-inline Vec_pi64 Vec_ps::convert_to_nearest_pi64() const {
+inline Vec_pi64 Vec_ps::convert_to_nearest_s64() const {
     return sg_cvt_ps_pi64(data_);
 }
-inline Vec_pi64 Vec_ps::truncate_to_pi64() const {
+inline Vec_pi64 Vec_ps::truncate_to_s64() const {
     return sg_cvtt_ps_pi64(data_);
 }
-inline Vec_pi64 Vec_ps::floor_to_pi64() const {
+inline Vec_pi64 Vec_ps::floor_to_s64() const {
     return sg_cvtf_ps_pi64(data_);
 }
-inline Vec_pd Vec_ps::convert_to_pd() const {
+inline Vec_pd Vec_ps::convert_to_f64() const {
     return sg_cvt_ps_pd(data_);
 }
 
-inline Vec_pi32 Vec_pd::bitcast_to_pi32() const {
+inline Vec_pi32 Vec_pd::bitcast_to_s32() const {
     return sg_cast_pd_pi32(data_);
 }
-inline Vec_pi64 Vec_pd::bitcast_to_pi64() const {
+inline Vec_pi64 Vec_pd::bitcast_to_s64() const {
     return sg_cast_pd_pi64(data_);
 }
-inline Vec_ps Vec_pd::bitcast_to_ps() const { return sg_cast_pd_ps(data_); }
-inline Vec_pi32 Vec_pd::convert_to_nearest_pi32() const {
+inline Vec_ps Vec_pd::bitcast_to_f32() const { return sg_cast_pd_ps(data_); }
+inline Vec_pi32 Vec_pd::convert_to_nearest_s32() const {
     return sg_cvt_pd_pi32(data_);
 }
-inline Vec_pi32 Vec_pd::truncate_to_pi32() const {
+inline Vec_pi32 Vec_pd::truncate_to_s32() const {
     return sg_cvtt_pd_pi32(data_);
 }
-inline Vec_pi32 Vec_pd::floor_to_pi32() const {
+inline Vec_pi32 Vec_pd::floor_to_s32() const {
     return sg_cvtf_pd_pi32(data_);
 }
-inline Vec_pi64 Vec_pd::convert_to_nearest_pi64() const {
+inline Vec_pi64 Vec_pd::convert_to_nearest_s64() const {
     return sg_cvt_pd_pi64(data_);
 }
-inline Vec_pi64 Vec_pd::truncate_to_pi64() const {
+inline Vec_pi64 Vec_pd::truncate_to_s64() const {
     return sg_cvtt_pd_pi64(data_);
 }
-inline Vec_pi64 Vec_pd::floor_to_pi64() const {
+inline Vec_pi64 Vec_pd::floor_to_s64() const {
     return sg_cvtf_pd_pi64(data_);
 }
-inline Vec_ps Vec_pd::convert_to_ps() const {
+inline Vec_ps Vec_pd::convert_to_f32() const {
     return sg_cvt_pd_ps(data_);
 }
 
@@ -5812,7 +5839,14 @@ public:
     }
 
     bool debug_valid_eq(const bool b) { return data_ == b; }
+
+    Compare_shim convert_to_cmp_s32() const { return *this; }
+    Compare_shim convert_to_cmp_s64() const { return *this; }
+    Compare_shim convert_to_cmp_f32() const { return *this; }
+    Compare_shim convert_to_cmp_f64() const { return *this; }
 };
+
+class Shim_s32; class Shim_s64; class Shim_f32; class Shim_f64;
 
 class Shim_s32 {
     int32_t data_;
@@ -5894,7 +5928,7 @@ public:
     }
 
     Shim_s32& operator|=(const Shim_s32& rhs) {
-        data_ &= rhs.data();
+        data_ |= rhs.data();
         return *this;
     }
     friend Shim_s32 operator|(Shim_s32 lhs, const Shim_s32& rhs) {
@@ -5934,7 +5968,7 @@ public:
     template<int shift>
     Shim_s32 shift_rl_imm() const { return sg_srl_s32(data_, shift); }
     template<int shift>
-    Shim_s32 shft_ra_imm() const { return data_ >> shift; }
+    Shim_s32 shift_ra_imm() const { return data_ >> shift; }
 
     Shim_s32 safe_divide_by(const Shim_s32& rhs) const {
         return rhs.data() == 0 ? data_ : data_ / rhs.data();
@@ -5951,7 +5985,166 @@ public:
     }
 
     bool debug_eq(int32_t i) const { return data_ == i; }
+
+    Shim_s64 bitcast_to_s64() const;
+    Shim_f32 bitcast_to_f32() const;
+    Shim_f64 bitcast_to_f64() const;
+
+    Shim_s64 convert_to_s64() const;
+    Shim_f32 convert_to_f32() const;
+    Shim_f64 convert_to_f64() const;
 };
+
+class Shim_s64 {
+    int64_t data_;
+public:
+    Shim_s64() : data_{0} {}
+    Shim_s64(const int64_t i) : data_{i} {}
+
+    static Shim_s64 bitcast_from_u64(const uint64_t i) {
+        return sg_scast_s64_u64(i);
+    }
+
+    int64_t data() const { return data_; }
+
+    Shim_s64& operator++() {
+        ++data_;
+        return *this;
+    }
+    Shim_s64 operator++(int) {
+        Shim_s64 old = *this;
+        operator++();
+        return old;
+    }
+
+    Shim_s64& operator--() {
+        --data_;
+        return *this;
+    }
+    Shim_s64 operator--(int) {
+        Shim_s64 old = *this;
+        operator--();
+        return old;
+    }
+
+    Shim_s64& operator+=(const Shim_s64& rhs) {
+        data_ += rhs.data();
+        return *this;
+    }
+    friend Shim_s64 operator+(Shim_s64 lhs, const Shim_s64& rhs) {
+        lhs += rhs;
+        return lhs;
+    }
+    Shim_s64 operator+() const { return *this; }
+
+    Shim_s64& operator-=(const Shim_s64& rhs) {
+        data_ -= rhs.data();
+        return *this;
+    }
+    friend Shim_s64 operator-(Shim_s64 lhs, const Shim_s64& rhs) {
+        lhs -= rhs;
+        return lhs;
+    }
+    Shim_s64 operator-() const { return -data_; }
+
+    Shim_s64& operator*=(const Shim_s64& rhs) {
+        data_ *= rhs.data();
+        return *this;
+    }
+    friend Shim_s64 operator*(Shim_s64 lhs, const Shim_s64& rhs) {
+        lhs *= rhs;
+        return lhs;
+    }
+
+    Shim_s64& operator/=(const Shim_s64& rhs) {
+        data_ /= rhs.data();
+        return *this;
+    }
+    friend Shim_s64 operator/(Shim_s64 lhs, const Shim_s64& rhs) {
+        lhs /= rhs;
+        return lhs;
+    }
+
+    Shim_s64& operator&=(const Shim_s64& rhs) {
+        data_ &= rhs.data();
+        return *this;
+    }
+    friend Shim_s64 operator&(Shim_s64 lhs, const Shim_s64& rhs) {
+        lhs &= rhs.data();
+        return lhs;
+    }
+
+    Shim_s64& operator|=(const Shim_s64& rhs) {
+        data_ |= rhs.data();
+        return *this;
+    }
+    friend Shim_s64 operator|(Shim_s64 lhs, const Shim_s64& rhs) {
+        lhs |= rhs.data();
+        return lhs;
+    }
+
+    Shim_s64& operator^=(const Shim_s64& rhs) {
+        data_ ^= rhs.data();
+        return *this;
+    }
+    friend Shim_s64 operator^(Shim_s64 lhs, const Shim_s64& rhs) {
+        lhs ^= rhs.data();
+        return lhs;
+    }
+
+    Shim_s64 operator~() const { return ~data_; }
+
+    Compare_shim operator<(const Shim_s64& rhs) const {
+        return data_ < rhs.data();
+    }
+    Compare_shim operator<=(const Shim_s64& rhs) const {
+        return data_ <= rhs.data();
+    }
+    Compare_shim operator==(const Shim_s64& rhs) const {
+        return data_ == rhs.data();
+    }
+    Compare_shim operator>=(const Shim_s64& rhs) const {
+        return data_ >= rhs.data();
+    }
+    Compare_shim operator>(const Shim_s64& rhs) const {
+        return data_ > rhs.data();
+    }
+
+    template<int shift>
+    Shim_s64 shift_l_imm() const { return data_ << shift; }
+    template<int shift>
+    Shim_s64 shift_rl_imm() const { return sg_srl_s64(data_, shift); }
+    template<int shift>
+    Shim_s64 shift_ra_imm() const { return data_ >> shift; }
+
+    Shim_s64 safe_divide_by(const Shim_s64& rhs) const {
+        return rhs.data() == 0 ? data_ : data_ / rhs.data();
+    }
+    Shim_s64 abs() const { return std::abs(data_); }
+    static Shim_s64 min(const Shim_s64& a, const Shim_s64& b) {
+        return std::min(a.data(), b.data());
+    }
+    static Shim_s64 max(const Shim_s64& a, const Shim_s64& b) {
+        return std::max(a.data(), b.data());
+    }
+    Shim_s64 constrain(const Shim_s64& lowerb, const Shim_s64& upperb) const {
+        return Shim_s64::min(Shim_s64::max(lowerb, data_), upperb);
+    }
+
+    bool debug_eq(int64_t i) const { return data_ == i; }
+
+    Shim_s32 bitcast_to_s32() const;
+    Shim_f32 bitcast_to_f32() const;
+    Shim_f64 bitcast_to_f64() const;
+
+    Shim_s32 convert_to_s32() const;
+    Shim_f32 convert_to_f32() const;
+    Shim_f64 convert_to_f64() const;
+};
+
+//Shim_s64 Shim_s32::bitcast_to_s64() const {
+//    return (int64_t) sg_scast_s32_u32(data_);
+//}
 
 } // namespace simd_granodi
 
