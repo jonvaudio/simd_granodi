@@ -4,4 +4,4 @@ don't forget to write wrappers for sin, cos, log, exp etc for shim classes
 
 use std::fma on neon, but not on sse2 (as it's not hardware supported and too slow)
 
-refactor everything into f32x4 etc
+refactor everything into _f32x4 etc, c++ shim types as Vec_f32x1 etc
