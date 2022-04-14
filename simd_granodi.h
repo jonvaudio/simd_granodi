@@ -5103,7 +5103,7 @@ public:
     inline Vec_ps convert_to_f32() const;
     inline Vec_pd convert_to_f64() const;
 
-    Vec_pi32 to_fast_int() const { return *this; }
+    //Vec_pi32 to_fast_int() const { return *this; }
 
     static Vec_pi32 from(const Vec_pi32& pi32) { return pi32; }
     static Vec_pi32 from(const Vec_pi64& pi64);
@@ -5291,9 +5291,9 @@ public:
     // Converting between epi64 <-> ps and epi64 <-> pd is slow on intel.
     // Also many instructions are not available for epi64
     #ifdef SIMD_GRANODI_SSE2
-    Vec_pi32 to_fast_int() const { return sg_cvt_pi64_pi32(data_); }
+    //Vec_pi32 to_fast_int() const { return sg_cvt_pi64_pi32(data_); }
     #else
-    Vec_pi64 to_fast_int() const { return *this; }
+    //Vec_pi64 to_fast_int() const { return *this; }
     #endif
 
     static Vec_pi64 from(const Vec_pi32& pi32) {
@@ -5490,11 +5490,13 @@ public:
             sg_srl_imm_pi32(sg_bitcast_ps_pi32(data_), 23),
                 sg_set1_pi32(0xff)), sg_set1_pi32(126));
     }
+    Vec_pi32 exponent_frexp_s32() const { return exponent_frexp(); }
     Vec_pi32 exponent() const {
         return sg_sub_pi32(sg_and_pi32(
             sg_srl_imm_pi32(sg_bitcast_ps_pi32(data_), 23),
                 sg_set1_pi32(0xff)), sg_set1_pi32(127));
     }
+    Vec_pi32 exponent_s32() const { return exponent(); }
     // mantissa_frexp() computes half the mantissa
     Vec_ps mantissa_frexp() const {
         return sg_bitcast_pi32_ps(sg_or_pi32(sg_and_pi32(
@@ -5709,11 +5711,15 @@ public:
             sg_srl_imm_pi64(sg_bitcast_pd_pi64(data_), 52),
                 sg_set1_pi64(0x7ff)), sg_set1_pi64(1022));
     }
+    Vec_pi32 exponent_frexp_s32() const {
+        return exponent_frexp().convert_to_s32();
+    }
     Vec_pi64 exponent() const {
         return sg_sub_pi64(sg_and_pi64(
             sg_srl_imm_pi64(sg_bitcast_pd_pi64(data_), 52),
                 sg_set1_pi64(0x7ff)), sg_set1_pi64(1023));
     }
+    Vec_pi32 exponent_s32() const { return exponent().convert_to_s32(); }
     Vec_pd mantissa_frexp() const {
         return sg_bitcast_pi64_pd(sg_or_pi64(sg_and_pi64(
             sg_bitcast_pd_pi64(data_), sg_set1_pi64(0x800fffffffffffff)),
@@ -5729,6 +5735,7 @@ public:
         return sg_bitcast_pi64_pd(sg_add_pi64(sg_bitcast_pd_pi64(data_),
             sg_sl_imm_pi64(e.data(), 52)));
     }
+    Vec_pd ldexp(const Vec_pi32& e) const { return ldexp(e.convert_to_s64()); }
 
     Vec_pd std_log() const {
         return Vec_pd { std::log(sg_get1_pd(data_)),
@@ -6143,7 +6150,7 @@ public:
     inline Vec_f32x1 convert_to_f32() const;
     inline Vec_f64x1 convert_to_f64() const;
 
-    Vec_s32x1 to_fast_int() const { return *this; }
+    //Vec_s32x1 to_fast_int() const { return *this; }
 
     static Vec_s32x1 from(const Vec_s32x1& s32) { return s32; }
     static Vec_s32x1 from(const Vec_s64x1& s64);
@@ -6313,7 +6320,7 @@ public:
     inline Vec_f32x1 convert_to_f32() const;
     inline Vec_f64x1 convert_to_f64() const;
 
-    Vec_s64x1 to_fast_int() const { return *this; }
+    //Vec_s64x1 to_fast_int() const { return *this; }
 
     static Vec_s64x1 from(const Vec_s32x1& s32) {
         return static_cast<int64_t>(s32.data());
@@ -6492,9 +6499,11 @@ public:
     Vec_s32x1 exponent_frexp() const {
         return static_cast<int32_t>(std::ilogb(data_) + 1);
     }
+    Vec_s32x1 exponent_frexp_s32() const { return exponent_frexp(); }
     Vec_s32x1 exponent() const {
         return static_cast<int32_t>(std::ilogb(data_));
     }
+    Vec_s32x1 exponent_s32() const { return exponent_s32(); }
     Vec_f32x1 mantissa_frexp() const {
         int discard;
         return std::frexp(data_, &discard);
@@ -6688,9 +6697,13 @@ public:
     Vec_s64x1 exponent_frexp() const {
         return static_cast<int64_t>(std::ilogb(data_) + 1);
     }
+    Vec_s32x1 exponent_frexp_s32() const {
+        return exponent_frexp().convert_to_s32();
+    }
     Vec_s64x1 exponent() const {
         return static_cast<int64_t>(std::ilogb(data_));
     }
+    Vec_s32x1 exponent_s32() const { return exponent().convert_to_s32(); }
     Vec_f64x1 mantissa_frexp() const {
         int discard;
         return std::frexp(data_, &discard);
@@ -6698,6 +6711,9 @@ public:
     Vec_f64x1 mantissa() const { return mantissa_frexp() * 2.0; }
 
     Vec_f64x1 ldexp(const Vec_s64x1& e) const {
+        return std::ldexp(data_, static_cast<int>(e.data()));
+    }
+    Vec_f64x1 ldexp(const Vec_s32x1& e) const {
         return std::ldexp(data_, static_cast<int>(e.data()));
     }
 
