@@ -89,6 +89,7 @@ if you wish to disable denormal numbers with mixed intrinsic / scalar code.
 
 TODO:
 - Add class methods for shifting by in-register values
+- Set lane
 - Find efficient right shifting implementations for NEON
 - Add truncate, and round, intrinsics
 - Investigate rounding for sg_cvt_pd_ps()
@@ -99,9 +100,9 @@ TODO:
 
 // Sanity check
 #if defined (SIMD_GRANODI_SSE2) || defined (SIMD_GRANODI_NEON) || \
-    defined (SIMD_GRANODI_DENORMAL_SSE) || \
-    defined (SIMD_GRANODI_DENORMAL_ARM64) || \
-    defined (SIMD_GRANODI_DENORMAL_ARM32)
+    defined (SIMD_GRANODI_ARCH_SSE) || \
+    defined (SIMD_GRANODI_ARCH_ARM64) || \
+    defined (SIMD_GRANODI_ARCH_ARM32)
 #error "A SIMD_GRANODI macro was defined before it should be"
 #endif
 
@@ -110,20 +111,20 @@ TODO:
         // Warning: on x86 (32-bit), this doesn't guarantee that x87
         // instructions won't also be generated. Check your compiler options!
         #define SIMD_GRANODI_SSE2
-        #define SIMD_GRANODI_DENORMAL_SSE
+        #define SIMD_GRANODI_ARCH_SSE
     #elif defined (__aarch64__)
         #define SIMD_GRANODI_NEON
-        #define SIMD_GRANODI_DENORMAL_ARM64
+        #define SIMD_GRANODI_ARCH_ARM64
     #elif defined (__arm__)
         #define SIMD_GRANODI_FORCE_GENERIC
-        #define SIMD_GRANODI_DENORMAL_ARM32
+        #define SIMD_GRANODI_ARCH_ARM32
     #else
         #define SIMD_GRANODI_FORCE_GENERIC
     #endif
 #elif defined (_MSC_VER)
     #if defined (_M_AMD64) || (defined (_M_IX86) && (_M_IX86_FP == 2))
         #define SIMD_GRANODI_SSE2
-        #define SIMD_GRANODI_DENORMAL_SSE
+        #define SIMD_GRANODI_ARCH_SSE
     #else
         #define SIMD_GRANODI_FORCE_GENERIC
     #endif
@@ -154,7 +155,7 @@ TODO:
 #include <math.h>
 //#endif
 
-#ifdef SIMD_GRANODI_DENORMAL_SSE
+#ifdef SIMD_GRANODI_ARCH_SSE
 #include <emmintrin.h>
 #elif defined SIMD_GRANODI_NEON
 #include <arm_neon.h>
@@ -250,47 +251,42 @@ static inline sg_pi32 sg_choose_pi32(const sg_cmp_pi32, const sg_pi32,
 
 // Scalar bitcasts
 
-/*#define sg_scast_u32_s32(i) ((int32_t)(uint32_t)(i))
-#define sg_scast_u64_s64(i) ((int64_t)(uint64_t)i)
-#define sg_scast_s32_u32(i) ((uint32_t)(int32_t)(i))
-#define sg_scast_s64_u64(i) ((uint64_t)(int64_t)(i))*/
-
-static inline int32_t sg_scast_u32_s32(const uint32_t a) {
+static inline int32_t sg_bitcast_u32x1_s32x1(const uint32_t a) {
     int32_t result; memcpy(&result, &a, sizeof(int32_t)); return result;
 }
-static inline uint32_t sg_scast_s32_u32(const int32_t a) {
+static inline uint32_t sg_bitcast_s32x1_u32x1(const int32_t a) {
     uint32_t result; memcpy(&result, &a, sizeof(uint32_t)); return result;
 }
-static inline int64_t sg_scast_u64_s64(const uint64_t a) {
+static inline int64_t sg_bitcast_u64x1_s64x1(const uint64_t a) {
     int64_t result; memcpy(&result, &a, sizeof(int64_t)); return result;
 }
-static inline uint64_t sg_scast_s64_u64(const int64_t a) {
+static inline uint64_t sg_bitcast_s64x1_u64x1(const int64_t a) {
     uint64_t result; memcpy(&result, &a, sizeof(uint64_t)); return result;
 }
 
-static inline float sg_scast_u32_f32(const uint32_t a) {
+static inline float sg_bitcast_u32x1_f32x1(const uint32_t a) {
     float result; memcpy(&result, &a, sizeof(float)); return result;
 }
-static inline float sg_scast_s32_f32(const int32_t a) {
+static inline float sg_bitcast_s32x1_f32x1(const int32_t a) {
     float result; memcpy(&result, &a, sizeof(float)); return result;
 }
-static inline uint32_t sg_scast_f32_u32(const float a) {
+static inline uint32_t sg_bitcast_f32x1_u32x1(const float a) {
     uint32_t result; memcpy(&result, &a, sizeof(uint32_t)); return result;
 }
-static inline int32_t sg_scast_f32_s32(const float a) {
+static inline int32_t sg_bitcast_f32x1_s32x1(const float a) {
     int32_t result; memcpy(&result, &a, sizeof(int32_t)); return result;
 }
 
-static inline double sg_scast_u64_f64(const uint64_t a) {
+static inline double sg_bitcast_u64x1_f64x1(const uint64_t a) {
     double result; memcpy(&result, &a, sizeof(double)); return result;
 }
-static inline double sg_scast_s64_f64(const int64_t a) {
+static inline double sg_bitcast_s64x1_f64x1(const int64_t a) {
     double result; memcpy(&result, &a, sizeof(double)); return result;
 }
-static inline uint64_t sg_scast_f64_u64(const double a) {
+static inline uint64_t sg_bitcast_f64x1_u64x1(const double a) {
     uint64_t result; memcpy(&result, &a, sizeof(uint64_t)); return result;
 }
-static inline int64_t sg_scast_f64_s64(const double a) {
+static inline int64_t sg_bitcast_f64x1_s64x1(const double a) {
     int64_t result; memcpy(&result, &a, sizeof(int64_t)); return result;
 }
 
@@ -300,147 +296,147 @@ static inline int64_t sg_scast_f64_s64(const double a) {
 // And then write the rest in terms of those
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pi64 sg_cast_pi32_pi64(const sg_pi32 a) {
+static inline sg_pi64 sg_bitcast_pi32_pi64(const sg_pi32 a) {
     sg_pi64 result;
-    result.l0 = sg_scast_u64_s64(
-            (((uint64_t) sg_scast_s32_u32(a.i1)) << 32) |
-            ((uint64_t) sg_scast_s32_u32(a.i0)));
-    result.l1 = sg_scast_u64_s64(
-            (((uint64_t) sg_scast_s32_u32(a.i3)) << 32) |
-            ((uint64_t) sg_scast_s32_u32(a.i2)));
+    result.l0 = sg_bitcast_u64x1_s64x1(
+            (((uint64_t) sg_bitcast_s32x1_u32x1(a.i1)) << 32) |
+            ((uint64_t) sg_bitcast_s32x1_u32x1(a.i0)));
+    result.l1 = sg_bitcast_u64x1_s64x1(
+            (((uint64_t) sg_bitcast_s32x1_u32x1(a.i3)) << 32) |
+            ((uint64_t) sg_bitcast_s32x1_u32x1(a.i2)));
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_cast_pi32_pi64(a) (a)
+#define sg_bitcast_pi32_pi64(a) (a)
 #elif defined SIMD_GRANODI_NEON
-#define sg_cast_pi32_pi64 vreinterpretq_s64_s32
+#define sg_bitcast_pi32_pi64 vreinterpretq_s64_s32
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pi32 sg_cast_pi64_pi32(const sg_pi64 a) {
-    const uint64_t u0 = sg_scast_s64_u64(a.l0),
-        u1 = sg_scast_s64_u64(a.l1);
+static inline sg_pi32 sg_bitcast_pi64_pi32(const sg_pi64 a) {
+    const uint64_t u0 = sg_bitcast_s64x1_u64x1(a.l0),
+        u1 = sg_bitcast_s64x1_u64x1(a.l1);
     sg_pi32 result;
-    result.i0 = sg_scast_u32_s32((uint32_t) (u0 & 0xffffffffu));
-    result.i1 = sg_scast_u32_s32((uint32_t) (u0 >> 32u));
-    result.i2 = sg_scast_u32_s32((uint32_t) (u1 & 0xffffffffu));
-    result.i3 = sg_scast_u32_s32((uint32_t) (u1 >> 32u));
+    result.i0 = sg_bitcast_u32x1_s32x1((uint32_t) (u0 & 0xffffffffu));
+    result.i1 = sg_bitcast_u32x1_s32x1((uint32_t) (u0 >> 32u));
+    result.i2 = sg_bitcast_u32x1_s32x1((uint32_t) (u1 & 0xffffffffu));
+    result.i3 = sg_bitcast_u32x1_s32x1((uint32_t) (u1 >> 32u));
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_cast_pi64_pi32(a) (a)
+#define sg_bitcast_pi64_pi32(a) (a)
 #elif defined SIMD_GRANODI_NEON
-#define sg_cast_pi64_pi32 vreinterpretq_s32_s64
+#define sg_bitcast_pi64_pi32 vreinterpretq_s32_s64
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_ps sg_cast_pi32_ps(const sg_pi32 a) {
+static inline sg_ps sg_bitcast_pi32_ps(const sg_pi32 a) {
     sg_ps result;
-    result.f0 = sg_scast_s32_f32(a.i0); result.f1 = sg_scast_s32_f32(a.i1);
-    result.f2 = sg_scast_s32_f32(a.i2); result.f3 = sg_scast_s32_f32(a.i3);
+    result.f0 = sg_bitcast_s32x1_f32x1(a.i0); result.f1 = sg_bitcast_s32x1_f32x1(a.i1);
+    result.f2 = sg_bitcast_s32x1_f32x1(a.i2); result.f3 = sg_bitcast_s32x1_f32x1(a.i3);
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_cast_pi32_ps _mm_castsi128_ps
+#define sg_bitcast_pi32_ps _mm_castsi128_ps
 #elif defined SIMD_GRANODI_NEON
-#define sg_cast_pi32_ps vreinterpretq_f32_s32
+#define sg_bitcast_pi32_ps vreinterpretq_f32_s32
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pi32 sg_cast_ps_pi32(const sg_ps a) {
+static inline sg_pi32 sg_bitcast_ps_pi32(const sg_ps a) {
     sg_pi32 result;
-    result.i0 = sg_scast_f32_s32(a.f0); result.i1 = sg_scast_f32_s32(a.f1);
-    result.i2 = sg_scast_f32_s32(a.f2); result.i3 = sg_scast_f32_s32(a.f3);
+    result.i0 = sg_bitcast_f32x1_s32x1(a.f0); result.i1 = sg_bitcast_f32x1_s32x1(a.f1);
+    result.i2 = sg_bitcast_f32x1_s32x1(a.f2); result.i3 = sg_bitcast_f32x1_s32x1(a.f3);
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_cast_ps_pi32 _mm_castps_si128
+#define sg_bitcast_ps_pi32 _mm_castps_si128
 #elif defined SIMD_GRANODI_NEON
-#define sg_cast_ps_pi32 vreinterpretq_s32_f32
+#define sg_bitcast_ps_pi32 vreinterpretq_s32_f32
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pd sg_cast_pi64_pd(const sg_pi64 a) {
+static inline sg_pd sg_bitcast_pi64_pd(const sg_pi64 a) {
     sg_pd result;
-    result.d0 = sg_scast_s64_f64(a.l0); result.d1 = sg_scast_s64_f64(a.l1);
+    result.d0 = sg_bitcast_s64x1_f64x1(a.l0); result.d1 = sg_bitcast_s64x1_f64x1(a.l1);
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_cast_pi64_pd _mm_castsi128_pd
+#define sg_bitcast_pi64_pd _mm_castsi128_pd
 #elif defined SIMD_GRANODI_NEON
-#define sg_cast_pi64_pd vreinterpretq_f64_s64
+#define sg_bitcast_pi64_pd vreinterpretq_f64_s64
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pi64 sg_cast_pd_pi64(const sg_pd a) {
+static inline sg_pi64 sg_bitcast_pd_pi64(const sg_pd a) {
     sg_pi64 result;
-    result.l0 = sg_scast_f64_s64(a.d0); result.l1 = sg_scast_f64_s64(a.d1);
+    result.l0 = sg_bitcast_f64x1_s64x1(a.d0); result.l1 = sg_bitcast_f64x1_s64x1(a.d1);
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_cast_pd_pi64 _mm_castpd_si128
+#define sg_bitcast_pd_pi64 _mm_castpd_si128
 #elif defined SIMD_GRANODI_NEON
-#define sg_cast_pd_pi64 vreinterpretq_s64_f64
+#define sg_bitcast_pd_pi64 vreinterpretq_s64_f64
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pd sg_cast_pi32_pd(const sg_pi32 a) {
-    return sg_cast_pi64_pd(sg_cast_pi32_pi64(a));
+static inline sg_pd sg_bitcast_pi32_pd(const sg_pi32 a) {
+    return sg_bitcast_pi64_pd(sg_bitcast_pi32_pi64(a));
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_cast_pi32_pd _mm_castsi128_pd
+#define sg_bitcast_pi32_pd _mm_castsi128_pd
 #elif defined SIMD_GRANODI_NEON
-#define sg_cast_pi32_pd vreinterpretq_f64_s32
+#define sg_bitcast_pi32_pd vreinterpretq_f64_s32
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_ps sg_cast_pi64_ps(const sg_pi64 a) {
-    return sg_cast_pi32_ps(sg_cast_pi64_pi32(a));
+static inline sg_ps sg_bitcast_pi64_ps(const sg_pi64 a) {
+    return sg_bitcast_pi32_ps(sg_bitcast_pi64_pi32(a));
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_cast_pi64_ps _mm_castsi128_ps
+#define sg_bitcast_pi64_ps _mm_castsi128_ps
 #elif defined SIMD_GRANODI_NEON
-#define sg_cast_pi64_ps vreinterpretq_f32_s64
+#define sg_bitcast_pi64_ps vreinterpretq_f32_s64
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pi64 sg_cast_ps_pi64(const sg_ps a) {
-    return sg_cast_pi32_pi64(sg_cast_ps_pi32(a));
+static inline sg_pi64 sg_bitcast_ps_pi64(const sg_ps a) {
+    return sg_bitcast_pi32_pi64(sg_bitcast_ps_pi32(a));
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_cast_ps_pi64 _mm_castps_si128
+#define sg_bitcast_ps_pi64 _mm_castps_si128
 #elif defined SIMD_GRANODI_NEON
-#define sg_cast_ps_pi64 vreinterpretq_s64_f32
+#define sg_bitcast_ps_pi64 vreinterpretq_s64_f32
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pd sg_cast_ps_pd(const sg_ps a) {
-    return sg_cast_pi64_pd(sg_cast_pi32_pi64(sg_cast_ps_pi32(a)));
+static inline sg_pd sg_bitcast_ps_pd(const sg_ps a) {
+    return sg_bitcast_pi64_pd(sg_bitcast_pi32_pi64(sg_bitcast_ps_pi32(a)));
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_cast_ps_pd _mm_castps_pd
+#define sg_bitcast_ps_pd _mm_castps_pd
 #elif defined SIMD_GRANODI_NEON
-#define sg_cast_ps_pd vreinterpretq_f64_f32
+#define sg_bitcast_ps_pd vreinterpretq_f64_f32
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pi32 sg_cast_pd_pi32(const sg_pd a) {
-    return sg_cast_pi64_pi32(sg_cast_pd_pi64(a));
+static inline sg_pi32 sg_bitcast_pd_pi32(const sg_pd a) {
+    return sg_bitcast_pi64_pi32(sg_bitcast_pd_pi64(a));
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_cast_pd_pi32 _mm_castpd_si128
+#define sg_bitcast_pd_pi32 _mm_castpd_si128
 #elif defined SIMD_GRANODI_NEON
-#define sg_cast_pd_pi32 vreinterpretq_s32_f64
+#define sg_bitcast_pd_pi32 vreinterpretq_s32_f64
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_ps sg_cast_pd_ps(const sg_pd a) {
-    return sg_cast_pi32_ps(sg_cast_pi64_pi32(sg_cast_pd_pi64(a)));
+static inline sg_ps sg_bitcast_pd_ps(const sg_pd a) {
+    return sg_bitcast_pi32_ps(sg_bitcast_pi64_pi32(sg_bitcast_pd_pi64(a)));
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_cast_pd_ps _mm_castpd_ps
+#define sg_bitcast_pd_ps _mm_castpd_ps
 #elif defined SIMD_GRANODI_NEON
-#define sg_cast_pd_ps vreinterpretq_f32_f64
+#define sg_bitcast_pd_ps vreinterpretq_f32_f64
 #endif
 
 // Shuffle
@@ -1637,13 +1633,13 @@ static inline sg_pi32 sg_set1_pi32(const int32_t si) {
 }
 static inline sg_pi32 sg_set1_from_u32_pi32(const uint32_t i) {
     sg_pi32 result;
-    result.i0 = sg_scast_u32_s32(i); result.i1 = sg_scast_u32_s32(i);
-    result.i2 = sg_scast_u32_s32(i); result.i3 = sg_scast_u32_s32(i);
+    result.i0 = sg_bitcast_u32x1_s32x1(i); result.i1 = sg_bitcast_u32x1_s32x1(i);
+    result.i2 = sg_bitcast_u32x1_s32x1(i); result.i3 = sg_bitcast_u32x1_s32x1(i);
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set1_pi32(si) _mm_set1_epi32(si)
-#define sg_set1_from_u32_pi32(i) _mm_set1_epi32(sg_scast_u32_s32(i))
+#define sg_set1_from_u32_pi32(i) _mm_set1_epi32(sg_bitcast_u32x1_s32x1(i))
 #elif defined SIMD_GRANODI_NEON
 #define sg_set1_pi32(si) vdupq_n_s32(si)
 #define sg_set1_from_u32_pi32(i) vreinterpretq_s32_u32(vdupq_n_u32(i))
@@ -1661,15 +1657,15 @@ static inline sg_pi32 sg_set_from_u32_pi32(const uint32_t i3,
     const uint32_t i2, const uint32_t i1, const uint32_t i0)
 {
     sg_pi32 result;
-    result.i0 = sg_scast_u32_s32(i0); result.i1 = sg_scast_u32_s32(i1);
-    result.i2 = sg_scast_u32_s32(i2); result.i3 = sg_scast_u32_s32(i3);
+    result.i0 = sg_bitcast_u32x1_s32x1(i0); result.i1 = sg_bitcast_u32x1_s32x1(i1);
+    result.i2 = sg_bitcast_u32x1_s32x1(i2); result.i3 = sg_bitcast_u32x1_s32x1(i3);
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set_pi32(si3, si2, si1, si0) _mm_set_epi32(si3, si2, si1, si0)
 #define sg_set_from_u32_pi32(i3, i2, i1, i0) \
-    _mm_set_epi32(sg_scast_u32_s32(i3), sg_scast_u32_s32(i2), \
-        sg_scast_u32_s32(i1), sg_scast_u32_s32(i0))
+    _mm_set_epi32(sg_bitcast_u32x1_s32x1(i3), sg_bitcast_u32x1_s32x1(i2), \
+        sg_bitcast_u32x1_s32x1(i1), sg_bitcast_u32x1_s32x1(i0))
 #elif defined SIMD_GRANODI_NEON
 #define sg_set_pi32(si3, si2, si1, si0) \
     vsetq_lane_s32(si3, vsetq_lane_s32(si2, vsetq_lane_s32(si1, \
@@ -1700,12 +1696,12 @@ static inline sg_pi64 sg_set1_pi64(const int64_t si) {
 }
 static inline sg_pi64 sg_set1_from_u64_pi64(const uint64_t i) {
     sg_pi64 result;
-    result.l0 = sg_scast_u64_s64(i); result.l1 = sg_scast_u64_s64(i);
+    result.l0 = sg_bitcast_u64x1_s64x1(i); result.l1 = sg_bitcast_u64x1_s64x1(i);
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set1_pi64(si) _mm_set1_epi64x(si)
-#define sg_set1_from_u64_pi64(i) _mm_set1_epi64x(sg_scast_u64_s64(i))
+#define sg_set1_from_u64_pi64(i) _mm_set1_epi64x(sg_bitcast_u64x1_s64x1(i))
 #elif defined SIMD_GRANODI_NEON
 #define sg_set1_pi64(si) vdupq_n_s64(si)
 #define sg_set1_from_u64_pi64(i) vreinterpretq_s64_u64(vdupq_n_u64(i))
@@ -1721,13 +1717,13 @@ static inline sg_pi64 sg_set_from_u64_pi64(const uint64_t i1,
     const uint64_t i0)
 {
     sg_pi64 result;
-    result.l0 = sg_scast_u64_s64(i0); result.l1 = sg_scast_u64_s64(i1);
+    result.l0 = sg_bitcast_u64x1_s64x1(i0); result.l1 = sg_bitcast_u64x1_s64x1(i1);
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_set_pi64(si1, si0) _mm_set_epi64x(si1, si0)
 #define sg_set_from_u64_pi64(i1, i0) \
-    _mm_set_epi64x(sg_scast_u64_s64(i1), sg_scast_u64_s64(i0))
+    _mm_set_epi64x(sg_bitcast_u64x1_s64x1(i1), sg_bitcast_u64x1_s64x1(i0))
 #elif defined SIMD_GRANODI_NEON
 #define sg_set_pi64(si1, si0) vsetq_lane_s64(si1, vsetq_lane_s64(si0, \
     vdupq_n_s64(0), 0), 1)
@@ -1758,7 +1754,7 @@ static inline sg_ps sg_set1_ps(const float f) {
 #elif defined SIMD_GRANODI_NEON
 #define sg_set1_ps vdupq_n_f32
 #endif
-#define sg_set1_from_u32_ps(i) sg_cast_pi32_ps(sg_set1_from_u32_pi32(i))
+#define sg_set1_from_u32_ps(i) sg_bitcast_pi32_ps(sg_set1_from_u32_pi32(i))
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_set_ps(const float f3, const float f2, const float f1,
@@ -1776,7 +1772,7 @@ static inline sg_ps sg_set_ps(const float f3, const float f2, const float f1,
         vsetq_lane_f32(f0, vdupq_n_f32(0.0f), 0), 1), 2), 3)
 #endif
 #define sg_set_from_u32_ps(i3, i2, i1, i0) \
-    sg_cast_pi32_ps(sg_set_from_u32_pi32(i3, i2, i1, i0))
+    sg_bitcast_pi32_ps(sg_set_from_u32_pi32(i3, i2, i1, i0))
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_setzero_pd() {
@@ -1801,7 +1797,7 @@ static inline sg_pd sg_set1_pd(const double d) {
 #elif defined SIMD_GRANODI_NEON
 #define sg_set1_pd vdupq_n_f64
 #endif
-#define sg_set1_from_u64_pd(l) sg_cast_pi64_pd(sg_set1_from_u64_pi64(l))
+#define sg_set1_from_u64_pd(l) sg_bitcast_pi64_pd(sg_set1_from_u64_pi64(l))
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_set_pd(const double d1, const double d0) {
@@ -1815,7 +1811,7 @@ static inline sg_pd sg_set_pd(const double d1, const double d0) {
 #define sg_set_pd(d1, d0) \
     vsetq_lane_f64(d1, vsetq_lane_f64(d0, vdupq_n_f64(0.0), 0), 1)
 #endif
-#define sg_set_from_u64_pd(l1, l0) sg_cast_pi64_pd(sg_set_from_u64_pi64(l1, l0))
+#define sg_set_from_u64_pd(l1, l0) sg_bitcast_pi64_pd(sg_set_from_u64_pi64(l1, l0))
 
 // Set from generic
 
@@ -2028,15 +2024,16 @@ static inline bool sg_debug_eq_pi64(const sg_pi64 a, const int64_t l1,
 static inline bool sg_debug_eq_ps(const sg_ps a, const float f3, const float f2,
     const float f1, const float f0)
 {
-    return sg_debug_eq_pi32(sg_cast_ps_pi32(a), sg_scast_f32_s32(f3),
-        sg_scast_f32_s32(f2), sg_scast_f32_s32(f1), sg_scast_f32_s32(f0));
+    return sg_debug_eq_pi32(sg_bitcast_ps_pi32(a), sg_bitcast_f32x1_s32x1(f3),
+        sg_bitcast_f32x1_s32x1(f2), sg_bitcast_f32x1_s32x1(f1),
+        sg_bitcast_f32x1_s32x1(f0));
 }
 
 static inline bool sg_debug_eq_pd(const sg_pd a, const double d1,
     const double d0)
 {
-    return sg_debug_eq_pi64(sg_cast_pd_pi64(a),
-        sg_scast_f64_s64(d1), sg_scast_f64_s64(d0));
+    return sg_debug_eq_pi64(sg_bitcast_pd_pi64(a),
+        sg_bitcast_f64x1_s64x1(d1), sg_bitcast_f64x1_s64x1(d0));
 }
 
 // Conversion
@@ -2582,15 +2579,28 @@ static inline sg_pd sg_div_pd(const sg_pd a, const sg_pd b) {
 // future.
 // In C++ the class method, when chained together, is syntactically nicer for
 // evaluating polynomials
-// On NEON, some compilers will optimize separate mul and add intrinsics into
-// a single fma anyway, so it is nice to be explicit about results varying
-// slightly across platforms
+// On NEON, GCC will (by default) optimize separate mul and add intrinsics into
+// a single fma anyway. NEON + Clang will not.
+
+#ifdef FP_FAST_FMAF
+#define sg_mul_add_f32x1 fmaf
+#else
+#define sg_mul_add_f32x1(a, b, c) (((a)*(b))+(c))
+#endif
+
+#ifdef FP_FAST_FMA
+#define sg_mul_add_f64x1 fma
+#else
+#define sg_mul_add_f64x1(a, b, c) (((a)*(b))+(c))
+#endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_mul_add_ps(const sg_ps a, const sg_ps b, const sg_ps c) {
     sg_ps result;
-    result.f0 = a.f0 * b.f0 + c.f0; result.f1 = a.f1 * b.f1 + c.f1;
-    result.f2 = a.f2 * b.f2 + c.f2; result.f3 = a.f3 * b.f3 + c.f3;
+    result.f0 = sg_mul_add_f32x1(a.f0, b.f0, c.f0);
+    result.f1 = sg_mul_add_f32x1(a.f1, b.f1, c.f1);
+    result.f2 = sg_mul_add_f32x1(a.f2, b.f2, c.f2);
+    result.f3 = sg_mul_add_f32x1(a.f3, b.f3, c.f3);
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
@@ -2602,7 +2612,8 @@ static inline sg_ps sg_mul_add_ps(const sg_ps a, const sg_ps b, const sg_ps c) {
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_mul_add_pd(const sg_pd a, const sg_pd b, const sg_pd c) {
     sg_pd result;
-    result.d0 = a.d0 * b.d0 + c.d0; result.d1 = a.d1 * b.d1 + c.d1;
+    result.d0 = sg_mul_add_f64x1(a.d0, b.d0, c.d0);
+    result.d1 = sg_mul_add_f64x1(a.d1, b.d1, c.d1);
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
@@ -2652,7 +2663,7 @@ static inline sg_pi64 sg_and_pi64(const sg_pi64 a, const sg_pi64 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_and_ps(const sg_ps a, const sg_ps b) {
-    return sg_cast_pi32_ps(sg_and_pi32(sg_cast_ps_pi32(a), sg_cast_ps_pi32(b)));
+    return sg_bitcast_pi32_ps(sg_and_pi32(sg_bitcast_ps_pi32(a), sg_bitcast_ps_pi32(b)));
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_and_ps _mm_and_ps
@@ -2663,7 +2674,7 @@ static inline sg_ps sg_and_ps(const sg_ps a, const sg_ps b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_and_pd(const sg_pd a, const sg_pd b) {
-    return sg_cast_pi64_pd(sg_and_pi64(sg_cast_pd_pi64(a), sg_cast_pd_pi64(b)));
+    return sg_bitcast_pi64_pd(sg_and_pi64(sg_bitcast_pd_pi64(a), sg_bitcast_pd_pi64(b)));
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_and_pd _mm_and_pd
@@ -2699,8 +2710,8 @@ static inline sg_pi64 sg_andnot_pi64(const sg_pi64 a, const sg_pi64 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_andnot_ps(const sg_ps a, const sg_ps b) {
-    return sg_cast_pi32_ps(
-        sg_andnot_pi32(sg_cast_ps_pi32(a), sg_cast_ps_pi32(b)));
+    return sg_bitcast_pi32_ps(
+        sg_andnot_pi32(sg_bitcast_ps_pi32(a), sg_bitcast_ps_pi32(b)));
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_andnot_ps _mm_andnot_ps
@@ -2711,8 +2722,8 @@ static inline sg_ps sg_andnot_ps(const sg_ps a, const sg_ps b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_andnot_pd(const sg_pd a, const sg_pd b) {
-    return sg_cast_pi64_pd(
-        sg_andnot_pi64(sg_cast_pd_pi64(a), sg_cast_pd_pi64(b)));
+    return sg_bitcast_pi64_pd(
+        sg_andnot_pi64(sg_bitcast_pd_pi64(a), sg_bitcast_pd_pi64(b)));
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_andnot_pd _mm_andnot_pd
@@ -2747,7 +2758,7 @@ static inline sg_pi64 sg_not_pi64(const sg_pi64 a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_not_ps(const sg_ps a) {
-    return sg_cast_pi32_ps(sg_not_pi32(sg_cast_ps_pi32(a)));
+    return sg_bitcast_pi32_ps(sg_not_pi32(sg_bitcast_ps_pi32(a)));
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_not_ps sg_sse2_not_ps
@@ -2757,7 +2768,7 @@ static inline sg_ps sg_not_ps(const sg_ps a) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_not_pd(const sg_pd a) {
-    return sg_cast_pi64_pd(sg_not_pi64(sg_cast_pd_pi64(a)));
+    return sg_bitcast_pi64_pd(sg_not_pi64(sg_bitcast_pd_pi64(a)));
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_not_pd sg_sse2_not_pd
@@ -2792,7 +2803,7 @@ static inline sg_pi64 sg_or_pi64(const sg_pi64 a, const sg_pi64 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_or_ps(const sg_ps a, const sg_ps b) {
-    return sg_cast_pi32_ps(sg_or_pi32(sg_cast_ps_pi32(a), sg_cast_ps_pi32(b)));
+    return sg_bitcast_pi32_ps(sg_or_pi32(sg_bitcast_ps_pi32(a), sg_bitcast_ps_pi32(b)));
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_or_ps _mm_or_ps
@@ -2803,7 +2814,7 @@ static inline sg_ps sg_or_ps(const sg_ps a, const sg_ps b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_or_pd(const sg_pd a, const sg_pd b) {
-    return sg_cast_pi64_pd(sg_or_pi64(sg_cast_pd_pi64(a), sg_cast_pd_pi64(b)));
+    return sg_bitcast_pi64_pd(sg_or_pi64(sg_bitcast_pd_pi64(a), sg_bitcast_pd_pi64(b)));
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_or_pd _mm_or_pd
@@ -2839,7 +2850,7 @@ static inline sg_pi64 sg_xor_pi64(const sg_pi64 a, const sg_pi64 b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_ps sg_xor_ps(const sg_ps a, const sg_ps b) {
-    return sg_cast_pi32_ps(sg_xor_pi32(sg_cast_ps_pi32(a), sg_cast_ps_pi32(b)));
+    return sg_bitcast_pi32_ps(sg_xor_pi32(sg_bitcast_ps_pi32(a), sg_bitcast_ps_pi32(b)));
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_xor_ps _mm_xor_ps
@@ -2850,7 +2861,7 @@ static inline sg_ps sg_xor_ps(const sg_ps a, const sg_ps b) {
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pd sg_xor_pd(const sg_pd a, const sg_pd b) {
-    return sg_cast_pi64_pd(sg_xor_pi64(sg_cast_pd_pi64(a), sg_cast_pd_pi64(b)));
+    return sg_bitcast_pi64_pd(sg_xor_pi64(sg_bitcast_pd_pi64(a), sg_bitcast_pd_pi64(b)));
 }
 #elif defined SIMD_GRANODI_SSE2
 #define sg_xor_pd _mm_xor_pd
@@ -2931,18 +2942,18 @@ static inline sg_pi64 sg_sl_imm_pi64(const sg_pi64 a, const int32_t shift) {
 #define sg_sl_imm_pi64 vshlq_n_s64
 #endif
 
-#define sg_srl_s32(a, shift) sg_scast_u32_s32((sg_scast_s32_u32(a) >> \
-    sg_scast_s32_u32(shift)))
-#define sg_srl_s64(a, shift) sg_scast_u64_s64((sg_scast_s64_u64(a) >> \
-    sg_scast_s64_u64(shift)))
+#define sg_srl_s32x1(a, shift) sg_bitcast_u32x1_s32x1( \
+    sg_bitcast_s32x1_u32x1(a) >> sg_bitcast_s32x1_u32x1(shift))
+#define sg_srl_s64x1(a, shift) sg_bitcast_u64x1_s64x1( \
+    sg_bitcast_s64x1_u64x1(a) >> sg_bitcast_s64x1_u64x1(shift))
 
 static inline sg_pi32 sg_srl_pi32(const sg_pi32 a, const sg_pi32 shift) {
     #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_NEON
     sg_generic_pi32 ag = sg_getg_pi32(a), shiftg = sg_getg_pi32(shift), result;
-    result.i0 = sg_srl_s32(ag.i0, shiftg.i0);
-    result.i1 = sg_srl_s32(ag.i1, shiftg.i1);
-    result.i2 = sg_srl_s32(ag.i2, shiftg.i2);
-    result.i3 = sg_srl_s32(ag.i3, shiftg.i3);
+    result.i0 = sg_srl_s32x1(ag.i0, shiftg.i0);
+    result.i1 = sg_srl_s32x1(ag.i1, shiftg.i1);
+    result.i2 = sg_srl_s32x1(ag.i2, shiftg.i2);
+    result.i3 = sg_srl_s32x1(ag.i3, shiftg.i3);
     return sg_set_fromg_pi32(result);
     #elif defined SIMD_GRANODI_SSE2
     __m128i result = _mm_and_si128(_mm_set_epi32(0,0,0,-1),
@@ -2963,10 +2974,10 @@ static inline sg_pi32 sg_srl_pi32(const sg_pi32 a, const sg_pi32 shift) {
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_srl_imm_pi32(const sg_pi32 a, const int32_t shift) {
     sg_pi32 result;
-    result.i0 = sg_srl_s32(a.i0, shift);
-    result.i1 = sg_srl_s32(a.i1, shift);
-    result.i2 = sg_srl_s32(a.i2, shift);
-    result.i3 = sg_srl_s32(a.i3, shift);
+    result.i0 = sg_srl_s32x1(a.i0, shift);
+    result.i1 = sg_srl_s32x1(a.i1, shift);
+    result.i2 = sg_srl_s32x1(a.i2, shift);
+    result.i3 = sg_srl_s32x1(a.i3, shift);
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
@@ -2979,8 +2990,8 @@ static inline sg_pi32 sg_srl_imm_pi32(const sg_pi32 a, const int32_t shift) {
 static inline sg_pi64 sg_srl_pi64(const sg_pi64 a, const sg_pi64 shift) {
     #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_NEON
     sg_generic_pi64 ag = sg_getg_pi64(a), shiftg = sg_getg_pi64(shift), result;
-    result.l0 = sg_srl_s64(ag.l0, shiftg.l0);
-    result.l1 = sg_srl_s64(ag.l1, shiftg.l1);
+    result.l0 = sg_srl_s64x1(ag.l0, shiftg.l0);
+    result.l1 = sg_srl_s64x1(ag.l1, shiftg.l1);
     return sg_set_fromg_pi64(result);
     #elif defined SIMD_GRANODI_SSE2
     __m128i result = _mm_and_si128(_mm_set_epi64x(0,-1),
@@ -2995,8 +3006,8 @@ static inline sg_pi64 sg_srl_pi64(const sg_pi64 a, const sg_pi64 shift) {
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi64 sg_srl_imm_pi64(const sg_pi64 a, const int32_t shift) {
     sg_pi64 result;
-    result.l0 = sg_srl_s64(a.l0, shift);
-    result.l1 = sg_srl_s64(a.l1, shift);
+    result.l0 = sg_srl_s64x1(a.l0, shift);
+    result.l1 = sg_srl_s64x1(a.l1, shift);
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
@@ -3381,10 +3392,10 @@ static inline bool sg_debug_cmp_valid_eq_pi32(const sg_cmp_pi32 cmp,
     return cmp.b3 == b3 && cmp.b2 == b2 && cmp.b1 == b1 && cmp.b0 == b0;
     #elif defined SIMD_GRANODI_SSE2
     return sg_debug_mask_valid_eq_u32(
-        sg_scast_s32_u32(sg_get3_pi32(cmp)), b3) &&
-        sg_debug_mask_valid_eq_u32(sg_scast_s32_u32(sg_get2_pi32(cmp)), b2) &&
-        sg_debug_mask_valid_eq_u32(sg_scast_s32_u32(sg_get1_pi32(cmp)), b1) &&
-        sg_debug_mask_valid_eq_u32(sg_scast_s32_u32(sg_get0_pi32(cmp)), b0);
+        sg_bitcast_s32x1_u32x1(sg_get3_pi32(cmp)), b3) &&
+        sg_debug_mask_valid_eq_u32(sg_bitcast_s32x1_u32x1(sg_get2_pi32(cmp)), b2) &&
+        sg_debug_mask_valid_eq_u32(sg_bitcast_s32x1_u32x1(sg_get1_pi32(cmp)), b1) &&
+        sg_debug_mask_valid_eq_u32(sg_bitcast_s32x1_u32x1(sg_get0_pi32(cmp)), b0);
     #elif defined SIMD_GRANODI_NEON
     return sg_debug_mask_valid_eq_u32(vgetq_lane_u32(cmp, 3), b3) &&
         sg_debug_mask_valid_eq_u32(vgetq_lane_u32(cmp, 2), b2) &&
@@ -3400,8 +3411,8 @@ static inline bool sg_debug_cmp_valid_eq_pi64(const sg_cmp_pi64 cmp,
     return cmp.b1 == b1 && cmp.b0 == b0;
     #elif defined SIMD_GRANODI_SSE2
     return sg_debug_mask_valid_eq_u64(
-        sg_scast_s64_u64(sg_get1_pi64(cmp)), b1) &&
-        sg_debug_mask_valid_eq_u64(sg_scast_s64_u64(sg_get0_pi64(cmp)), b0);
+        sg_bitcast_s64x1_u64x1(sg_get1_pi64(cmp)), b1) &&
+        sg_debug_mask_valid_eq_u64(sg_bitcast_s64x1_u64x1(sg_get0_pi64(cmp)), b0);
     #elif defined SIMD_GRANODI_NEON
     return sg_debug_mask_valid_eq_u64(vgetq_lane_u64(cmp, 1), b1) &&
         sg_debug_mask_valid_eq_u64(vgetq_lane_u64(cmp, 0), b0);
@@ -3414,10 +3425,10 @@ static inline bool sg_debug_cmp_valid_eq_ps(const sg_cmp_ps cmp,
     #ifdef SIMD_GRANODI_FORCE_GENERIC
     return cmp.b3 == b3 && cmp.b2 == b2 && cmp.b1 == b1 && cmp.b0 == b0;
     #elif defined SIMD_GRANODI_SSE2
-    return sg_debug_mask_valid_eq_u32(sg_scast_f32_u32(sg_get3_ps(cmp)), b3) &&
-        sg_debug_mask_valid_eq_u32(sg_scast_f32_u32(sg_get2_ps(cmp)), b2) &&
-        sg_debug_mask_valid_eq_u32(sg_scast_f32_u32(sg_get1_ps(cmp)), b1) &&
-        sg_debug_mask_valid_eq_u32(sg_scast_f32_u32(sg_get0_ps(cmp)), b0);
+    return sg_debug_mask_valid_eq_u32(sg_bitcast_f32x1_u32x1(sg_get3_ps(cmp)), b3) &&
+        sg_debug_mask_valid_eq_u32(sg_bitcast_f32x1_u32x1(sg_get2_ps(cmp)), b2) &&
+        sg_debug_mask_valid_eq_u32(sg_bitcast_f32x1_u32x1(sg_get1_ps(cmp)), b1) &&
+        sg_debug_mask_valid_eq_u32(sg_bitcast_f32x1_u32x1(sg_get0_ps(cmp)), b0);
     #elif defined SIMD_GRANODI_NEON
     return sg_debug_mask_valid_eq_u32(vgetq_lane_u32(cmp, 3), b3) &&
         sg_debug_mask_valid_eq_u32(vgetq_lane_u32(cmp, 2), b2) &&
@@ -3432,8 +3443,8 @@ static inline bool sg_debug_cmp_valid_eq_pd(const sg_cmp_pd cmp,
     #ifdef SIMD_GRANODI_FORCE_GENERIC
     return cmp.b1 == b1 && cmp.b0 == b0;
     #elif defined SIMD_GRANODI_SSE2
-    return sg_debug_mask_valid_eq_u64(sg_scast_f64_u64(sg_get1_pd(cmp)), b1) &&
-        sg_debug_mask_valid_eq_u64(sg_scast_f64_u64(sg_get0_pd(cmp)), b0);
+    return sg_debug_mask_valid_eq_u64(sg_bitcast_f64x1_u64x1(sg_get1_pd(cmp)), b1) &&
+        sg_debug_mask_valid_eq_u64(sg_bitcast_f64x1_u64x1(sg_get0_pd(cmp)), b0);
     #elif defined SIMD_GRANODI_NEON
     return sg_debug_mask_valid_eq_u64(vgetq_lane_u64(cmp, 1), b1) &&
         sg_debug_mask_valid_eq_u64(vgetq_lane_u64(cmp, 0), b0);
@@ -4640,7 +4651,7 @@ static inline sg_pd sg_constrain_pd(const sg_pd lowerb,
 
 // Disable denormals
 
-#ifdef SIMD_GRANODI_DENORMAL_SSE
+#ifdef SIMD_GRANODI_ARCH_SSE
 typedef uint32_t sg_fp_status;
 static inline sg_fp_status sg_disable_denormals() {
     // flush_to_zero:
@@ -4660,7 +4671,7 @@ static inline void sg_restore_fp_status_after_denormals_disabled(
     _mm_setcsr(previous_status);
 }
 
-#elif defined SIMD_GRANODI_DENORMAL_ARM32
+#elif defined SIMD_GRANODI_ARCH_ARM32
 typedef uint32_t sg_fp_status;
 static inline void sg_set_fp_status_arm_(const sg_fp_status fp_status) {
     __asm__ volatile("vmsr fpscr, %0" : : "ri"(fp_status));
@@ -4671,7 +4682,7 @@ static inline sg_fp_status sg_get_fp_status_arm_() {
     __asm__ volatile("vmrs &0, fpscr" : "=r"(fpsr));
 }
 
-#elif defined SIMD_GRANODI_DENORMAL_ARM64
+#elif defined SIMD_GRANODI_ARCH_ARM64
 typedef uint64_t sg_fp_status;
 static inline void sg_set_fp_status_arm_(const sg_fp_status fp_status) {
     __asm__ volatile("msr fpcr, %0" : : "ri"(fp_status));
@@ -4685,7 +4696,7 @@ static inline sg_fp_status sg_get_fp_status_arm_() {
 
 #endif
 
-#if defined SIMD_GRANODI_DENORMAL_ARM64 || SIMD_GRANODI_DENORMAL_ARM32
+#if defined SIMD_GRANODI_ARCH_ARM64 || SIMD_GRANODI_ARCH_ARM32
 static inline sg_fp_status sg_disable_denormals() {
     const sg_fp_status old_fp_status = sg_get_fp_status_arm_();
     sg_set_fp_status_arm_(old_fp_status | 0x1000000);
@@ -4709,13 +4720,13 @@ namespace simd_granodi {
 // - All type casts or type conversions must be explicit
 // - Should never use any SSE2 or NEON types or intrinsics directly
 
-#if defined SIMD_GRANODI_DENORMAL_SSE || \
-    defined SIMD_GRANODI_DENORMAL_ARM64 || \
-    defined SIMD_GRANODI_DENORMAL_ARM32
+#if defined SIMD_GRANODI_ARCH_SSE || \
+    defined SIMD_GRANODI_ARCH_ARM64 || \
+    defined SIMD_GRANODI_ARCH_ARM32
 class ScopedDenormalsDisable {
     const sg_fp_status fp_status_;
 public:
-    ScopedDenormalsDisable() : fp_status_(sg_disable_denormals()) {}
+    ScopedDenormalsDisable() : fp_status_{sg_disable_denormals()} {}
     ~ScopedDenormalsDisable() {
         sg_restore_fp_status_after_denormals_disabled(fp_status_);
     }
@@ -4728,14 +4739,14 @@ class Vec_pi32; class Vec_pi64; class Vec_ps; class Vec_pd;
 class Compare_pi32 {
     sg_cmp_pi32 data_;
 public:
-    Compare_pi32() : data_(sg_setzero_cmp_pi32()) {}
-    Compare_pi32(const bool b) : data_(sg_set1cmp_pi32(b)) {}
+    Compare_pi32() : data_{sg_setzero_cmp_pi32()} {}
+    Compare_pi32(const bool b) : data_{sg_set1cmp_pi32(b)} {}
     Compare_pi32(const bool b3, const bool b2, const bool b1, const bool b0)
-        : data_(sg_setcmp_pi32(b3, b2, b1, b0)) {}
-    Compare_pi32(const sg_cmp_pi32& cmp) : data_(cmp) {}
+        : data_{sg_setcmp_pi32(b3, b2, b1, b0)} {}
+    Compare_pi32(const sg_cmp_pi32& cmp) : data_{cmp} {}
     #ifndef SIMD_GRANODI_FORCE_GENERIC
     Compare_pi32(const sg_generic_cmp4& cmp)
-        : data_(sg_setcmp_fromg_pi32(cmp)) {}
+        : data_{sg_setcmp_fromg_pi32(cmp)} {}
     #endif
 
     sg_cmp_pi32 data() const { return data_; }
@@ -4776,14 +4787,14 @@ public:
 class Compare_pi64 {
     sg_cmp_pi64 data_;
 public:
-    Compare_pi64() : data_(sg_setzero_cmp_pi64()) {}
-    Compare_pi64(const bool b) : data_(sg_set1cmp_pi64(b)) {}
+    Compare_pi64() : data_{sg_setzero_cmp_pi64()} {}
+    Compare_pi64(const bool b) : data_{sg_set1cmp_pi64(b)} {}
     Compare_pi64(const bool b1, const bool b0)
-        : data_(sg_setcmp_pi64(b1, b0)) {}
-    Compare_pi64(const sg_cmp_pi64& cmp) : data_(cmp) {}
+        : data_{sg_setcmp_pi64(b1, b0)} {}
+    Compare_pi64(const sg_cmp_pi64& cmp) : data_{cmp} {}
     #ifndef SIMD_GRANODI_FORCE_GENERIC
     Compare_pi64(const sg_generic_cmp2& cmp)
-        : data_(sg_setcmp_fromg_pi64(cmp)) {}
+        : data_{sg_setcmp_fromg_pi64(cmp)} {}
     #endif
 
     sg_cmp_pi64 data() const { return data_; }
@@ -4820,13 +4831,13 @@ public:
 class Compare_ps {
     sg_cmp_ps data_;
 public:
-    Compare_ps() : data_(sg_setzero_cmp_ps()) {}
-    Compare_ps(const bool b) : data_(sg_set1cmp_ps(b)) {}
+    Compare_ps() : data_{sg_setzero_cmp_ps()} {}
+    Compare_ps(const bool b) : data_{sg_set1cmp_ps(b)} {}
     Compare_ps(const bool b3, const bool b2, const bool b1, const bool b0)
-        : data_(sg_setcmp_ps(b3, b2, b1, b0)) {}
-    Compare_ps(const sg_cmp_ps& cmp) : data_(cmp) {}
+        : data_{sg_setcmp_ps(b3, b2, b1, b0)} {}
+    Compare_ps(const sg_cmp_ps& cmp) : data_{cmp} {}
     #ifndef SIMD_GRANODI_FORCE_GENERIC
-    Compare_ps(const sg_generic_cmp4& cmp) : data_(sg_setcmp_fromg_ps(cmp)) {}
+    Compare_ps(const sg_generic_cmp4& cmp) : data_{sg_setcmp_fromg_ps(cmp)} {}
     #endif
 
     sg_cmp_ps data() const { return data_; }
@@ -4864,13 +4875,13 @@ public:
 class Compare_pd {
     sg_cmp_pd data_;
 public:
-    Compare_pd() : data_(sg_setzero_cmp_pd()) {}
-    Compare_pd(const bool b) : data_(sg_set1cmp_pd(b)) {}
+    Compare_pd() : data_{sg_setzero_cmp_pd()} {}
+    Compare_pd(const bool b) : data_{sg_set1cmp_pd(b)} {}
     Compare_pd(const bool b1, const bool b0)
-        : data_(sg_setcmp_pd(b1, b0)) {}
+        : data_{sg_setcmp_pd(b1, b0)} {}
     Compare_pd(const sg_cmp_pd& cmp) : data_(cmp) {}
     #ifndef SIMD_GRANODI_FORCE_GENERIC
-    Compare_pd(const sg_generic_cmp2& cmp) : data_(sg_setcmp_fromg_pd(cmp)) {}
+    Compare_pd(const sg_generic_cmp2& cmp) : data_{sg_setcmp_fromg_pd(cmp)} {}
     #endif
 
     sg_cmp_pd data() const { return data_; }
@@ -4906,15 +4917,15 @@ public:
 class Vec_pi32 {
     sg_pi32 data_;
 public:
-    Vec_pi32() : data_(sg_setzero_pi32()) {}
-    Vec_pi32(const int32_t i) : data_(sg_set1_pi32(i)) {}
+    Vec_pi32() : data_{sg_setzero_pi32()} {}
+    Vec_pi32(const int32_t i) : data_{sg_set1_pi32(i)} {}
     Vec_pi32(const int32_t i3, const int32_t i2, const int32_t i1,
-        const int32_t i0) : data_(sg_set_pi32(i3, i2, i1, i0)) {}
-    Vec_pi32(const sg_pi32& pi32) : data_(pi32) {}
+        const int32_t i0) : data_{sg_set_pi32(i3, i2, i1, i0)} {}
+    Vec_pi32(const sg_pi32& pi32) : data_{pi32} {}
     #ifndef SIMD_GRANODI_FORCE_GENERIC
     // Otherwise, we are defining two identical ctors & won't compile...
     Vec_pi32(const sg_generic_pi32& g_pi32)
-        : data_(sg_set_fromg_pi32(g_pi32)) {}
+        : data_{sg_set_fromg_pi32(g_pi32)} {}
     #endif
 
     static int32_t elem_t(const int32_t s32) { return s32; }
@@ -5082,25 +5093,29 @@ public:
     }
     bool debug_eq(const int32_t i) const { return debug_eq(i, i, i, i); }
 
+    Vec_pi32 bitcast_to_s32() const { return *this; }
     inline Vec_pi64 bitcast_to_s64() const;
     inline Vec_ps bitcast_to_f32() const;
     inline Vec_pd bitcast_to_f64() const;
 
+    Vec_pi32 convert_to_s32() const { return *this; }
     inline Vec_pi64 convert_to_s64() const;
     inline Vec_ps convert_to_f32() const;
     inline Vec_pd convert_to_f64() const;
+
+    Vec_pi32 to_fast_int() const { return *this; }
 };
 
 class Vec_pi64 {
     sg_pi64 data_;
 public:
-    Vec_pi64() : data_(sg_setzero_pi64()) {}
-    Vec_pi64(const int64_t l) : data_(sg_set1_pi64(l)) {}
-    Vec_pi64(const int64_t l1, const int64_t l0) : data_(sg_set_pi64(l1, l0)) {}
-    Vec_pi64(const sg_pi64& pi64) : data_(pi64) {}
+    Vec_pi64() : data_{sg_setzero_pi64()} {}
+    Vec_pi64(const int64_t l) : data_{sg_set1_pi64(l)} {}
+    Vec_pi64(const int64_t l1, const int64_t l0) : data_{sg_set_pi64(l1, l0)} {}
+    Vec_pi64(const sg_pi64& pi64) : data_{pi64} {}
     #ifndef SIMD_GRANODI_FORCE_GENERIC
     Vec_pi64(const sg_generic_pi64& g_pi64)
-        : data_(sg_set_fromg_pi64(g_pi64)) {}
+        : data_{sg_set_fromg_pi64(g_pi64)} {}
     #endif
 
     static int64_t elem_t(const int32_t s32) {
@@ -5261,24 +5276,34 @@ public:
     bool debug_eq(const int64_t l) const { return debug_eq(l, l); }
 
     inline Vec_pi32 bitcast_to_s32() const;
+    Vec_pi64 bitcast_to_s64() const { return *this; }
     inline Vec_ps bitcast_to_f32() const;
     inline Vec_pd bitcast_to_f64() const;
 
     inline Vec_pi32 convert_to_s32() const;
+    Vec_pi64 convert_to_s64() const { return *this; }
     inline Vec_ps convert_to_f32() const;
     inline Vec_pd convert_to_f64() const;
+
+    // Converting between epi64 <-> ps and epi64 <-> pd is slow on intel.
+    // Also many instructions are not available for epi64
+    #ifdef SIMD_GRANODI_SSE2
+    Vec_pi32 to_fast_int() const { return sg_cvt_pi64_pi32(data_); }
+    #else
+    Vec_pi64 to_fast_int() const { return *this; }
+    #endif
 };
 
 class Vec_ps {
     sg_ps data_;
 public:
-    Vec_ps() : data_(sg_setzero_ps()) {}
-    Vec_ps(const float f) : data_(sg_set1_ps(f)) {}
+    Vec_ps() : data_{sg_setzero_ps()} {}
+    Vec_ps(const float f) : data_{sg_set1_ps(f)} {}
     Vec_ps(const float f3, const float f2, const float f1, const float f0)
-        : data_(sg_set_ps(f3, f2, f1, f0)) {}
-    Vec_ps(const sg_ps& ps) : data_(ps) {}
+        : data_{sg_set_ps(f3, f2, f1, f0)} {}
+    Vec_ps(const sg_ps& ps) : data_{ps} {}
     #ifndef SIMD_GRANODI_FORCE_GENERIC
-    Vec_ps(const sg_generic_ps& g_ps) : data_(sg_set_fromg_ps(g_ps)) {}
+    Vec_ps(const sg_generic_ps& g_ps) : data_{sg_set_fromg_ps(g_ps)} {}
     #endif
 
     // Useful for writing templated code that might be of the form:
@@ -5429,6 +5454,7 @@ public:
 
     inline Vec_pi32 bitcast_to_s32() const;
     inline Vec_pi64 bitcast_to_s64() const;
+    Vec_ps bitcast_to_f32() const { return *this; }
     inline Vec_pd bitcast_to_f64() const;
 
     inline Vec_pi32 convert_to_nearest_s32() const;
@@ -5437,18 +5463,70 @@ public:
     inline Vec_pi64 convert_to_nearest_s64() const;
     inline Vec_pi64 truncate_to_s64() const;
     inline Vec_pi64 floor_to_s64() const;
+    Vec_ps convert_to_f32() const { return *this; }
     inline Vec_pd convert_to_f64() const;
+
+    // exponent_frexp() version is equivalent to C standard lib, and computes
+    // exponent + 1 for some reason
+    Vec_pi32 exponent_frexp() const {
+        return sg_sub_pi32(sg_and_pi32(
+            sg_srl_imm_pi32(sg_bitcast_ps_pi32(data_), 23),
+                sg_set1_pi32(0xff)), sg_set1_pi32(126));
+    }
+    Vec_pi32 exponent() const {
+        return sg_sub_pi32(sg_and_pi32(
+            sg_srl_imm_pi32(sg_bitcast_ps_pi32(data_), 23),
+                sg_set1_pi32(0xff)), sg_set1_pi32(127));
+    }
+    // mantissa_frexp() computes half the mantissa
+    Vec_ps mantissa_frexp() const {
+        return sg_bitcast_pi32_ps(sg_or_pi32(sg_and_pi32(
+            sg_bitcast_ps_pi32(data_), sg_set1_pi32(0x807fffff)),
+            sg_set1_pi32(0x3f000000)));
+    }
+    Vec_ps mantissa() const {
+        return sg_bitcast_pi32_ps(sg_or_pi32(sg_and_pi32(
+            sg_bitcast_ps_pi32(data_), sg_set1_pi32(0x807fffff)),
+            sg_set1_pi32(0x3f800000)));
+    }
+
+    // Adds e to the existing exponent
+    Vec_ps ldexp(const Vec_pi32& e) const {
+        return sg_bitcast_pi32_ps(sg_add_pi32(sg_bitcast_ps_pi32(data_),
+            sg_sl_imm_pi32(e.data(), 23)));
+    }
+
+    Vec_ps std_log() const {
+        return Vec_ps { std::log(sg_get3_ps(data_)),
+            std::log(sg_get2_ps(data_)), std::log(sg_get1_ps(data_)),
+            std::log(sg_get0_ps(data_)) };
+    }
+    Vec_ps std_exp() const {
+        return Vec_ps { std::exp(sg_get3_ps(data_)),
+            std::exp(sg_get2_ps(data_)), std::exp(sg_get1_ps(data_)),
+            std::exp(sg_get0_ps(data_)) };
+    }
+    Vec_ps std_sin() const {
+        return Vec_ps { std::sin(sg_get3_ps(data_)),
+            std::sin(sg_get2_ps(data_)), std::sin(sg_get1_ps(data_)),
+            std::sin(sg_get0_ps(data_)) };
+    }
+    Vec_ps std_cos() const {
+        return Vec_ps { std::cos(sg_get3_ps(data_)),
+            std::cos(sg_get2_ps(data_)), std::cos(sg_get1_ps(data_)),
+            std::cos(sg_get0_ps(data_)) };
+    }
 };
 
 class Vec_pd {
     sg_pd data_;
 public:
-    Vec_pd() : data_(sg_setzero_pd()) {}
-    Vec_pd(const double d) : data_(sg_set1_pd(d)) {}
-    Vec_pd(const double d1, const double d0) : data_(sg_set_pd(d1, d0)) {}
-    Vec_pd(const sg_pd& pd) : data_(pd) {}
+    Vec_pd() : data_{sg_setzero_pd()} {}
+    Vec_pd(const double d) : data_{sg_set1_pd(d)} {}
+    Vec_pd(const double d1, const double d0) : data_{sg_set_pd(d1, d0)} {}
+    Vec_pd(const sg_pd& pd) : data_{pd} {}
     #ifndef SIMD_GRANODI_FORCE_GENERIC
-    Vec_pd(const sg_generic_pd& g_pd) : data_(sg_set_fromg_pd(g_pd)) {}
+    Vec_pd(const sg_generic_pd& g_pd) : data_{sg_set_fromg_pd(g_pd)} {}
     #endif
 
     static double elem_t(const int32_t s32) { return static_cast<double>(s32); }
@@ -5587,6 +5665,7 @@ public:
     inline Vec_pi32 bitcast_to_s32() const;
     inline Vec_pi64 bitcast_to_s64() const;
     inline Vec_ps bitcast_to_f32() const;
+    Vec_pd bitcast_to_f64() const { return *this; }
 
     inline Vec_pi32 convert_to_nearest_s32() const;
     inline Vec_pi32 truncate_to_s32() const;
@@ -5595,6 +5674,50 @@ public:
     inline Vec_pi64 truncate_to_s64() const;
     inline Vec_pi64 floor_to_s64() const;
     inline Vec_ps convert_to_f32() const;
+    Vec_pd convert_to_f64() const { return *this; }
+
+    Vec_pi64 exponent_frexp() const {
+        return sg_sub_pi64(sg_and_pi64(
+            sg_srl_imm_pi64(sg_bitcast_pd_pi64(data_), 52),
+                sg_set1_pi64(0x7ff)), sg_set1_pi64(1022));
+    }
+    Vec_pi64 exponent() const {
+        return sg_sub_pi64(sg_and_pi64(
+            sg_srl_imm_pi64(sg_bitcast_pd_pi64(data_), 52),
+                sg_set1_pi64(0x7ff)), sg_set1_pi64(1023));
+    }
+    Vec_pd mantissa_frexp() const {
+        return sg_bitcast_pi64_pd(sg_or_pi64(sg_and_pi64(
+            sg_bitcast_pd_pi64(data_), sg_set1_pi64(0x800fffffffffffff)),
+            sg_set1_pi64(0x3fe0000000000000)));
+    }
+    Vec_pd mantissa() const {
+        return sg_bitcast_pi64_pd(sg_or_pi64(sg_and_pi64(
+            sg_bitcast_pd_pi64(data_), sg_set1_pi64(0x800fffffffffffff)),
+            sg_set1_pi64(0x3ff0000000000000)));
+    }
+
+    Vec_pd ldexp(const Vec_pi64& e) const {
+        return sg_bitcast_pi64_pd(sg_add_pi64(sg_bitcast_pd_pi64(data_),
+            sg_sl_imm_pi64(e.data(), 52)));
+    }
+
+    Vec_pd std_log() const {
+        return Vec_pd { std::log(sg_get1_pd(data_)),
+            std::log(sg_get0_pd(data_)) };
+    }
+    Vec_pd std_exp() const {
+        return Vec_pd { std::exp(sg_get1_pd(data_)),
+            std::exp(sg_get0_pd(data_)) };
+    }
+    Vec_pd std_sin() const {
+        return Vec_pd { std::sin(sg_get1_pd(data_)),
+            std::sin(sg_get0_pd(data_)) };
+    }
+    Vec_pd std_cos() const {
+        return Vec_pd { std::cos(sg_get1_pd(data_)),
+            std::cos(sg_get0_pd(data_)) };
+    }
 };
 
 inline Compare_pi64 Compare_pi32::convert_to_cmp_s64() const {
@@ -5674,10 +5797,14 @@ inline Vec_pd Compare_pd::choose(const Vec_pd& if_true,
 }
 
 inline Vec_pi64 Vec_pi32::bitcast_to_s64() const {
-    return sg_cast_pi32_pi64(data_);
+    return sg_bitcast_pi32_pi64(data_);
 }
-inline Vec_ps Vec_pi32::bitcast_to_f32() const { return sg_cast_pi32_ps(data_); }
-inline Vec_pd Vec_pi32::bitcast_to_f64() const { return sg_cast_pi32_pd(data_); }
+inline Vec_ps Vec_pi32::bitcast_to_f32() const {
+    return sg_bitcast_pi32_ps(data_);
+}
+inline Vec_pd Vec_pi32::bitcast_to_f64() const {
+    return sg_bitcast_pi32_pd(data_);
+}
 inline Vec_pi64 Vec_pi32::convert_to_s64() const {
     return sg_cvt_pi32_pi64(data_);
 }
@@ -5689,10 +5816,14 @@ inline Vec_pd Vec_pi32::convert_to_f64() const {
 }
 
 inline Vec_pi32 Vec_pi64::bitcast_to_s32() const {
-    return sg_cast_pi64_pi32(data_);
+    return sg_bitcast_pi64_pi32(data_);
 }
-inline Vec_ps Vec_pi64::bitcast_to_f32() const { return sg_cast_pi64_ps(data_); }
-inline Vec_pd Vec_pi64::bitcast_to_f64() const { return sg_cast_pi64_pd(data_); }
+inline Vec_ps Vec_pi64::bitcast_to_f32() const {
+    return sg_bitcast_pi64_ps(data_);
+}
+inline Vec_pd Vec_pi64::bitcast_to_f64() const {
+    return sg_bitcast_pi64_pd(data_);
+}
 inline Vec_pi32 Vec_pi64::convert_to_s32() const {
     return sg_cvt_pi64_pi32(data_);
 }
@@ -5704,12 +5835,14 @@ inline Vec_pd Vec_pi64::convert_to_f64() const {
 }
 
 inline Vec_pi32 Vec_ps::bitcast_to_s32() const {
-    return sg_cast_ps_pi32(data_);
+    return sg_bitcast_ps_pi32(data_);
 }
 inline Vec_pi64 Vec_ps::bitcast_to_s64() const {
-    return sg_cast_ps_pi64(data_);
+    return sg_bitcast_ps_pi64(data_);
 }
-inline Vec_pd Vec_ps::bitcast_to_f64() const { return sg_cast_ps_pd(data_); }
+inline Vec_pd Vec_ps::bitcast_to_f64() const {
+    return sg_bitcast_ps_pd(data_);
+}
 inline Vec_pi32 Vec_ps::convert_to_nearest_s32() const {
     return sg_cvt_ps_pi32(data_);
 }
@@ -5733,12 +5866,14 @@ inline Vec_pd Vec_ps::convert_to_f64() const {
 }
 
 inline Vec_pi32 Vec_pd::bitcast_to_s32() const {
-    return sg_cast_pd_pi32(data_);
+    return sg_bitcast_pd_pi32(data_);
 }
 inline Vec_pi64 Vec_pd::bitcast_to_s64() const {
-    return sg_cast_pd_pi64(data_);
+    return sg_bitcast_pd_pi64(data_);
 }
-inline Vec_ps Vec_pd::bitcast_to_f32() const { return sg_cast_pd_ps(data_); }
+inline Vec_ps Vec_pd::bitcast_to_f32() const {
+    return sg_bitcast_pd_ps(data_);
+}
 inline Vec_pi32 Vec_pd::convert_to_nearest_s32() const {
     return sg_cvt_pd_pi32(data_);
 }
@@ -5759,48 +5894,6 @@ inline Vec_pi64 Vec_pd::floor_to_s64() const {
 }
 inline Vec_ps Vec_pd::convert_to_f32() const {
     return sg_cvt_pd_ps(data_);
-}
-
-// Convenient overloaded wrappers for std lib math functions, slow but allows
-// use in templated classes
-inline float std_log_vec(const float x) { return std::log(x); }
-inline double std_log_vec(const double x) { return std::log(x); }
-inline Vec_ps std_log_vec(const Vec_ps& x) {
-    return Vec_ps { std::log(x.f3()), std::log(x.f2()),
-        std::log(x.f1()), std::log(x.f0()) };
-}
-inline Vec_pd std_log_vec(const Vec_pd& x) {
-    return Vec_pd { std::log(x.d1()), std::log(x.d0()) };
-}
-
-inline float std_exp_vec(const float x) { return std::exp(x); }
-inline double std_exp_vec(const double x) { return std::exp(x); }
-inline Vec_ps std_exp_vec(const Vec_ps& x) {
-    return Vec_ps { std::exp(x.f3()), std::exp(x.f2()),
-        std::exp(x.f1()), std::exp(x.f0()) };
-}
-inline Vec_pd std_exp_vec(const Vec_pd& x) {
-    return Vec_pd { std::exp(x.d1()), std::exp(x.d0()) };
-}
-
-inline float std_sin_vec(const float x) { return std::sin(x); }
-inline double std_sin_vec(const double x) { return std::sin(x); }
-inline Vec_ps std_sin_vec(const Vec_ps& x) {
-    return Vec_ps { std::sin(x.f3()), std::sin(x.f2()),
-        std::sin(x.f1()), std::sin(x.f0()) };
-}
-inline Vec_pd std_sin_vec(const Vec_pd& x) {
-    return Vec_pd { std::sin(x.d1()), std::sin(x.d0()) };
-}
-
-inline float std_cos_vec(const float x) { return std::cos(x); }
-inline double std_cos_vec(const double x) { return std::cos(x); }
-inline Vec_ps std_cos_vec(const Vec_ps& x) {
-    return Vec_ps { std::cos(x.f3()), std::cos(x.f2()),
-        std::cos(x.f1()), std::cos(x.f0()) };
-}
-inline Vec_pd std_cos_vec(const Vec_pd& x) {
-    return Vec_pd { std::cos(x.d1()), std::cos(x.d0()) };
 }
 
 // Shim types - for using double / float etc in template code that expects
@@ -5846,305 +5939,751 @@ public:
     Compare_shim convert_to_cmp_f64() const { return *this; }
 };
 
-class Shim_s32; class Shim_s64; class Shim_f32; class Shim_f64;
+typedef Compare_shim Compare_s32x1;
+typedef Compare_shim Compare_s64x1;
+typedef Compare_shim Compare_f32x1;
+typedef Compare_shim Compare_f64x1;
 
-class Shim_s32 {
+class Vec_s32x1; class Vec_s64x1; class Vec_f32x1; class Vec_f64x1;
+
+class Vec_s32x1 {
     int32_t data_;
 public:
-    Shim_s32() : data_{0} {}
-    Shim_s32(const int32_t i) : data_{i} {}
+    Vec_s32x1() : data_{0} {}
+    Vec_s32x1(const int32_t s32) : data_{s32} {}
 
-    static Shim_s32 bitcast_from_u32(const uint32_t i) {
-        return sg_scast_s32_u32(i);
+    static int32_t elem_t(const int32_t s32) { return s32; }
+    static int32_t elem_t(const int64_t s64) {
+        return static_cast<int32_t>(s64);
+    }
+    static int32_t elem_t(const float f32) {
+        return static_cast<int32_t>(f32);
+    }
+    static int32_t elem_t(const double f64) {
+        return static_cast<int32_t>(f64);
+    }
+
+    static Vec_s32x1 bitcast_from_u32(const uint32_t i) {
+        return sg_bitcast_u32x1_s32x1(i);
     }
 
     int32_t data() const { return data_; }
 
-    Shim_s32& operator++() {
+    Vec_s32x1& operator++() {
         ++data_;
         return *this;
     }
-    Shim_s32 operator++(int) {
-        Shim_s32 old = *this;
+    Vec_s32x1 operator++(int) {
+        Vec_s32x1 old = *this;
         operator++();
         return old;
     }
 
-    Shim_s32& operator--() {
+    Vec_s32x1& operator--() {
         --data_;
         return *this;
     }
-    Shim_s32 operator--(int) {
-        Shim_s32 old = *this;
+    Vec_s32x1 operator--(int) {
+        Vec_s32x1 old = *this;
         operator--();
         return old;
     }
 
-    Shim_s32& operator+=(const Shim_s32& rhs) {
+    Vec_s32x1& operator+=(const Vec_s32x1& rhs) {
         data_ += rhs.data();
         return *this;
     }
-    friend Shim_s32 operator+(Shim_s32 lhs, const Shim_s32& rhs) {
+    friend Vec_s32x1 operator+(Vec_s32x1 lhs, const Vec_s32x1& rhs) {
         lhs += rhs;
         return lhs;
     }
-    Shim_s32 operator+() const { return *this; }
+    Vec_s32x1 operator+() const { return *this; }
 
-    Shim_s32& operator-=(const Shim_s32& rhs) {
+    Vec_s32x1& operator-=(const Vec_s32x1& rhs) {
         data_ -= rhs.data();
         return *this;
     }
-    friend Shim_s32 operator-(Shim_s32 lhs, const Shim_s32& rhs) {
+    friend Vec_s32x1 operator-(Vec_s32x1 lhs, const Vec_s32x1& rhs) {
         lhs -= rhs;
         return lhs;
     }
-    Shim_s32 operator-() const { return -data_; }
+    Vec_s32x1 operator-() const { return -data_; }
 
-    Shim_s32& operator*=(const Shim_s32& rhs) {
+    Vec_s32x1& operator*=(const Vec_s32x1& rhs) {
         data_ *= rhs.data();
         return *this;
     }
-    friend Shim_s32 operator*(Shim_s32 lhs, const Shim_s32& rhs) {
+    friend Vec_s32x1 operator*(Vec_s32x1 lhs, const Vec_s32x1& rhs) {
         lhs *= rhs;
         return lhs;
     }
 
-    Shim_s32& operator/=(const Shim_s32& rhs) {
+    Vec_s32x1& operator/=(const Vec_s32x1& rhs) {
         data_ /= rhs.data();
         return *this;
     }
-    friend Shim_s32 operator/(Shim_s32 lhs, const Shim_s32& rhs) {
+    friend Vec_s32x1 operator/(Vec_s32x1 lhs, const Vec_s32x1& rhs) {
         lhs /= rhs;
         return lhs;
     }
 
-    Shim_s32& operator&=(const Shim_s32& rhs) {
+    Vec_s32x1& operator&=(const Vec_s32x1& rhs) {
         data_ &= rhs.data();
         return *this;
     }
-    friend Shim_s32 operator&(Shim_s32 lhs, const Shim_s32& rhs) {
+    friend Vec_s32x1 operator&(Vec_s32x1 lhs, const Vec_s32x1& rhs) {
         lhs &= rhs.data();
         return lhs;
     }
 
-    Shim_s32& operator|=(const Shim_s32& rhs) {
+    Vec_s32x1& operator|=(const Vec_s32x1& rhs) {
         data_ |= rhs.data();
         return *this;
     }
-    friend Shim_s32 operator|(Shim_s32 lhs, const Shim_s32& rhs) {
+    friend Vec_s32x1 operator|(Vec_s32x1 lhs, const Vec_s32x1& rhs) {
         lhs |= rhs.data();
         return lhs;
     }
 
-    Shim_s32& operator^=(const Shim_s32& rhs) {
+    Vec_s32x1& operator^=(const Vec_s32x1& rhs) {
         data_ ^= rhs.data();
         return *this;
     }
-    friend Shim_s32 operator^(Shim_s32 lhs, const Shim_s32& rhs) {
+    friend Vec_s32x1 operator^(Vec_s32x1 lhs, const Vec_s32x1& rhs) {
         lhs ^= rhs.data();
         return lhs;
     }
 
-    Shim_s32 operator~() const { return ~data_; }
+    Vec_s32x1 operator~() const { return ~data_; }
 
-    Compare_shim operator<(const Shim_s32& rhs) const {
+    Compare_shim operator<(const Vec_s32x1& rhs) const {
         return data_ < rhs.data();
     }
-    Compare_shim operator<=(const Shim_s32& rhs) const {
+    Compare_shim operator<=(const Vec_s32x1& rhs) const {
         return data_ <= rhs.data();
     }
-    Compare_shim operator==(const Shim_s32& rhs) const {
+    Compare_shim operator==(const Vec_s32x1& rhs) const {
         return data_ == rhs.data();
     }
-    Compare_shim operator>=(const Shim_s32& rhs) const {
+    Compare_shim operator>=(const Vec_s32x1& rhs) const {
         return data_ >= rhs.data();
     }
-    Compare_shim operator>(const Shim_s32& rhs) const {
+    Compare_shim operator>(const Vec_s32x1& rhs) const {
         return data_ > rhs.data();
     }
 
     template<int shift>
-    Shim_s32 shift_l_imm() const { return data_ << shift; }
+    Vec_s32x1 shift_l_imm() const { return data_ << shift; }
     template<int shift>
-    Shim_s32 shift_rl_imm() const { return sg_srl_s32(data_, shift); }
+    Vec_s32x1 shift_rl_imm() const { return sg_srl_s32x1(data_, shift); }
     template<int shift>
-    Shim_s32 shift_ra_imm() const { return data_ >> shift; }
+    Vec_s32x1 shift_ra_imm() const { return data_ >> shift; }
 
-    Shim_s32 safe_divide_by(const Shim_s32& rhs) const {
+    Vec_s32x1 safe_divide_by(const Vec_s32x1& rhs) const {
         return rhs.data() == 0 ? data_ : data_ / rhs.data();
     }
-    Shim_s32 abs() const { return std::abs(data_); }
-    static Shim_s32 min(const Shim_s32& a, const Shim_s32& b) {
+    Vec_s32x1 abs() const { return std::abs(data_); }
+    static Vec_s32x1 min(const Vec_s32x1& a, const Vec_s32x1& b) {
         return std::min(a.data(), b.data());
     }
-    static Shim_s32 max(const Shim_s32& a, const Shim_s32& b) {
+    static Vec_s32x1 max(const Vec_s32x1& a, const Vec_s32x1& b) {
         return std::max(a.data(), b.data());
     }
-    Shim_s32 constrain(const Shim_s32& lowerb, const Shim_s32& upperb) const {
-        return Shim_s32::min(Shim_s32::max(lowerb, data_), upperb);
+    Vec_s32x1 constrain(const Vec_s32x1& lowerb, const Vec_s32x1& upperb) const {
+        return Vec_s32x1::min(Vec_s32x1::max(lowerb, data_), upperb);
     }
 
     bool debug_eq(int32_t i) const { return data_ == i; }
 
-    Shim_s64 bitcast_to_s64() const;
-    Shim_f32 bitcast_to_f32() const;
-    Shim_f64 bitcast_to_f64() const;
+    Vec_s32x1 bitcast_to_s32() const { return *this; }
+    inline Vec_s64x1 bitcast_to_s64() const;
+    inline Vec_f32x1 bitcast_to_f32() const;
+    inline Vec_f64x1 bitcast_to_f64() const;
 
-    Shim_s64 convert_to_s64() const;
-    Shim_f32 convert_to_f32() const;
-    Shim_f64 convert_to_f64() const;
+    Vec_s32x1 convert_to_s32() const { return *this; }
+    inline Vec_s64x1 convert_to_s64() const;
+    inline Vec_f32x1 convert_to_f32() const;
+    inline Vec_f64x1 convert_to_f64() const;
+
+    Vec_s32x1 to_fast_int() const { return *this; }
 };
 
-class Shim_s64 {
+class Vec_s64x1 {
     int64_t data_;
 public:
-    Shim_s64() : data_{0} {}
-    Shim_s64(const int64_t i) : data_{i} {}
+    Vec_s64x1() : data_{0} {}
+    Vec_s64x1(const int64_t s64) : data_{s64} {}
 
-    static Shim_s64 bitcast_from_u64(const uint64_t i) {
-        return sg_scast_s64_u64(i);
+    static int64_t elem_t(const int32_t s32) {
+        return static_cast<int64_t>(s32);
+    }
+    static int64_t elem_t(const int64_t s64) { return s64; }
+    static int64_t elem_t(const float f32) {
+        return static_cast<int64_t>(f32);
+    }
+    static int64_t elem_t(const double f64) {
+        return static_cast<int64_t>(f64);
+    }
+
+    static Vec_s64x1 bitcast_from_u64(const uint64_t i) {
+        return sg_bitcast_u64x1_s64x1(i);
     }
 
     int64_t data() const { return data_; }
 
-    Shim_s64& operator++() {
+    Vec_s64x1& operator++() {
         ++data_;
         return *this;
     }
-    Shim_s64 operator++(int) {
-        Shim_s64 old = *this;
+    Vec_s64x1 operator++(int) {
+        Vec_s64x1 old = *this;
         operator++();
         return old;
     }
 
-    Shim_s64& operator--() {
+    Vec_s64x1& operator--() {
         --data_;
         return *this;
     }
-    Shim_s64 operator--(int) {
-        Shim_s64 old = *this;
+    Vec_s64x1 operator--(int) {
+        Vec_s64x1 old = *this;
         operator--();
         return old;
     }
 
-    Shim_s64& operator+=(const Shim_s64& rhs) {
+    Vec_s64x1& operator+=(const Vec_s64x1& rhs) {
         data_ += rhs.data();
         return *this;
     }
-    friend Shim_s64 operator+(Shim_s64 lhs, const Shim_s64& rhs) {
+    friend Vec_s64x1 operator+(Vec_s64x1 lhs, const Vec_s64x1& rhs) {
         lhs += rhs;
         return lhs;
     }
-    Shim_s64 operator+() const { return *this; }
+    Vec_s64x1 operator+() const { return *this; }
 
-    Shim_s64& operator-=(const Shim_s64& rhs) {
+    Vec_s64x1& operator-=(const Vec_s64x1& rhs) {
         data_ -= rhs.data();
         return *this;
     }
-    friend Shim_s64 operator-(Shim_s64 lhs, const Shim_s64& rhs) {
+    friend Vec_s64x1 operator-(Vec_s64x1 lhs, const Vec_s64x1& rhs) {
         lhs -= rhs;
         return lhs;
     }
-    Shim_s64 operator-() const { return -data_; }
+    Vec_s64x1 operator-() const { return -data_; }
 
-    Shim_s64& operator*=(const Shim_s64& rhs) {
+    Vec_s64x1& operator*=(const Vec_s64x1& rhs) {
         data_ *= rhs.data();
         return *this;
     }
-    friend Shim_s64 operator*(Shim_s64 lhs, const Shim_s64& rhs) {
+    friend Vec_s64x1 operator*(Vec_s64x1 lhs, const Vec_s64x1& rhs) {
         lhs *= rhs;
         return lhs;
     }
 
-    Shim_s64& operator/=(const Shim_s64& rhs) {
+    Vec_s64x1& operator/=(const Vec_s64x1& rhs) {
         data_ /= rhs.data();
         return *this;
     }
-    friend Shim_s64 operator/(Shim_s64 lhs, const Shim_s64& rhs) {
+    friend Vec_s64x1 operator/(Vec_s64x1 lhs, const Vec_s64x1& rhs) {
         lhs /= rhs;
         return lhs;
     }
 
-    Shim_s64& operator&=(const Shim_s64& rhs) {
+    Vec_s64x1& operator&=(const Vec_s64x1& rhs) {
         data_ &= rhs.data();
         return *this;
     }
-    friend Shim_s64 operator&(Shim_s64 lhs, const Shim_s64& rhs) {
+    friend Vec_s64x1 operator&(Vec_s64x1 lhs, const Vec_s64x1& rhs) {
         lhs &= rhs.data();
         return lhs;
     }
 
-    Shim_s64& operator|=(const Shim_s64& rhs) {
+    Vec_s64x1& operator|=(const Vec_s64x1& rhs) {
         data_ |= rhs.data();
         return *this;
     }
-    friend Shim_s64 operator|(Shim_s64 lhs, const Shim_s64& rhs) {
+    friend Vec_s64x1 operator|(Vec_s64x1 lhs, const Vec_s64x1& rhs) {
         lhs |= rhs.data();
         return lhs;
     }
 
-    Shim_s64& operator^=(const Shim_s64& rhs) {
+    Vec_s64x1& operator^=(const Vec_s64x1& rhs) {
         data_ ^= rhs.data();
         return *this;
     }
-    friend Shim_s64 operator^(Shim_s64 lhs, const Shim_s64& rhs) {
+    friend Vec_s64x1 operator^(Vec_s64x1 lhs, const Vec_s64x1& rhs) {
         lhs ^= rhs.data();
         return lhs;
     }
 
-    Shim_s64 operator~() const { return ~data_; }
+    Vec_s64x1 operator~() const { return ~data_; }
 
-    Compare_shim operator<(const Shim_s64& rhs) const {
+    Compare_shim operator<(const Vec_s64x1& rhs) const {
         return data_ < rhs.data();
     }
-    Compare_shim operator<=(const Shim_s64& rhs) const {
+    Compare_shim operator<=(const Vec_s64x1& rhs) const {
         return data_ <= rhs.data();
     }
-    Compare_shim operator==(const Shim_s64& rhs) const {
+    Compare_shim operator==(const Vec_s64x1& rhs) const {
         return data_ == rhs.data();
     }
-    Compare_shim operator>=(const Shim_s64& rhs) const {
+    Compare_shim operator>=(const Vec_s64x1& rhs) const {
         return data_ >= rhs.data();
     }
-    Compare_shim operator>(const Shim_s64& rhs) const {
+    Compare_shim operator>(const Vec_s64x1& rhs) const {
         return data_ > rhs.data();
     }
 
     template<int shift>
-    Shim_s64 shift_l_imm() const { return data_ << shift; }
+    Vec_s64x1 shift_l_imm() const { return data_ << shift; }
     template<int shift>
-    Shim_s64 shift_rl_imm() const { return sg_srl_s64(data_, shift); }
+    Vec_s64x1 shift_rl_imm() const { return sg_srl_s64x1(data_, shift); }
     template<int shift>
-    Shim_s64 shift_ra_imm() const { return data_ >> shift; }
+    Vec_s64x1 shift_ra_imm() const { return data_ >> shift; }
 
-    Shim_s64 safe_divide_by(const Shim_s64& rhs) const {
+    Vec_s64x1 safe_divide_by(const Vec_s64x1& rhs) const {
         return rhs.data() == 0 ? data_ : data_ / rhs.data();
     }
-    Shim_s64 abs() const { return std::abs(data_); }
-    static Shim_s64 min(const Shim_s64& a, const Shim_s64& b) {
+    Vec_s64x1 abs() const { return std::abs(data_); }
+    static Vec_s64x1 min(const Vec_s64x1& a, const Vec_s64x1& b) {
         return std::min(a.data(), b.data());
     }
-    static Shim_s64 max(const Shim_s64& a, const Shim_s64& b) {
+    static Vec_s64x1 max(const Vec_s64x1& a, const Vec_s64x1& b) {
         return std::max(a.data(), b.data());
     }
-    Shim_s64 constrain(const Shim_s64& lowerb, const Shim_s64& upperb) const {
-        return Shim_s64::min(Shim_s64::max(lowerb, data_), upperb);
+    Vec_s64x1 constrain(const Vec_s64x1& lowerb, const Vec_s64x1& upperb) const {
+        return Vec_s64x1::min(Vec_s64x1::max(lowerb, data_), upperb);
     }
 
     bool debug_eq(int64_t i) const { return data_ == i; }
 
-    Shim_s32 bitcast_to_s32() const;
-    Shim_f32 bitcast_to_f32() const;
-    Shim_f64 bitcast_to_f64() const;
+    Vec_s32x1 bitcast_to_s32() const {
+        return sg_bitcast_u32x1_s32x1(
+            static_cast<uint32_t>(data_ & 0xffffffff));
+    }
+    Vec_s64x1 bitcast_to_s64() const { return *this; }
+    inline Vec_f32x1 bitcast_to_f32() const;
+    inline Vec_f64x1 bitcast_to_f64() const;
 
-    Shim_s32 convert_to_s32() const;
-    Shim_f32 convert_to_f32() const;
-    Shim_f64 convert_to_f64() const;
+    Vec_s32x1 convert_to_s32() const {
+        return static_cast<int32_t>(data_);
+    }
+    Vec_s64x1 convert_to_s64() const { return *this; }
+    inline Vec_f32x1 convert_to_f32() const;
+    inline Vec_f64x1 convert_to_f64() const;
+
+    Vec_s64x1 to_fast_int() const { return *this; }
 };
 
-//Shim_s64 Shim_s32::bitcast_to_s64() const {
-//    return (int64_t) sg_scast_s32_u32(data_);
-//}
+class Vec_f32x1 {
+    float data_;
+public:
+    Vec_f32x1() : data_{0.0f} {}
+    Vec_f32x1(const float f32) : data_{f32} {}
+
+    static float elem_t(const int32_t s32) { return static_cast<float>(s32); }
+    static float elem_t(const int64_t s64) { return static_cast<float>(s64); }
+    static float elem_t(const float f32) { return f32; }
+    static float elem_t(const double f64) { return static_cast<float>(f64); }
+
+    static Vec_f32x1 bitcast_from_u32(const uint32_t i) {
+        return sg_bitcast_u32x1_f32x1(i);
+    }
+
+    float data() const { return data_; }
+
+    Vec_f32x1& operator+=(const Vec_f32x1& rhs) {
+        data_ += rhs.data();
+        return *this;
+    }
+    friend Vec_f32x1 operator+(Vec_f32x1 lhs, const Vec_f32x1& rhs) {
+        lhs += rhs;
+        return lhs;
+    }
+    Vec_f32x1 operator+() const { return *this; }
+
+    Vec_f32x1& operator-=(const Vec_f32x1& rhs) {
+        data_ -= rhs.data();
+        return *this;
+    }
+    friend Vec_f32x1 operator-(Vec_f32x1 lhs, const Vec_f32x1& rhs) {
+        lhs -= rhs;
+        return lhs;
+    }
+    Vec_f32x1 operator-() const { return -data_; }
+
+    Vec_f32x1& operator*=(const Vec_f32x1& rhs) {
+        data_ *= rhs.data();
+        return *this;
+    }
+    friend Vec_f32x1 operator*(Vec_f32x1 lhs, const Vec_f32x1& rhs) {
+        lhs *= rhs;
+        return lhs;
+    }
+
+    Vec_f32x1& operator/=(const Vec_f32x1& rhs) {
+        data_ /= rhs.data();
+        return *this;
+    }
+    friend Vec_f32x1 operator/(Vec_f32x1 lhs, const Vec_f32x1& rhs) {
+        lhs /= rhs;
+        return lhs;
+    }
+
+    Vec_f32x1 mul_add(const Vec_f32x1& mul, const Vec_f32x1& add) const {
+        return sg_mul_add_f32x1(data_, mul.data(), add.data());
+    }
+
+    Vec_f32x1& operator&=(const Vec_f32x1& rhs) {
+        data_ = sg_bitcast_u32x1_f32x1(
+            sg_bitcast_f32x1_u32x1(data_) & sg_bitcast_f32x1_u32x1(rhs.data()));
+        return *this;
+    }
+    friend Vec_f32x1 operator&(Vec_f32x1 lhs, const Vec_f32x1& rhs) {
+        lhs &= rhs.data();
+        return lhs;
+    }
+
+    Vec_f32x1& operator|=(const Vec_f32x1& rhs) {
+        data_ = sg_bitcast_u32x1_f32x1(
+            sg_bitcast_f32x1_u32x1(data_) | sg_bitcast_f32x1_u32x1(rhs.data()));
+        return *this;
+    }
+    friend Vec_f32x1 operator|(Vec_f32x1 lhs, const Vec_f32x1& rhs) {
+        lhs |= rhs.data();
+        return lhs;
+    }
+
+    Vec_f32x1& operator^=(const Vec_f32x1& rhs) {
+        data_ = sg_bitcast_u32x1_f32x1(
+            sg_bitcast_f32x1_u32x1(data_) ^ sg_bitcast_f32x1_u32x1(rhs.data()));
+        return *this;
+    }
+    friend Vec_f32x1 operator^(Vec_f32x1 lhs, const Vec_f32x1& rhs) {
+        lhs ^= rhs.data();
+        return lhs;
+    }
+
+    Vec_f32x1 operator~() const {
+        return sg_bitcast_u32x1_f32x1(~sg_bitcast_f32x1_u32x1(data_));
+    }
+
+    Compare_shim operator<(const Vec_f32x1& rhs) const {
+        return data_ < rhs.data();
+    }
+    Compare_shim operator<=(const Vec_f32x1& rhs) const {
+        return data_ <= rhs.data();
+    }
+    Compare_shim operator==(const Vec_f32x1& rhs) const {
+        return data_ == rhs.data();
+    }
+    Compare_shim operator>=(const Vec_f32x1& rhs) const {
+        return data_ >= rhs.data();
+    }
+    Compare_shim operator>(const Vec_f32x1& rhs) const {
+        return data_ > rhs.data();
+    }
+
+    Vec_f32x1 safe_divide_by(const Vec_f32x1& rhs) const {
+        return rhs.data() == 0.0f ? data_ : data_ / rhs.data();
+    }
+    Vec_f32x1 abs() const { return std::abs(data_); }
+    Vec_f32x1 remove_signed_zero() const {
+        return data_ == 0.0f ? 0.0f : data_;
+    }
+    static Vec_f32x1 min_fast(const Vec_f32x1& a, const Vec_f32x1& b) {
+        return std::min(a.data(), b.data());
+    }
+    static Vec_f32x1 max_fast(const Vec_f32x1& a, const Vec_f32x1& b) {
+        return std::max(a.data(), b.data());
+    }
+    Vec_f32x1 constrain(const Vec_f32x1& lowerb, const Vec_f32x1& upperb) const
+    {
+        return Vec_f32x1::min_fast(Vec_f32x1::max_fast(lowerb, data_), upperb);
+    }
+
+    bool debug_eq(float f) const {
+        return sg_bitcast_f32x1_u32x1(data_) == sg_bitcast_f32x1_u32x1(f);
+    }
+
+    Vec_s32x1 bitcast_to_s32() const {
+        return sg_bitcast_f32x1_s32x1(data_);
+    }
+    Vec_s64x1 bitcast_to_s64() const {
+        return static_cast<int64_t>(sg_bitcast_f32x1_u32x1(data_));
+    }
+    Vec_f32x1 bitcast_to_f32() const { return *this; }
+    inline Vec_f64x1 bitcast_to_f64() const;
+
+    Vec_s32x1 convert_to_nearest_s32() const {
+        return static_cast<int32_t>(std::round(data_));
+    }
+    Vec_s32x1 truncate_to_s32() const { return static_cast<int32_t>(data_); }
+    Vec_s32x1 floor_to_s32() const {
+        return static_cast<int32_t>(std::floor(data_));
+    }
+    Vec_s64x1 convert_to_nearest_s64() const {
+        return static_cast<int64_t>(std::round(data_));
+    }
+    Vec_s32x1 truncate_to_s64() const {
+        return static_cast<int64_t>(data_);
+    }
+    Vec_s32x1 floor_to_s64() const {
+        return static_cast<int64_t>(std::floor(data_));
+    }
+    Vec_f32x1 convert_to_f32() const { return *this; }
+    inline Vec_f64x1 convert_to_f64() const;
+
+    Vec_s32x1 exponent_frexp() const {
+        return static_cast<int32_t>(std::ilogb(data_) + 1);
+    }
+    Vec_s32x1 exponent() const {
+        return static_cast<int32_t>(std::ilogb(data_));
+    }
+    Vec_f32x1 mantissa_frexp() const {
+        int discard;
+        return std::frexp(data_, &discard);
+    }
+    Vec_f32x1 mantissa() const { return mantissa_frexp() * 2.0f; }
+
+    Vec_f32x1 ldexp(const Vec_s32x1& e) const {
+        return std::ldexp(data_, static_cast<int>(e.data()));
+    }
+
+    Vec_f32x1 std_log() const { return std::log(data_); }
+    Vec_f32x1 std_exp() const { return std::exp(data_); }
+    Vec_f32x1 std_sin() const { return std::sin(data_); }
+    Vec_f32x1 std_cos() const { return std::cos(data_); }
+};
+
+class Vec_f64x1 {
+    double data_;
+public:
+    Vec_f64x1() : data_{0.0} {}
+    Vec_f64x1(const double f64) : data_{f64} {}
+
+    static double elem_t(const int32_t s32) { return static_cast<double>(s32); }
+    static double elem_t(const int64_t s64) { return static_cast<double>(s64); }
+    static double elem_t(const float f32) { return static_cast<double>(f32); }
+    static double elem_t(const double f64) { return f64; }
+
+    static Vec_f64x1 bitcast_from_u64(const uint64_t i) {
+        return sg_bitcast_u64x1_f64x1(i);
+    }
+
+    double data() const { return data_; }
+
+    Vec_f64x1& operator+=(const Vec_f64x1& rhs) {
+        data_ += rhs.data();
+        return *this;
+    }
+    friend Vec_f64x1 operator+(Vec_f64x1 lhs, const Vec_f64x1& rhs) {
+        lhs += rhs;
+        return lhs;
+    }
+    Vec_f64x1 operator+() const { return *this; }
+
+    Vec_f64x1& operator-=(const Vec_f64x1& rhs) {
+        data_ -= rhs.data();
+        return *this;
+    }
+    friend Vec_f64x1 operator-(Vec_f64x1 lhs, const Vec_f64x1& rhs) {
+        lhs -= rhs;
+        return lhs;
+    }
+    Vec_f64x1 operator-() const { return -data_; }
+
+    Vec_f64x1& operator*=(const Vec_f64x1& rhs) {
+        data_ *= rhs.data();
+        return *this;
+    }
+    friend Vec_f64x1 operator*(Vec_f64x1 lhs, const Vec_f64x1& rhs) {
+        lhs *= rhs;
+        return lhs;
+    }
+
+    Vec_f64x1& operator/=(const Vec_f64x1& rhs) {
+        data_ /= rhs.data();
+        return *this;
+    }
+    friend Vec_f64x1 operator/(Vec_f64x1 lhs, const Vec_f64x1& rhs) {
+        lhs /= rhs;
+        return lhs;
+    }
+
+    Vec_f64x1 mul_add(const Vec_f64x1& mul, const Vec_f64x1& add) const {
+        return sg_mul_add_f64x1(data_, mul.data(), add.data());
+    }
+
+    Vec_f64x1& operator&=(const Vec_f64x1& rhs) {
+        data_ = sg_bitcast_u64x1_f64x1(
+            sg_bitcast_f64x1_u64x1(data_) & sg_bitcast_f64x1_u64x1(rhs.data()));
+        return *this;
+    }
+    friend Vec_f64x1 operator&(Vec_f64x1 lhs, const Vec_f64x1& rhs) {
+        lhs &= rhs.data();
+        return lhs;
+    }
+
+    Vec_f64x1& operator|=(const Vec_f64x1& rhs) {
+        data_ = sg_bitcast_u64x1_f64x1(
+            sg_bitcast_f64x1_u64x1(data_) | sg_bitcast_f64x1_u64x1(rhs.data()));
+        return *this;
+    }
+    friend Vec_f64x1 operator|(Vec_f64x1 lhs, const Vec_f64x1& rhs) {
+        lhs |= rhs.data();
+        return lhs;
+    }
+
+    Vec_f64x1& operator^=(const Vec_f64x1& rhs) {
+        data_ = sg_bitcast_u64x1_f64x1(
+            sg_bitcast_f64x1_u64x1(data_) ^ sg_bitcast_f64x1_u64x1(rhs.data()));
+        return *this;
+    }
+    friend Vec_f64x1 operator^(Vec_f64x1 lhs, const Vec_f64x1& rhs) {
+        lhs ^= rhs.data();
+        return lhs;
+    }
+
+    Vec_f64x1 operator~() const {
+        return sg_bitcast_u64x1_f64x1(~sg_bitcast_f64x1_u64x1(data_));
+    }
+
+    Compare_shim operator<(const Vec_f64x1& rhs) const {
+        return data_ < rhs.data();
+    }
+    Compare_shim operator<=(const Vec_f64x1& rhs) const {
+        return data_ <= rhs.data();
+    }
+    Compare_shim operator==(const Vec_f64x1& rhs) const {
+        return data_ == rhs.data();
+    }
+    Compare_shim operator>=(const Vec_f64x1& rhs) const {
+        return data_ >= rhs.data();
+    }
+    Compare_shim operator>(const Vec_f64x1& rhs) const {
+        return data_ > rhs.data();
+    }
+
+    Vec_f64x1 safe_divide_by(const Vec_f64x1& rhs) const {
+        return rhs.data() == 0.0 ? data_ : data_ / rhs.data();
+    }
+    Vec_f64x1 abs() const { return std::abs(data_); }
+    Vec_f64x1 remove_signed_zero() const {
+        return data_ == 0.0 ? 0.0 : data_;
+    }
+    static Vec_f64x1 min_fast(const Vec_f64x1& a, const Vec_f64x1& b) {
+        return std::min(a.data(), b.data());
+    }
+    static Vec_f64x1 max_fast(const Vec_f64x1& a, const Vec_f64x1& b) {
+        return std::max(a.data(), b.data());
+    }
+    Vec_f64x1 constrain(const Vec_f64x1& lowerb, const Vec_f64x1& upperb) const
+    {
+        return Vec_f64x1::min_fast(Vec_f64x1::max_fast(lowerb, data_), upperb);
+    }
+
+    bool debug_eq(double d) const {
+        return sg_bitcast_f64x1_u64x1(data_) == sg_bitcast_f64x1_u64x1(d);
+    }
+
+    Vec_s32x1 bitcast_to_s32() const {
+        return sg_bitcast_u32x1_s32x1(
+            static_cast<uint32_t>(sg_bitcast_f64x1_u64x1(data_) & 0xffffffff));
+    }
+    Vec_s64x1 bitcast_to_s64() const {
+        return sg_bitcast_f64x1_s64x1(data_);
+    }
+    Vec_f32x1 bitcast_to_f32() const {
+        return sg_bitcast_u32x1_f32x1(
+            static_cast<uint32_t>(sg_bitcast_f64x1_u64x1(data_) & 0xffffffff));
+    }
+    Vec_f64x1 bitcast_to_f64() const { return *this; }
+
+    Vec_s32x1 convert_to_nearest_s32() const {
+        return static_cast<int32_t>(std::round(data_));
+    }
+    Vec_s32x1 truncate_to_s32() const { return static_cast<int32_t>(data_); }
+    Vec_s32x1 floor_to_s32() const {
+        return static_cast<int32_t>(std::floor(data_));
+    }
+    Vec_s64x1 convert_to_nearest_s64() const {
+        return static_cast<int64_t>(std::round(data_));
+    }
+    Vec_s32x1 truncate_to_s64() const {
+        return static_cast<int64_t>(data_);
+    }
+    Vec_s32x1 floor_to_s64() const {
+        return static_cast<int64_t>(std::floor(data_));
+    }
+    Vec_f32x1 convert_to_f32() const { return static_cast<float>(data_); }
+    Vec_f64x1 convert_to_f64() const { return *this; }
+
+    Vec_s64x1 exponent_frexp() const {
+        return static_cast<int64_t>(std::ilogb(data_) + 1);
+    }
+    Vec_s64x1 exponent() const {
+        return static_cast<int64_t>(std::ilogb(data_));
+    }
+    Vec_f64x1 mantissa_frexp() const {
+        int discard;
+        return std::frexp(data_, &discard);
+    }
+    Vec_f64x1 mantissa() const { return mantissa_frexp() * 2.0; }
+
+    Vec_f64x1 ldexp(const Vec_s64x1& e) const {
+        return std::ldexp(data_, static_cast<int>(e.data()));
+    }
+
+    Vec_f32x1 std_log() const { return std::log(data_); }
+    Vec_f32x1 std_exp() const { return std::exp(data_); }
+    Vec_f32x1 std_sin() const { return std::sin(data_); }
+    Vec_f32x1 std_cos() const { return std::cos(data_); }
+};
+
+inline Vec_s64x1 Vec_s32x1::bitcast_to_s64() const {
+    return static_cast<int64_t>(sg_bitcast_s32x1_u32x1(data_));
+}
+inline Vec_f32x1 Vec_s32x1::bitcast_to_f32() const {
+    return sg_bitcast_s32x1_f32x1(data_);
+}
+inline Vec_f64x1 Vec_s32x1::bitcast_to_f64() const {
+    return sg_bitcast_u64x1_f64x1(
+        static_cast<uint64_t>(sg_bitcast_s32x1_u32x1(data_)));
+}
+
+inline Vec_s64x1 Vec_s32x1::convert_to_s64() const {
+    return static_cast<int64_t>(data_);
+}
+inline Vec_f32x1 Vec_s32x1::convert_to_f32() const {
+    return static_cast<float>(data_);
+}
+inline Vec_f64x1 Vec_s32x1::convert_to_f64() const {
+    return static_cast<double>(data_);
+}
+
+inline Vec_f32x1 Vec_s64x1::bitcast_to_f32() const {
+    return sg_bitcast_u32x1_f32x1(
+        static_cast<uint32_t>((sg_bitcast_s64x1_u64x1(data_) & 0xffffffff)));
+}
+inline Vec_f64x1 Vec_s64x1::bitcast_to_f64() const {
+    return sg_bitcast_s64x1_f64x1(data_);
+}
+
+inline Vec_f32x1 Vec_s64x1::convert_to_f32() const {
+    return static_cast<float>(data_);
+}
+inline Vec_f64x1 Vec_s64x1::convert_to_f64() const {
+    return static_cast<double>(data_);
+}
+
+inline Vec_f64x1 Vec_f32x1::bitcast_to_f64() const {
+    return sg_bitcast_u64x1_f64x1(static_cast<uint64_t>(
+        sg_bitcast_f32x1_u32x1(data_)));
+}
+inline Vec_f64x1 Vec_f32x1::convert_to_f64() const {
+    return static_cast<double>(data_);
+}
 
 } // namespace simd_granodi
 
