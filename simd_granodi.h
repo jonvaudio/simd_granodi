@@ -4937,6 +4937,17 @@ public:
         return static_cast<int32_t>(f64);
     }
 
+    static Compare_pi32 compare_t(const Compare_pi32& cmp) { return cmp; }
+    static Compare_pi32 compare_t(const Compare_pi64& cmp) {
+        return sg_cvtcmp_pi64_pi32(cmp.data());
+    }
+    static Compare_pi32 compare_t(const Compare_ps& cmp) {
+        return sg_cvtcmp_ps_pi32(cmp.data());
+    }
+    static Compare_pi32 compare_t(const Compare_pd& cmp) {
+        return sg_cvtcmp_pd_pi32(cmp.data());
+    }
+
     static Vec_pi32 bitcast_from_u32(const uint32_t i) {
         return sg_set1_from_u32_pi32(i);
     }
@@ -5128,6 +5139,17 @@ public:
     static int64_t elem_t(const float f32) { return static_cast<int64_t>(f32); }
     static int64_t elem_t(const double f64) {
         return static_cast<int64_t>(f64);
+    }
+
+    static Compare_pi64 compare_t(const Compare_pi32& cmp) {
+        return sg_cvtcmp_pi32_pi64(cmp.data());
+    }
+    static Compare_pi64 compare_t(const Compare_pi64& cmp) { return cmp; }
+    static Compare_pi64 compare_t(const Compare_ps& cmp) {
+        return sg_cvtcmp_ps_pi64(cmp.data());
+    }
+    static Compare_pi64 compare_t(const Compare_pd& cmp) {
+        return sg_cvtcmp_pd_pi64(cmp.data());
     }
 
     static Vec_pi64 bitcast_from_u64(const uint64_t l) {
@@ -5323,6 +5345,17 @@ public:
     static float elem_t(const int64_t s64) { return static_cast<float>(s64); }
     static float elem_t(const float f32) { return f32; }
     static float elem_t(const double f64) { return static_cast<float>(f64); }
+
+    static Compare_ps compare_t(const Compare_pi32& cmp) {
+        return sg_cvtcmp_pi32_ps(cmp.data());
+    }
+    static Compare_ps compare_t(const Compare_pi64& cmp) {
+        return sg_cvtcmp_pi64_ps(cmp.data());
+    }
+    static Compare_ps compare_t(const Compare_ps& cmp) { return cmp; }
+    static Compare_ps compare_t(const Compare_pd& cmp) {
+        return sg_cvtcmp_pd_ps(cmp.data());
+    }
 
     static Vec_ps bitcast_from_u32(const uint32_t i) {
         return sg_set1_from_u32_ps(i);
@@ -5552,6 +5585,17 @@ public:
     static double elem_t(const int64_t s64) { return static_cast<double>(s64); }
     static double elem_t(const float f32) { return static_cast<double>(f32); }
     static double elem_t(const double f64) { return f64; }
+
+    static Compare_pd compare_t(const Compare_pi32& cmp) {
+        return sg_cvtcmp_pi32_pd(cmp.data());
+    }
+    static Compare_pd compare_t(const Compare_pi64& cmp) {
+        return sg_cvtcmp_pi64_pd(cmp.data());
+    }
+    static Compare_pd compare_t(const Compare_ps& cmp) {
+        return sg_cvtcmp_ps_pd(cmp.data());
+    }
+    static Compare_pd compare_t(const Compare_pd& cmp) { return cmp; }
 
     static Vec_pd bitcast_from_u64(const uint64_t l) {
         return sg_set1_from_u64_pd(l);
@@ -6008,6 +6052,8 @@ public:
         return static_cast<int32_t>(f64);
     }
 
+    static Compare_shim compare_t(const Compare_shim& cmp) { return cmp; }
+
     static Vec_s32x1 bitcast_from_u32(const uint32_t i) {
         return sg_bitcast_u32x1_s32x1(i);
     }
@@ -6172,6 +6218,8 @@ public:
     static int64_t elem_t(const double f64) {
         return static_cast<int64_t>(f64);
     }
+
+    static Compare_shim compare_t(const Compare_shim& cmp) { return cmp; }
 
     static Vec_s64x1 bitcast_from_u64(const uint64_t i) {
         return sg_bitcast_u64x1_s64x1(i);
@@ -6338,6 +6386,8 @@ public:
     static float elem_t(const int64_t s64) { return static_cast<float>(s64); }
     static float elem_t(const float f32) { return f32; }
     static float elem_t(const double f64) { return static_cast<float>(f64); }
+
+    static Compare_shim compare_t(const Compare_shim& cmp) { return cmp; }
 
     static Vec_f32x1 bitcast_from_u32(const uint32_t i) {
         return sg_bitcast_u32x1_f32x1(i);
@@ -6530,6 +6580,8 @@ public:
     static double elem_t(const int64_t s64) { return static_cast<double>(s64); }
     static double elem_t(const float f32) { return static_cast<double>(f32); }
     static double elem_t(const double f64) { return f64; }
+
+    static Compare_shim compare_t(const Compare_shim& cmp) { return cmp; }
 
     static Vec_f64x1 bitcast_from_u64(const uint64_t i) {
         return sg_bitcast_u64x1_f64x1(i);
