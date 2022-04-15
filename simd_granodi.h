@@ -6066,6 +6066,7 @@ public:
     }
 
     int32_t data() const { return data_; }
+    int32_t i0() const { return data_; }
 
     Vec_s32x1& operator++() {
         ++data_;
@@ -6231,6 +6232,7 @@ public:
     }
 
     int64_t data() const { return data_; }
+    int64_t l0() const { return data_; }
 
     Vec_s64x1& operator++() {
         ++data_;
@@ -6400,6 +6402,7 @@ public:
     }
 
     float data() const { return data_; }
+    float f0() const { return data_; }
 
     Vec_f32x1& operator+=(const Vec_f32x1& rhs) {
         data_ += rhs.data();
@@ -6597,6 +6600,7 @@ public:
     }
 
     double data() const { return data_; }
+    double d0() const { return data_; }
 
     Vec_f64x1& operator+=(const Vec_f64x1& rhs) {
         data_ += rhs.data();
@@ -6783,6 +6787,9 @@ public:
     Vec_f32x1 std_sin() const { return std::sin(data_); }
     Vec_f32x1 std_cos() const { return std::cos(data_); }
 };
+
+typedef Vec_f32x1 Vec_ss;
+typedef Vec_f64x1 Vec_sd;
 
 inline Vec_s64x1 Vec_s32x1::bitcast_to_s64() const {
     return static_cast<int64_t>(sg_bitcast_s32x1_u32x1(data_));
