@@ -6539,7 +6539,7 @@ public:
     Vec_s32x1 exponent() const {
         return static_cast<int32_t>(std::ilogb(data_));
     }
-    Vec_s32x1 exponent_s32() const { return exponent_s32(); }
+    Vec_s32x1 exponent_s32() const { return exponent(); }
     Vec_f32x1 mantissa_frexp() const {
         int discard;
         return std::frexp(data_, &discard);
