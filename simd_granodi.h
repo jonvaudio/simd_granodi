@@ -5114,8 +5114,6 @@ public:
     inline Vec_ps convert_to_f32() const;
     inline Vec_pd convert_to_f64() const;
 
-    //Vec_pi32 to_fast_int() const { return *this; }
-
     static Vec_pi32 from(const Vec_pi32& pi32) { return pi32; }
     static Vec_pi32 from(const Vec_pi64& pi64);
 };
@@ -5309,14 +5307,6 @@ public:
     Vec_pi64 convert_to_s64() const { return *this; }
     inline Vec_ps convert_to_f32() const;
     inline Vec_pd convert_to_f64() const;
-
-    // Converting between epi64 <-> ps and epi64 <-> pd is slow on intel.
-    // Also many instructions are not available for epi64
-    #ifdef SIMD_GRANODI_SSE2
-    //Vec_pi32 to_fast_int() const { return sg_cvt_pi64_pi32(data_); }
-    #else
-    //Vec_pi64 to_fast_int() const { return *this; }
-    #endif
 
     static Vec_pi64 from(const Vec_pi32& pi32) {
         return sg_cvt_pi32_pi64(pi32.data());
@@ -6196,8 +6186,6 @@ public:
     inline Vec_f32x1 convert_to_f32() const;
     inline Vec_f64x1 convert_to_f64() const;
 
-    //Vec_s32x1 to_fast_int() const { return *this; }
-
     static Vec_s32x1 from(const Vec_s32x1& s32) { return s32; }
     static Vec_s32x1 from(const Vec_s64x1& s64);
 };
@@ -6367,8 +6355,6 @@ public:
     Vec_s64x1 convert_to_s64() const { return *this; }
     inline Vec_f32x1 convert_to_f32() const;
     inline Vec_f64x1 convert_to_f64() const;
-
-    //Vec_s64x1 to_fast_int() const { return *this; }
 
     static Vec_s64x1 from(const Vec_s32x1& s32) {
         return static_cast<int64_t>(s32.data());
