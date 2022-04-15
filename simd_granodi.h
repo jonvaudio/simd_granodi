@@ -4469,6 +4469,17 @@ static inline sg_pd sg_neg_pd(const sg_pd a) {
 #define sg_neg_pd vnegq_f64
 #endif
 
+// Infinity and minus infinity constants
+#define sg_minus_infinity_f32x1 sg_bitcast_u32x1_f32x1(0xff800000)
+#define sg_infinity_f32x1 sg_bitcast_u32x1_f32x1(0x7f800000)
+#define sg_minus_infinity_f64x1 sg_bitcast_u64x1_f64x1(0xfff0000000000000)
+#define sg_infinity_f64x1 sg_bitcast_u64x1_f64x1(0x7ff0000000000000)
+
+#define sg_minus_infinity_ps sg_set1_ps(sg_minus_infinity_f32x1)
+#define sg_infinity_ps sg_set1_ps(sg_infinity_f32x1)
+#define sg_minus_infinity_pd sg_set1_pd(sg_minus_infinity_f64x1)
+#define sg_infinity_pd sg_set1_pd(sg_infinity_f64x1)
+
 // remove signed zero (only floats/doubles can have signed zero),
 // but leave intact if any other value
 
@@ -5326,6 +5337,9 @@ public:
     Vec_ps(const sg_generic_ps& g_ps) : data_{sg_set_fromg_ps(g_ps)} {}
     #endif
 
+    static Vec_ps minus_infinity() { return sg_minus_infinity_ps; }
+    static Vec_ps infinity() { return sg_infinity_ps; }
+
     // Useful for writing templated code that might be of the form:
     //     var = vec_ps_arg * (0.312 * double_function_arg);
     // into:
@@ -5570,6 +5584,9 @@ public:
     #ifndef SIMD_GRANODI_FORCE_GENERIC
     Vec_pd(const sg_generic_pd& g_pd) : data_{sg_set_fromg_pd(g_pd)} {}
     #endif
+
+    static Vec_pd minus_infinity() { return sg_minus_infinity_pd; }
+    static Vec_pd infinity() { return sg_infinity_pd; }
 
     static double elem_t(const int32_t s32) { return static_cast<double>(s32); }
     static double elem_t(const int64_t s64) { return static_cast<double>(s64); }
@@ -6368,6 +6385,9 @@ public:
     Vec_f32x1() : data_{0.0f} {}
     Vec_f32x1(const float f32) : data_{f32} {}
 
+    static Vec_f32x1 minus_infinity() { return sg_minus_infinity_f32x1; }
+    static Vec_f32x1 infinity() { return sg_infinity_f32x1; }
+
     static float elem_t(const int32_t s32) { return static_cast<float>(s32); }
     static float elem_t(const int64_t s64) { return static_cast<float>(s64); }
     static float elem_t(const float f32) { return f32; }
@@ -6561,6 +6581,9 @@ class Vec_f64x1 {
 public:
     Vec_f64x1() : data_{0.0} {}
     Vec_f64x1(const double f64) : data_{f64} {}
+
+    static Vec_f64x1 minus_infinity() { return sg_minus_infinity_f64x1; }
+    static Vec_f64x1 infinity() { return sg_infinity_f64x1; }
 
     static double elem_t(const int32_t s32) { return static_cast<double>(s32); }
     static double elem_t(const int64_t s64) { return static_cast<double>(s64); }
