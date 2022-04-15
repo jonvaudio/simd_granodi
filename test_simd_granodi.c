@@ -755,8 +755,6 @@ void test_shift() {
         4611686018427387903, 9223372036854775807);
 
     #ifdef SIMD_GRANODI_NEON
-    assert_eq_pi32(_mm_sll_epi32(sg_set_pi32(8, 4, 2, 1),
-        sg_set_pi32(4, 3, 2, 1)), 16, 8, 4, 2);
 
     assert_eq_pi32(_mm_slli_epi32(_mm_set_epi32(64, 16, 4, 1), 1),
         128, 32, 8, 2);
