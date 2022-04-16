@@ -1991,13 +1991,19 @@ static void test_opover_cmp() {
     sg_assert(Compare_pi64{}.debug_valid_eq(false));
     sg_assert(Compare_ps{}.debug_valid_eq(false));
     sg_assert(Compare_pd{}.debug_valid_eq(false));
-    sg_assert(Compare_shim{}.debug_valid_eq(false));
+    sg_assert(Compare_s32x1{}.debug_valid_eq(false));
+    sg_assert(Compare_s64x1{}.debug_valid_eq(false));
+    sg_assert(Compare_f32x1{}.debug_valid_eq(false));
+    sg_assert(Compare_f64x1{}.debug_valid_eq(false));
 
     sg_assert(Compare_pi32{true}.debug_valid_eq(true));
     sg_assert(Compare_pi64{true}.debug_valid_eq(true));
     sg_assert(Compare_ps{true}.debug_valid_eq(true));
     sg_assert(Compare_pd{true}.debug_valid_eq(true));
-    sg_assert(Compare_shim{true}.debug_valid_eq(true));
+    sg_assert(Compare_s32x1{true}.debug_valid_eq(true));
+    sg_assert(Compare_s64x1{true}.debug_valid_eq(true));
+    sg_assert(Compare_f32x1{true}.debug_valid_eq(true));
+    sg_assert(Compare_f64x1{true}.debug_valid_eq(true));
 
     sg_assert((Compare_pi32{true, false, false, true}
         .debug_valid_eq(true, false, false, true)));
@@ -2057,7 +2063,13 @@ static void test_opover_cmp() {
         sg_assert((Compare_pd{b1} && Compare_pd{b2})
             .debug_valid_eq(b1 && b2));
 
-        sg_assert((Compare_shim{b1} && Compare_shim{b2})
+        sg_assert((Compare_s32x1{b1} && Compare_s32x1{b2})
+            .debug_valid_eq(b1 && b2));
+        sg_assert((Compare_s64x1{b1} && Compare_s64x1{b2})
+            .debug_valid_eq(b1 && b2));
+        sg_assert((Compare_f32x1{b1} && Compare_f32x1{b2})
+            .debug_valid_eq(b1 && b2));
+        sg_assert((Compare_f64x1{b1} && Compare_f64x1{b2})
             .debug_valid_eq(b1 && b2));
 
         // OR
@@ -2073,7 +2085,13 @@ static void test_opover_cmp() {
         sg_assert((Compare_pd{b1} || Compare_pd{b2})
             .debug_valid_eq(b1 || b2));
 
-        sg_assert((Compare_shim{b1} || Compare_shim{b2})
+        sg_assert((Compare_s32x1{b1} || Compare_s32x1{b2})
+            .debug_valid_eq(b1 || b2));
+        sg_assert((Compare_s64x1{b1} || Compare_s64x1{b2})
+            .debug_valid_eq(b1 || b2));
+        sg_assert((Compare_f32x1{b1} || Compare_f32x1{b2})
+            .debug_valid_eq(b1 || b2));
+        sg_assert((Compare_f64x1{b1} || Compare_f64x1{b2})
             .debug_valid_eq(b1 || b2));
 
         // XOR
@@ -2089,7 +2107,13 @@ static void test_opover_cmp() {
         sg_assert((Compare_pd{b1}.eor(Compare_pd{b2}))
             .debug_valid_eq(b1 ^ b2));
 
-        sg_assert((Compare_shim{b1}.eor(Compare_shim{b2}))
+        sg_assert((Compare_s32x1{b1}.eor(Compare_s32x1{b2}))
+            .debug_valid_eq(b1 ^ b2));
+        sg_assert((Compare_s64x1{b1}.eor(Compare_s64x1{b2}))
+            .debug_valid_eq(b1 ^ b2));
+        sg_assert((Compare_f32x1{b1}.eor(Compare_f32x1{b2}))
+            .debug_valid_eq(b1 ^ b2));
+        sg_assert((Compare_f64x1{b1}.eor(Compare_f64x1{b2}))
             .debug_valid_eq(b1 ^ b2));
 
         // NOT
@@ -2101,7 +2125,10 @@ static void test_opover_cmp() {
 
         sg_assert((!Compare_pd{b1}).debug_valid_eq(!b1));
 
-        sg_assert((!Compare_shim{b1}).debug_valid_eq(!b1));
+        sg_assert((!Compare_s32x1{b1}).debug_valid_eq(!b1));
+        sg_assert((!Compare_s64x1{b1}).debug_valid_eq(!b1));
+        sg_assert((!Compare_f32x1{b1}).debug_valid_eq(!b1));
+        sg_assert((!Compare_f64x1{b1}).debug_valid_eq(!b1));
 
     } }
 
@@ -2115,14 +2142,14 @@ static void test_opover_cmp() {
     sg_assert((Compare_pd{false}.choose_else_zero(2.0).debug_eq(0.0)));
     sg_assert((Compare_pd{true}.choose_else_zero(2.0).debug_eq(2.0)));
 
-    sg_assert((Compare_shim{false}.choose_else_zero((int32_t) 2) == 0));
-    sg_assert((Compare_shim{true}.choose_else_zero((int32_t) 2) == 2));
-    sg_assert((Compare_shim{false}.choose_else_zero((int64_t) 2) == 0));
-    sg_assert((Compare_shim{true}.choose_else_zero((int64_t) 2) == 2));
-    sg_assert((Compare_shim{false}.choose_else_zero(2.0f) == 0.0f));
-    sg_assert((Compare_shim{true}.choose_else_zero(2.0f) == 2.0f));
-    sg_assert((Compare_shim{false}.choose_else_zero(2.0) == 0.0));
-    sg_assert((Compare_shim{true}.choose_else_zero(2.0) == 2.0));
+    sg_assert((Compare_s32x1{false}.choose_else_zero(2).debug_eq(0)));
+    sg_assert((Compare_s32x1{true}.choose_else_zero(2).debug_eq(2)));
+    sg_assert((Compare_s64x1{false}.choose_else_zero(2).debug_eq(0)));
+    sg_assert((Compare_s64x1{true}.choose_else_zero(2).debug_eq(2)));
+    sg_assert((Compare_f32x1{false}.choose_else_zero(2.0f).debug_eq(0.0f)));
+    sg_assert((Compare_f32x1{true}.choose_else_zero(2.0f).debug_eq(2.0f)));
+    sg_assert((Compare_f64x1{false}.choose_else_zero(2.0).debug_eq(0.0)));
+    sg_assert((Compare_f64x1{true}.choose_else_zero(2.0).debug_eq(2.0)));
 
     // Choose
     sg_assert(Compare_pi32{false}.choose(2, 3).debug_eq(3));
@@ -2134,14 +2161,14 @@ static void test_opover_cmp() {
     sg_assert(Compare_pd{false}.choose(2.0, 3.0).debug_eq(3.0));
     sg_assert(Compare_pd{true}.choose(2.0, 3.0).debug_eq(2.0));
 
-    sg_assert(Compare_shim{false}.choose(2, 3) == 3);
-    sg_assert(Compare_shim{true}.choose(2, 3) == 2);
-    sg_assert(Compare_shim{false}.choose(2, 3) == 3);
-    sg_assert(Compare_shim{true}.choose(2, 3) == 2);
-    sg_assert(Compare_shim{false}.choose(2.0f, 3.0f) == 3.0f);
-    sg_assert(Compare_shim{true}.choose(2.0f, 3.0f) == 2.0f);
-    sg_assert(Compare_shim{false}.choose(2.0, 3.0) == 3.0);
-    sg_assert(Compare_shim{true}.choose(2.0, 3.0) == 2.0);
+    sg_assert(Compare_s32x1{false}.choose(2, 3).debug_eq(3));
+    sg_assert(Compare_s32x1{true}.choose(2, 3).debug_eq(2));
+    sg_assert(Compare_s64x1{false}.choose(2, 3).debug_eq(3));
+    sg_assert(Compare_s64x1{true}.choose(2, 3).debug_eq(2));
+    sg_assert(Compare_f32x1{false}.choose(2.0f, 3.0f).debug_eq(3.0f));
+    sg_assert(Compare_f32x1{true}.choose(2.0f, 3.0f).debug_eq(2.0f));
+    sg_assert(Compare_f64x1{false}.choose(2.0, 3.0).debug_eq(3.0));
+    sg_assert(Compare_f64x1{true}.choose(2.0, 3.0).debug_eq(2.0));
 
     //printf("Comparison operator overloading test succeeded\n");
 }
