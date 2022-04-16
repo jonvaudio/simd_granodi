@@ -6066,7 +6066,7 @@ public:
     }
 
     int32_t data() const { return data_; }
-    int32_t i0() const { return data_; }
+    explicit operator int32_t() const { return data_; }
 
     Vec_s32x1& operator++() {
         ++data_;
@@ -6232,7 +6232,7 @@ public:
     }
 
     int64_t data() const { return data_; }
-    int64_t l0() const { return data_; }
+    explicit operator int64_t() const { return data_; }
 
     Vec_s64x1& operator++() {
         ++data_;
@@ -6402,7 +6402,7 @@ public:
     }
 
     float data() const { return data_; }
-    float f0() const { return data_; }
+    explicit operator float() const { return data_; }
 
     Vec_f32x1& operator+=(const Vec_f32x1& rhs) {
         data_ += rhs.data();
@@ -6600,7 +6600,7 @@ public:
     }
 
     double data() const { return data_; }
-    double d0() const { return data_; }
+    explicit operator double() const { return data_; }
 
     Vec_f64x1& operator+=(const Vec_f64x1& rhs) {
         data_ += rhs.data();

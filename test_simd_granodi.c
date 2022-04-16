@@ -1398,6 +1398,8 @@ static void test_opover() {
     sg_assert((Vec_pi64{5, 4}.l1() == 5));
     sg_assert((Vec_pi64{5, 4}.l0() == 4));
 
+    sg_assert((float{Vec_f32x1{5}} == 5.0f));
+
     // Arithmetic
     Vec_pi32 pi32, rv_pi32; Vec_pi64 pi64, rv_pi64;
     Vec_s32x1 s32, rv_s32; Vec_s64x1 s64, rv_s64;
