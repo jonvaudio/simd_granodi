@@ -5126,7 +5126,7 @@ public:
     inline Vec_pd convert_to_f64() const;
 
     static Vec_pi32 from(const Vec_pi32& pi32) { return pi32; }
-    static Vec_pi32 from(const Vec_pi64& pi64);
+    static inline Vec_pi32 from(const Vec_pi64& pi64);
 };
 
 class Vec_pi64 {
@@ -5322,7 +5322,7 @@ public:
     static Vec_pi64 from(const Vec_pi32& pi32) {
         return sg_cvt_pi32_pi64(pi32.data());
     }
-    static Vec_pi64 from(const Vec_pi64& pi64) { return pi64; }
+    static inline Vec_pi64 from(const Vec_pi64& pi64) { return pi64; }
 };
 
 class Vec_ps {
@@ -5518,7 +5518,7 @@ public:
         return sg_cvt_pi64_ps(pi64.data());
     }
     static Vec_ps from(const Vec_ps& ps) { return ps; }
-    static Vec_ps from(const Vec_pd& pd);
+    static inline Vec_ps from(const Vec_pd& pd);
 
     // exponent_frexp() version is equivalent to C standard lib, and computes
     // exponent + 1 for some reason
@@ -5982,11 +5982,11 @@ inline Vec_ps Vec_pd::convert_to_f32() const {
     return sg_cvt_pd_ps(data_);
 }
 
-Vec_pi32 Vec_pi32::from(const Vec_pi64& pi64) {
+inline Vec_pi32 Vec_pi32::from(const Vec_pi64& pi64) {
     return sg_cvt_pi64_pi32(pi64.data());
 }
 
-Vec_ps Vec_ps::from(const Vec_pd& pd) {
+inline Vec_ps Vec_ps::from(const Vec_pd& pd) {
     return sg_cvt_pd_ps(pd.data());
 }
 
@@ -6205,7 +6205,7 @@ public:
     inline Vec_f64x1 convert_to_f64() const;
 
     static Vec_s32x1 from(const Vec_s32x1& s32) { return s32; }
-    static Vec_s32x1 from(const Vec_s64x1& s64);
+    static inline Vec_s32x1 from(const Vec_s64x1& s64);
 };
 
 class Vec_s64x1 {
@@ -6553,7 +6553,7 @@ public:
         return static_cast<float>(s64.data());
     }
     static Vec_f32x1 from(const Vec_f32x1& f32) { return f32; }
-    static Vec_f32x1 from(const Vec_f64x1& f64);
+    static inline Vec_f32x1 from(const Vec_f64x1& f64);
 
     Vec_s32x1 exponent_frexp() const {
         return static_cast<int32_t>(std::ilogb(data_) + 1);
@@ -6739,10 +6739,10 @@ public:
     Vec_s64x1 convert_to_nearest_s64() const {
         return static_cast<int64_t>(std::round(data_));
     }
-    Vec_s32x1 truncate_to_s64() const {
+    Vec_s64x1 truncate_to_s64() const {
         return static_cast<int64_t>(data_);
     }
-    Vec_s32x1 floor_to_s64() const {
+    Vec_s64x1 floor_to_s64() const {
         return static_cast<int64_t>(std::floor(data_));
     }
     Vec_f32x1 convert_to_f32() const { return static_cast<float>(data_); }
@@ -6782,10 +6782,10 @@ public:
         return std::ldexp(data_, static_cast<int>(e.data()));
     }
 
-    Vec_f32x1 std_log() const { return std::log(data_); }
-    Vec_f32x1 std_exp() const { return std::exp(data_); }
-    Vec_f32x1 std_sin() const { return std::sin(data_); }
-    Vec_f32x1 std_cos() const { return std::cos(data_); }
+    Vec_f64x1 std_log() const { return std::log(data_); }
+    Vec_f64x1 std_exp() const { return std::exp(data_); }
+    Vec_f64x1 std_sin() const { return std::sin(data_); }
+    Vec_f64x1 std_cos() const { return std::cos(data_); }
 };
 
 typedef Vec_f32x1 Vec_ss;
@@ -6835,11 +6835,11 @@ inline Vec_f64x1 Vec_f32x1::convert_to_f64() const {
     return static_cast<double>(data_);
 }
 
-Vec_s32x1 Vec_s32x1::from(const Vec_s64x1& s64) {
+inline Vec_s32x1 Vec_s32x1::from(const Vec_s64x1& s64) {
     return static_cast<int32_t>(s64.data());
 }
 
-Vec_f32x1 Vec_f32x1::from(const Vec_f64x1& f64) {
+inline Vec_f32x1 Vec_f32x1::from(const Vec_f64x1& f64) {
     return static_cast<float>(f64.data());
 }
 
