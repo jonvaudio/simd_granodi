@@ -5993,54 +5993,120 @@ inline Vec_ps Vec_ps::from(const Vec_pd& pd) {
 // Shim types - for using double / float etc in template code that expects
 // a vector type
 
-class Compare_shim {
+class Vec_s32x1; class Vec_s64x1; class Vec_f32x1; class Vec_f64x1;
+class Compare_s32x1; class Compare_s64x1;
+class Compare_f32x1; class Compare_f64x1;
+
+class Compare_s32x1 {
+private:
     bool data_;
 public:
-    Compare_shim() : data_{false} {}
-    Compare_shim(const bool b) : data_{b} {}
-    Compare_shim(const Compare_shim& cmp) : data_{cmp.data()} {}
+    Compare_s32x1() : data_{false} {}
+    Compare_s32x1(const bool b) : data_{b} {}
 
     bool data() const { return data_; }
-
-    Compare_shim operator&&(const Compare_shim& rhs) const {
-        return data_ && rhs.data();
-    }
-    Compare_shim operator||(const Compare_shim& rhs) const {
-        return data_ || rhs.data();
-    }
-
-    Compare_shim eor(const Compare_shim& rhs) const {
-        return !data_ != !rhs.data();
-    }
-
-    Compare_shim operator!() const { return !data_; }
-
-    template <typename T>
-    T choose_else_zero(const T& if_true) const {
-        return data_ ? if_true : T{0};
-    }
-
-    template <typename T>
-    T choose(const T& if_true, const T& if_false) const {
-        return data_ ? if_true : if_false;
-    }
-
     bool debug_valid_eq(const bool b) { return data_ == b; }
 
-    Compare_shim convert_to_cmp_s32() const { return *this; }
-    Compare_shim convert_to_cmp_s64() const { return *this; }
-    Compare_shim convert_to_cmp_f32() const { return *this; }
-    Compare_shim convert_to_cmp_f64() const { return *this; }
+    Compare_s32x1 operator&&(const Compare_s32x1& rhs) const {
+        return data_ && rhs.data(); }
+    Compare_s32x1 operator||(const Compare_s32x1& rhs) const {
+        return data_ || rhs.data(); }
+    Compare_s32x1 eor(const Compare_s32x1& rhs) const {
+        return !data_ != !rhs.data(); }
+    Compare_s32x1 operator!() const { return !data_; }
 
-    static Compare_shim from(const Compare_shim& cmp) { return cmp; }
+    Compare_s32x1 convert_to_cmp_s32() const { return *this; }
+    Compare_s64x1 convert_to_cmp_s64() const;
+    Compare_f32x1 convert_to_cmp_f32() const;
+    Compare_f64x1 convert_to_cmp_f64() const;
+
+    Vec_s32x1 choose_else_zero(const Vec_s32x1& if_true) const;
+    Vec_s32x1 choose(const Vec_s32x1& if_true, const Vec_s32x1& if_false) const;
 };
 
-typedef Compare_shim Compare_s32x1;
-typedef Compare_shim Compare_s64x1;
-typedef Compare_shim Compare_f32x1;
-typedef Compare_shim Compare_f64x1;
+class Compare_s64x1 {
+private:
+    bool data_;
+public:
+    Compare_s64x1() : data_{false} {}
+    Compare_s64x1(const bool b) : data_{b} {}
 
-class Vec_s32x1; class Vec_s64x1; class Vec_f32x1; class Vec_f64x1;
+    bool data() const { return data_; }
+    bool debug_valid_eq(const bool b) { return data_ == b; }
+
+    Compare_s64x1 operator&&(const Compare_s64x1& rhs) const {
+        return data_ && rhs.data(); }
+    Compare_s64x1 operator||(const Compare_s64x1& rhs) const {
+        return data_ || rhs.data(); }
+    Compare_s64x1 eor(const Compare_s64x1& rhs) const {
+        return !data_ != !rhs.data(); }
+    Compare_s64x1 operator!() const { return !data_; }
+
+    Compare_s32x1 convert_to_cmp_s32() const { return data_; }
+    Compare_s64x1 convert_to_cmp_s64() const { return *this; }
+    Compare_f32x1 convert_to_cmp_f32() const;
+    Compare_f64x1 convert_to_cmp_f64() const;
+
+    Vec_s64x1 choose_else_zero(const Vec_s64x1& if_true) const;
+    Vec_s64x1 choose(const Vec_s64x1& if_true, const Vec_s64x1& if_false) const;
+};
+
+class Compare_f32x1 {
+private:
+    bool data_;
+public:
+    Compare_f32x1() : data_{false} {}
+    Compare_f32x1(const bool b) : data_{b} {}
+
+    bool data() const { return data_; }
+    bool debug_valid_eq(const bool b) { return data_ == b; }
+
+    Compare_f32x1 operator&&(const Compare_f32x1& rhs) const {
+        return data_ && rhs.data(); }
+    Compare_f32x1 operator||(const Compare_f32x1& rhs) const {
+        return data_ || rhs.data(); }
+    Compare_f32x1 eor(const Compare_f32x1& rhs) const {
+        return !data_ != !rhs.data(); }
+    Compare_f32x1 operator!() const { return !data_; }
+
+    Compare_s32x1 convert_to_cmp_s32() const { return data_; }
+    Compare_s64x1 convert_to_cmp_s64() const { return data_; }
+    Compare_f32x1 convert_to_cmp_f32() const { return *this; }
+    Compare_f64x1 convert_to_cmp_f64() const;
+
+    Vec_f32x1 choose_else_zero(const Vec_f32x1& if_true) const;
+    Vec_f32x1 choose(const Vec_f32x1& if_true, const Vec_f32x1& if_false) const;
+};
+
+class Compare_f64x1 {
+private:
+    bool data_;
+public:
+    Compare_f64x1() : data_{false} {}
+    Compare_f64x1(const bool b) : data_{b} {}
+
+    bool data() const { return data_; }
+    bool debug_valid_eq(const bool b) { return data_ == b; }
+
+    Compare_f64x1 operator&&(const Compare_f64x1& rhs) const {
+        return data_ && rhs.data(); }
+    Compare_f64x1 operator||(const Compare_f64x1& rhs) const {
+        return data_ || rhs.data(); }
+    Compare_f64x1 eor(const Compare_f64x1& rhs) const {
+        return !data_ != !rhs.data(); }
+    Compare_f64x1 operator!() const { return !data_; }
+
+    Compare_s32x1 convert_to_cmp_s32() const { return data_; }
+    Compare_s64x1 convert_to_cmp_s64() const { return data_; }
+    Compare_f32x1 convert_to_cmp_f32() const { return data_; }
+    Compare_f64x1 convert_to_cmp_f64() const { return *this; }
+
+    Vec_f64x1 choose_else_zero(const Vec_f64x1& if_true) const;
+    Vec_f64x1 choose(const Vec_f64x1& if_true, const Vec_f64x1& if_false) const;
+};
+
+typedef Compare_f32x1 Compare_ss;
+typedef Compare_f64x1 Compare_sd;
 
 class Vec_s32x1 {
     int32_t data_;
@@ -6059,7 +6125,16 @@ public:
         return static_cast<int32_t>(f64);
     }
 
-    static Compare_shim compare_t(const Compare_shim& cmp) { return cmp; }
+    static Compare_s32x1 compare_t(const Compare_s32x1& cmp) { return cmp; }
+    static Compare_s32x1 compare_t(const Compare_s64x1& cmp) {
+        return cmp.data();
+    }
+    static Compare_s32x1 compare_t(const Compare_f32x1& cmp) {
+        return cmp.data();
+    }
+    static Compare_s32x1 compare_t(const Compare_f64x1& cmp) {
+        return cmp.data();
+    }
 
     static Vec_s32x1 bitcast_from_u32(const uint32_t i) {
         return sg_bitcast_u32x1_s32x1(i);
@@ -6155,19 +6230,19 @@ public:
 
     Vec_s32x1 operator~() const { return ~data_; }
 
-    Compare_shim operator<(const Vec_s32x1& rhs) const {
+    Compare_s32x1 operator<(const Vec_s32x1& rhs) const {
         return data_ < rhs.data();
     }
-    Compare_shim operator<=(const Vec_s32x1& rhs) const {
+    Compare_s32x1 operator<=(const Vec_s32x1& rhs) const {
         return data_ <= rhs.data();
     }
-    Compare_shim operator==(const Vec_s32x1& rhs) const {
+    Compare_s32x1 operator==(const Vec_s32x1& rhs) const {
         return data_ == rhs.data();
     }
-    Compare_shim operator>=(const Vec_s32x1& rhs) const {
+    Compare_s32x1 operator>=(const Vec_s32x1& rhs) const {
         return data_ >= rhs.data();
     }
-    Compare_shim operator>(const Vec_s32x1& rhs) const {
+    Compare_s32x1 operator>(const Vec_s32x1& rhs) const {
         return data_ > rhs.data();
     }
 
@@ -6225,7 +6300,16 @@ public:
         return static_cast<int64_t>(f64);
     }
 
-    static Compare_shim compare_t(const Compare_shim& cmp) { return cmp; }
+    static Compare_s64x1 compare_t(const Compare_s32x1& cmp) {
+        return cmp.data();
+    }
+    static Compare_s64x1 compare_t(const Compare_s64x1& cmp) { return cmp; }
+    static Compare_s64x1 compare_t(const Compare_f32x1& cmp) {
+        return cmp.data();
+    }
+    static Compare_s64x1 compare_t(const Compare_f64x1& cmp) {
+        return cmp.data();
+    }
 
     static Vec_s64x1 bitcast_from_u64(const uint64_t i) {
         return sg_bitcast_u64x1_s64x1(i);
@@ -6321,19 +6405,19 @@ public:
 
     Vec_s64x1 operator~() const { return ~data_; }
 
-    Compare_shim operator<(const Vec_s64x1& rhs) const {
+    Compare_s64x1 operator<(const Vec_s64x1& rhs) const {
         return data_ < rhs.data();
     }
-    Compare_shim operator<=(const Vec_s64x1& rhs) const {
+    Compare_s64x1 operator<=(const Vec_s64x1& rhs) const {
         return data_ <= rhs.data();
     }
-    Compare_shim operator==(const Vec_s64x1& rhs) const {
+    Compare_s64x1 operator==(const Vec_s64x1& rhs) const {
         return data_ == rhs.data();
     }
-    Compare_shim operator>=(const Vec_s64x1& rhs) const {
+    Compare_s64x1 operator>=(const Vec_s64x1& rhs) const {
         return data_ >= rhs.data();
     }
-    Compare_shim operator>(const Vec_s64x1& rhs) const {
+    Compare_s64x1 operator>(const Vec_s64x1& rhs) const {
         return data_ > rhs.data();
     }
 
@@ -6395,7 +6479,16 @@ public:
     static float elem_t(const float f32) { return f32; }
     static float elem_t(const double f64) { return static_cast<float>(f64); }
 
-    static Compare_shim compare_t(const Compare_shim& cmp) { return cmp; }
+    static Compare_f32x1 compare_t(const Compare_s32x1& cmp) {
+        return cmp.data();
+    }
+    static Compare_f32x1 compare_t(const Compare_s64x1& cmp) {
+        return cmp.data();
+    }
+    static Compare_f32x1 compare_t(const Compare_f32x1& cmp) { return cmp; }
+    static Compare_f32x1 compare_t(const Compare_f64x1& cmp) {
+        return cmp.data();
+    }
 
     static Vec_f32x1 bitcast_from_u32(const uint32_t i) {
         return sg_bitcast_u32x1_f32x1(i);
@@ -6480,19 +6573,19 @@ public:
         return sg_bitcast_u32x1_f32x1(~sg_bitcast_f32x1_u32x1(data_));
     }
 
-    Compare_shim operator<(const Vec_f32x1& rhs) const {
+    Compare_f32x1 operator<(const Vec_f32x1& rhs) const {
         return data_ < rhs.data();
     }
-    Compare_shim operator<=(const Vec_f32x1& rhs) const {
+    Compare_f32x1 operator<=(const Vec_f32x1& rhs) const {
         return data_ <= rhs.data();
     }
-    Compare_shim operator==(const Vec_f32x1& rhs) const {
+    Compare_f32x1 operator==(const Vec_f32x1& rhs) const {
         return data_ == rhs.data();
     }
-    Compare_shim operator>=(const Vec_f32x1& rhs) const {
+    Compare_f32x1 operator>=(const Vec_f32x1& rhs) const {
         return data_ >= rhs.data();
     }
-    Compare_shim operator>(const Vec_f32x1& rhs) const {
+    Compare_f32x1 operator>(const Vec_f32x1& rhs) const {
         return data_ > rhs.data();
     }
 
@@ -6593,7 +6686,16 @@ public:
     static double elem_t(const float f32) { return static_cast<double>(f32); }
     static double elem_t(const double f64) { return f64; }
 
-    static Compare_shim compare_t(const Compare_shim& cmp) { return cmp; }
+    static Compare_f64x1 compare_t(const Compare_s32x1& cmp) {
+        return cmp.data();
+    }
+    static Compare_f64x1 compare_t(const Compare_s64x1& cmp) {
+        return cmp.data();
+    }
+    static Compare_f64x1 compare_t(const Compare_f32x1& cmp) {
+        return cmp.data();
+    }
+    static Compare_f64x1 compare_t(const Compare_f64x1& cmp) { return cmp; }
 
     static Vec_f64x1 bitcast_from_u64(const uint64_t i) {
         return sg_bitcast_u64x1_f64x1(i);
@@ -6678,19 +6780,19 @@ public:
         return sg_bitcast_u64x1_f64x1(~sg_bitcast_f64x1_u64x1(data_));
     }
 
-    Compare_shim operator<(const Vec_f64x1& rhs) const {
+    Compare_f64x1 operator<(const Vec_f64x1& rhs) const {
         return data_ < rhs.data();
     }
-    Compare_shim operator<=(const Vec_f64x1& rhs) const {
+    Compare_f64x1 operator<=(const Vec_f64x1& rhs) const {
         return data_ <= rhs.data();
     }
-    Compare_shim operator==(const Vec_f64x1& rhs) const {
+    Compare_f64x1 operator==(const Vec_f64x1& rhs) const {
         return data_ == rhs.data();
     }
-    Compare_shim operator>=(const Vec_f64x1& rhs) const {
+    Compare_f64x1 operator>=(const Vec_f64x1& rhs) const {
         return data_ >= rhs.data();
     }
-    Compare_shim operator>(const Vec_f64x1& rhs) const {
+    Compare_f64x1 operator>(const Vec_f64x1& rhs) const {
         return data_ > rhs.data();
     }
 
@@ -6841,6 +6943,54 @@ inline Vec_s32x1 Vec_s32x1::from(const Vec_s64x1& s64) {
 
 inline Vec_f32x1 Vec_f32x1::from(const Vec_f64x1& f64) {
     return static_cast<float>(f64.data());
+}
+
+inline Compare_s64x1 Compare_s32x1::convert_to_cmp_s64() const { return data_; }
+inline Compare_f32x1 Compare_s32x1::convert_to_cmp_f32() const { return data_; }
+inline Compare_f64x1 Compare_s32x1::convert_to_cmp_f64() const { return data_; }
+
+inline Compare_f32x1 Compare_s64x1::convert_to_cmp_f32() const { return data_; }
+inline Compare_f64x1 Compare_s64x1::convert_to_cmp_f64() const { return data_; }
+
+inline Compare_f64x1 Compare_f32x1::convert_to_cmp_f64() const { return data_; }
+
+inline Vec_s32x1 Compare_s32x1::choose_else_zero(const Vec_s32x1& if_true) const
+{
+    return data_ ? if_true : 0;
+}
+inline Vec_s64x1 Compare_s64x1::choose_else_zero(const Vec_s64x1& if_true) const
+{
+    return data_ ? if_true : 0;
+}
+inline Vec_f32x1 Compare_f32x1::choose_else_zero(const Vec_f32x1& if_true) const
+{
+    return data_ ? if_true : 0.0f;
+}
+inline Vec_f64x1 Compare_f64x1::choose_else_zero(const Vec_f64x1& if_true) const
+{
+    return data_ ? if_true : 0.0;
+}
+
+inline Vec_s32x1 Compare_s32x1::choose(const Vec_s32x1& if_true,
+    const Vec_s32x1& if_false) const
+{
+    return data_ ? if_true : if_false;
+}
+
+inline Vec_s64x1 Compare_s64x1::choose(const Vec_s64x1& if_true,
+    const Vec_s64x1& if_false) const
+{
+    return data_ ? if_true : if_false;
+}
+inline Vec_f32x1 Compare_f32x1::choose(const Vec_f32x1& if_true,
+    const Vec_f32x1& if_false) const
+{
+    return data_ ? if_true : if_false;
+}
+inline Vec_f64x1 Compare_f64x1::choose(const Vec_f64x1& if_true,
+    const Vec_f64x1& if_false) const
+{
+    return data_ ? if_true : if_false;
 }
 
 } // namespace simd_granodi
