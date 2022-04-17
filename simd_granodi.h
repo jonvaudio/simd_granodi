@@ -4195,7 +4195,7 @@ static inline sg_cmp_ps sg_cmpeq_cmp_ps(const sg_cmp_ps cmpa,
 // NaN is NOT equal to NaN!
 #define sg_cmpeq_cmp_ps(a, b) sg_sse2_not_ps(_mm_xor_ps(a, b))
 #elif defined SIMD_GRANODI_NEON
-#define sg_cmpeq_cmp_pi32 vceqq_u32
+#define sg_cmpeq_cmp_ps vceqq_u32
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
