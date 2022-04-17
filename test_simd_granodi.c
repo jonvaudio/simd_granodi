@@ -958,14 +958,18 @@ void test_cmp() {
                 .b2 = (bool) a2 || (bool) b2, .b3 = (bool) a3 || (bool) b3 },
             a_xor_b = { .b0 = (bool) a0 != (bool) b0,
                 .b1 = (bool) a1 != (bool) b1,
-                .b2 = (bool) a2 != (bool) b2, .b3 = (bool) a3 != (bool) b3 };
+                .b2 = (bool) a2 != (bool) b2, .b3 = (bool) a3 != (bool) b3 },
+            a_eq_b = { .b0 = (bool) a0 == (bool) b0,
+                .b1 = (bool) a1 == (bool) b1,
+                .b2 = (bool) a2 == (bool) b2, .b3 = (bool) a3 == (bool) b3 };
         sg_generic_cmp2 a_gcmp2 = { .b0 = (bool) a0, .b1 = (bool) a1 },
             b_gcmp2 = { .b0 = (bool) b0, .b1 = (bool) b1 },
             a_and_b_2 = { .b0 = a_and_b.b0, .b1 = a_and_b.b1 },
             a_andnot_b_2 = { .b0 = a_andnot_b.b0, .b1 = a_andnot_b.b1 },
             a_not_2 = { .b0 = a_not.b0, .b1 = a_not.b1 },
             a_or_b_2 = { .b0 = a_or_b.b0, .b1 = a_or_b.b1 },
-            a_xor_b_2 = { .b0 = a_xor_b.b0, .b1 = a_xor_b.b1 };
+            a_xor_b_2 = { .b0 = a_xor_b.b0, .b1 = a_xor_b.b1 },
+            a_eq_b_2 = { .b0 = a_eq_b.b0, .b1 = a_eq_b.b1 };
         sg_cmp_pi32 a_pi32 = sg_setcmp_fromg_pi32(a_gcmp4),
             b_pi32 = sg_setcmp_fromg_pi32(b_gcmp4);
         sg_cmp_pi64 a_pi64 = sg_setcmp_fromg_pi64(a_gcmp2),
@@ -996,9 +1000,18 @@ void test_cmp() {
         assert_eqg_cmp_pd(sg_or_cmp_pd(a_pd, b_pd), a_or_b_2);
 
         assert_eqg_cmp_pi32(sg_xor_cmp_pi32(a_pi32, b_pi32), a_xor_b);
+        assert_eqg_cmp_pi32(sg_cmpneq_cmp_pi32(a_pi32, b_pi32), a_xor_b);
         assert_eqg_cmp_pi64(sg_xor_cmp_pi64(a_pi64, b_pi64), a_xor_b_2);
+        assert_eqg_cmp_pi64(sg_cmpneq_cmp_pi64(a_pi64, b_pi64), a_xor_b_2);
         assert_eqg_cmp_ps(sg_xor_cmp_ps(a_ps, b_ps), a_xor_b);
+        assert_eqg_cmp_ps(sg_cmpneq_cmp_ps(a_ps, b_ps), a_xor_b);
         assert_eqg_cmp_pd(sg_xor_cmp_pd(a_pd, b_pd), a_xor_b_2);
+        assert_eqg_cmp_pd(sg_cmpneq_cmp_pd(a_pd, b_pd), a_xor_b_2);
+
+        assert_eqg_cmp_pi32(sg_cmpeq_cmp_pi32(a_pi32, b_pi32), a_eq_b);
+        assert_eqg_cmp_pi64(sg_cmpeq_cmp_pi64(a_pi64, b_pi64), a_eq_b_2);
+        assert_eqg_cmp_ps(sg_cmpeq_cmp_ps(a_ps, b_ps), a_eq_b);
+        assert_eqg_cmp_pd(sg_cmpeq_cmp_pd(a_pd, b_pd), a_eq_b_2);
     } } } } } } } }
 
     // Test choosers
@@ -2094,35 +2107,48 @@ static void test_opover_cmp() {
         sg_assert((Compare_f64x1{b1} || Compare_f64x1{b2})
             .debug_valid_eq(b1 || b2));
 
-        // XOR
-        sg_assert((Compare_pi32{b1}.eor(Compare_pi32{b2}))
-            .debug_valid_eq(b1 ^ b2));
+        // Equal
+        sg_assert((Compare_pi32{b1} == Compare_pi32{b2})
+            .debug_valid_eq(b1 == b2));
+        sg_assert((Compare_pi64{b1} == Compare_pi64{b2})
+            .debug_valid_eq(b1 == b2));
+        sg_assert((Compare_ps{b1} == Compare_ps{b2})
+            .debug_valid_eq(b1 == b2));
+        sg_assert((Compare_pd{b1} == Compare_pd{b2})
+            .debug_valid_eq(b1 == b2));
 
-        sg_assert((Compare_pi64{b1}.eor(Compare_pi64{b2}))
-            .debug_valid_eq(b1 ^ b2));
+        sg_assert((Compare_s32x1{b1} == (Compare_s32x1{b2}))
+            .debug_valid_eq(b1 == b2));
+        sg_assert((Compare_s64x1{b1} == (Compare_s64x1{b2}))
+            .debug_valid_eq(b1 == b2));
+        sg_assert((Compare_f32x1{b1} == (Compare_f32x1{b2}))
+            .debug_valid_eq(b1 == b2));
+        sg_assert((Compare_f64x1{b1} == (Compare_f64x1{b2}))
+            .debug_valid_eq(b1 == b2));
 
-        sg_assert((Compare_ps{b1}.eor(Compare_ps{b2}))
-            .debug_valid_eq(b1 ^ b2));
+        // Not equal (XOR)
+        sg_assert((Compare_pi32{b1} != (Compare_pi32{b2}))
+            .debug_valid_eq(b1 != b2));
+        sg_assert((Compare_pi64{b1} != (Compare_pi64{b2}))
+            .debug_valid_eq(b1 != b2));
+        sg_assert((Compare_ps{b1} != (Compare_ps{b2}))
+            .debug_valid_eq(b1 != b2));
+        sg_assert((Compare_pd{b1} != (Compare_pd{b2}))
+            .debug_valid_eq(b1 != b2));
 
-        sg_assert((Compare_pd{b1}.eor(Compare_pd{b2}))
-            .debug_valid_eq(b1 ^ b2));
-
-        sg_assert((Compare_s32x1{b1}.eor(Compare_s32x1{b2}))
-            .debug_valid_eq(b1 ^ b2));
-        sg_assert((Compare_s64x1{b1}.eor(Compare_s64x1{b2}))
-            .debug_valid_eq(b1 ^ b2));
-        sg_assert((Compare_f32x1{b1}.eor(Compare_f32x1{b2}))
-            .debug_valid_eq(b1 ^ b2));
-        sg_assert((Compare_f64x1{b1}.eor(Compare_f64x1{b2}))
-            .debug_valid_eq(b1 ^ b2));
+        sg_assert((Compare_s32x1{b1} != (Compare_s32x1{b2}))
+            .debug_valid_eq(b1 != b2));
+        sg_assert((Compare_s64x1{b1} != (Compare_s64x1{b2}))
+            .debug_valid_eq(b1 != b2));
+        sg_assert((Compare_f32x1{b1} != (Compare_f32x1{b2}))
+            .debug_valid_eq(b1 != b2));
+        sg_assert((Compare_f64x1{b1} != (Compare_f64x1{b2}))
+            .debug_valid_eq(b1 != b2));
 
         // NOT
         sg_assert((!Compare_pi32{b1}).debug_valid_eq(!b1));
-
         sg_assert((!Compare_pi64{b1}).debug_valid_eq(!b1));
-
         sg_assert((!Compare_ps{b1}).debug_valid_eq(!b1));
-
         sg_assert((!Compare_pd{b1}).debug_valid_eq(!b1));
 
         sg_assert((!Compare_s32x1{b1}).debug_valid_eq(!b1));

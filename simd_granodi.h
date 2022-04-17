@@ -4105,11 +4105,9 @@ static inline sg_cmp_pd sg_or_cmp_pd(const sg_cmp_pd cmpa,
 static inline sg_cmp_pi32 sg_xor_cmp_pi32(const sg_cmp_pi32 cmpa,
     const sg_cmp_pi32 cmpb)
 {
-    // the additional unary ! is unneccessary if comparison obtained correctly,
-    // but used out of caution
     sg_cmp_pi32 result;
-    result.b0 = !cmpa.b0 != !cmpb.b0; result.b1 = !cmpa.b1 != !cmpb.b1;
-    result.b2 = !cmpa.b2 != !cmpb.b2; result.b3 = !cmpa.b3 != !cmpb.b3;
+    result.b0 = cmpa.b0 != cmpb.b0; result.b1 = cmpa.b1 != cmpb.b1;
+    result.b2 = cmpa.b2 != cmpb.b2; result.b3 = cmpa.b3 != cmpb.b3;
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
@@ -4123,7 +4121,7 @@ static inline sg_cmp_pi64 sg_xor_cmp_pi64(const sg_cmp_pi64 cmpa,
     const sg_cmp_pi64 cmpb)
 {
     sg_cmp_pi64 result;
-    result.b0 = !cmpa.b0 != !cmpb.b0; result.b1 = !cmpa.b1 != !cmpb.b1;
+    result.b0 = cmpa.b0 != cmpb.b0; result.b1 = cmpa.b1 != cmpb.b1;
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
@@ -4155,6 +4153,67 @@ static inline sg_cmp_pd sg_xor_cmp_pd(const sg_cmp_pd cmpa,
 #elif defined SIMD_GRANODI_NEON
 #define sg_xor_cmp_pd veorq_u64
 #endif
+
+// We put "cmp" in the name twice to avoid subtle bugs
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+static inline sg_cmp_pi32 sg_cmpeq_cmp_pi32(const sg_cmp_pi32 cmpa,
+    const sg_cmp_pi32 cmpb)
+{
+    sg_cmp_pi32 result;
+    result.b0 = cmpa.b0 == cmpb.b0; result.b1 = cmpa.b1 == cmpb.b1;
+    result.b2 = cmpa.b2 == cmpb.b2; result.b3 = cmpa.b3 == cmpb.b3;
+    return result;
+}
+#elif defined SIMD_GRANODI_SSE2
+#define sg_cmpeq_cmp_pi32 _mm_cmpeq_epi32
+#elif defined SIMD_GRANODI_NEON
+#define sg_cmpeq_cmp_pi32 vceqq_u32
+#endif
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+static inline sg_cmp_pi64 sg_cmpeq_cmp_pi64(const sg_cmp_pi64 cmpa,
+    const sg_cmp_pi64 cmpb)
+{
+    sg_cmp_pi64 result;
+    result.b0 = cmpa.b0 == cmpb.b0; result.b1 = cmpa.b1 == cmpb.b1;
+    return result;
+}
+#elif defined SIMD_GRANODI_SSE2
+#define sg_cmpeq_cmp_pi64 _mm_cmpeq_epi32
+#elif defined SIMD_GRANODI_NEON
+#define sg_cmpeq_cmp_pi64 vceqq_u64
+#endif
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+static inline sg_cmp_ps sg_cmpeq_cmp_ps(const sg_cmp_ps cmpa,
+    const sg_cmp_ps cmpb)
+{
+    return sg_cmpeq_cmp_pi32(cmpa, cmpb);
+}
+#elif defined SIMD_GRANODI_SSE2
+// NaN is NOT equal to NaN!
+#define sg_cmpeq_cmp_ps(a, b) sg_sse2_not_ps(_mm_xor_ps(a, b))
+#elif defined SIMD_GRANODI_NEON
+#define sg_cmpeq_cmp_ps vceqq_u32
+#endif
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+static inline sg_cmp_pd sg_cmpeq_cmp_pd(const sg_cmp_pd cmpa,
+    const sg_cmp_pd cmpb)
+{
+    return sg_cmpeq_cmp_pi64(cmpa, cmpb);
+}
+#elif defined SIMD_GRANODI_SSE2
+#define sg_cmpeq_cmp_pd(a, b) sg_sse2_not_pd(_mm_xor_pd(a, b))
+#elif defined SIMD_GRANODI_NEON
+#define sg_cmpeq_cmp_pd vceqq_u64
+#endif
+
+#define sg_cmpneq_cmp_pi32 sg_xor_cmp_pi32
+#define sg_cmpneq_cmp_pi64 sg_xor_cmp_pi64
+#define sg_cmpneq_cmp_ps sg_xor_cmp_ps
+#define sg_cmpneq_cmp_pd sg_xor_cmp_pd
 
 // Choose / blend
 
@@ -4770,11 +4829,6 @@ public:
         return sg_or_cmp_pi32(data_, rhs.data());
     }
 
-    // xor is a keyword, unfortunately
-    Compare_pi32 eor(const Compare_pi32& rhs) const {
-        return sg_xor_cmp_pi32(data_, rhs.data());
-    }
-
     Compare_pi32 operator!() const { return sg_not_cmp_pi32(data_); }
 
     bool debug_valid_eq(const bool b3, const bool b2,
@@ -4794,6 +4848,16 @@ public:
     inline Vec_pi32 choose(const Vec_pi32& if_true,
         const Vec_pi32& if_false) const;
 };
+
+inline Compare_pi32 operator==(const Compare_pi32& lhs,
+    const Compare_pi32& rhs)
+{
+    return sg_cmpeq_cmp_pi32(lhs.data(), rhs.data());
+}
+inline Compare_pi32 operator!=(const Compare_pi32& lhs, const Compare_pi32& rhs)
+{
+    return sg_cmpneq_cmp_pi32(lhs.data(), rhs.data());
+}
 
 class Compare_pi64 {
     sg_cmp_pi64 data_;
@@ -4818,10 +4882,6 @@ public:
         return sg_or_cmp_pi64(data_, rhs.data());
     }
 
-    Compare_pi64 eor(const Compare_pi64& rhs) const {
-        return sg_xor_cmp_pi64(data_, rhs.data());
-    }
-
     Compare_pi64 operator!() const { return sg_not_cmp_pi64(data_); }
 
     bool debug_valid_eq(const bool b1, const bool b0) const {
@@ -4838,6 +4898,16 @@ public:
     inline Vec_pi64 choose(const Vec_pi64& if_true,
         const Vec_pi64& if_false) const;
 };
+
+inline Compare_pi64 operator==(const Compare_pi64& lhs,
+    const Compare_pi64& rhs)
+{
+    return sg_cmpeq_cmp_pi64(lhs.data(), rhs.data());
+}
+inline Compare_pi64 operator!=(const Compare_pi64& lhs, const Compare_pi64& rhs)
+{
+    return sg_cmpneq_cmp_pi64(lhs.data(), rhs.data());
+}
 
 class Compare_ps {
     sg_cmp_ps data_;
@@ -4861,10 +4931,6 @@ public:
         return sg_or_cmp_ps(data_, rhs.data());
     }
 
-    Compare_ps eor(const Compare_ps& rhs) const {
-        return sg_xor_cmp_ps(data_, rhs.data());
-    }
-
     Compare_ps operator!() const { return sg_not_cmp_ps(data_); }
 
     bool debug_valid_eq(const bool b3, const bool b2,
@@ -4882,6 +4948,16 @@ public:
     inline Vec_ps choose_else_zero(const Vec_ps& if_true) const;
     inline Vec_ps choose(const Vec_ps& if_true, const Vec_ps& if_false) const;
 };
+
+inline Compare_ps operator==(const Compare_ps& lhs,
+    const Compare_ps& rhs)
+{
+    return sg_cmpeq_cmp_ps(lhs.data(), rhs.data());
+}
+inline Compare_ps operator!=(const Compare_ps& lhs, const Compare_ps& rhs)
+{
+    return sg_cmpneq_cmp_ps(lhs.data(), rhs.data());
+}
 
 class Compare_pd {
     sg_cmp_pd data_;
@@ -4905,10 +4981,6 @@ public:
         return sg_or_cmp_pd(data_, rhs.data());
     }
 
-    Compare_pd eor(const Compare_pd& rhs) const {
-        return sg_xor_cmp_pd(data_, rhs.data());
-    }
-
     Compare_pd operator!() const { return sg_not_cmp_pd(data_); }
 
     bool debug_valid_eq(const bool b1, const bool b0) const {
@@ -4924,6 +4996,16 @@ public:
     inline Vec_pd choose_else_zero(const Vec_pd& if_true) const;
     inline Vec_pd choose(const Vec_pd& if_true, const Vec_pd& if_false) const;
 };
+
+inline Compare_pd operator==(const Compare_pd& lhs,
+    const Compare_pd& rhs)
+{
+    return sg_cmpeq_cmp_pd(lhs.data(), rhs.data());
+}
+inline Compare_pd operator!=(const Compare_pd& lhs, const Compare_pd& rhs)
+{
+    return sg_cmpneq_cmp_pd(lhs.data(), rhs.data());
+}
 
 class Vec_pi32 {
     sg_pi32 data_;
@@ -6011,8 +6093,6 @@ public:
         return data_ && rhs.data(); }
     Compare_s32x1 operator||(const Compare_s32x1& rhs) const {
         return data_ || rhs.data(); }
-    Compare_s32x1 eor(const Compare_s32x1& rhs) const {
-        return !data_ != !rhs.data(); }
     Compare_s32x1 operator!() const { return !data_; }
 
     Compare_s32x1 convert_to_cmp_s32() const { return *this; }
@@ -6023,6 +6103,17 @@ public:
     Vec_s32x1 choose_else_zero(const Vec_s32x1& if_true) const;
     Vec_s32x1 choose(const Vec_s32x1& if_true, const Vec_s32x1& if_false) const;
 };
+
+inline Compare_s32x1 operator==(const Compare_s32x1& lhs,
+    const Compare_s32x1& rhs)
+{
+    return lhs.data() == rhs.data();
+}
+inline Compare_s32x1 operator!=(const Compare_s32x1& lhs,
+    const Compare_s32x1& rhs)
+{
+    return lhs.data() != rhs.data();
+}
 
 class Compare_s64x1 {
 private:
@@ -6038,8 +6129,6 @@ public:
         return data_ && rhs.data(); }
     Compare_s64x1 operator||(const Compare_s64x1& rhs) const {
         return data_ || rhs.data(); }
-    Compare_s64x1 eor(const Compare_s64x1& rhs) const {
-        return !data_ != !rhs.data(); }
     Compare_s64x1 operator!() const { return !data_; }
 
     Compare_s32x1 convert_to_cmp_s32() const { return data_; }
@@ -6050,6 +6139,17 @@ public:
     Vec_s64x1 choose_else_zero(const Vec_s64x1& if_true) const;
     Vec_s64x1 choose(const Vec_s64x1& if_true, const Vec_s64x1& if_false) const;
 };
+
+inline Compare_s64x1 operator==(const Compare_s64x1& lhs,
+    const Compare_s64x1& rhs)
+{
+    return lhs.data() == rhs.data();
+}
+inline Compare_s64x1 operator!=(const Compare_s64x1& lhs,
+    const Compare_s64x1& rhs)
+{
+    return lhs.data() != rhs.data();
+}
 
 class Compare_f32x1 {
 private:
@@ -6065,8 +6165,6 @@ public:
         return data_ && rhs.data(); }
     Compare_f32x1 operator||(const Compare_f32x1& rhs) const {
         return data_ || rhs.data(); }
-    Compare_f32x1 eor(const Compare_f32x1& rhs) const {
-        return !data_ != !rhs.data(); }
     Compare_f32x1 operator!() const { return !data_; }
 
     Compare_s32x1 convert_to_cmp_s32() const { return data_; }
@@ -6077,6 +6175,17 @@ public:
     Vec_f32x1 choose_else_zero(const Vec_f32x1& if_true) const;
     Vec_f32x1 choose(const Vec_f32x1& if_true, const Vec_f32x1& if_false) const;
 };
+
+inline Compare_f32x1 operator==(const Compare_f32x1& lhs,
+    const Compare_f32x1& rhs)
+{
+    return lhs.data() == rhs.data();
+}
+inline Compare_f32x1 operator!=(const Compare_f32x1& lhs,
+    const Compare_f32x1& rhs)
+{
+    return lhs.data() != rhs.data();
+}
 
 class Compare_f64x1 {
 private:
@@ -6092,8 +6201,6 @@ public:
         return data_ && rhs.data(); }
     Compare_f64x1 operator||(const Compare_f64x1& rhs) const {
         return data_ || rhs.data(); }
-    Compare_f64x1 eor(const Compare_f64x1& rhs) const {
-        return !data_ != !rhs.data(); }
     Compare_f64x1 operator!() const { return !data_; }
 
     Compare_s32x1 convert_to_cmp_s32() const { return data_; }
@@ -6104,6 +6211,17 @@ public:
     Vec_f64x1 choose_else_zero(const Vec_f64x1& if_true) const;
     Vec_f64x1 choose(const Vec_f64x1& if_true, const Vec_f64x1& if_false) const;
 };
+
+inline Compare_f64x1 operator==(const Compare_f64x1& lhs,
+    const Compare_f64x1& rhs)
+{
+    return lhs.data() == rhs.data();
+}
+inline Compare_f64x1 operator!=(const Compare_f64x1& lhs,
+    const Compare_f64x1& rhs)
+{
+    return lhs.data() != rhs.data();
+}
 
 typedef Compare_f32x1 Compare_ss;
 typedef Compare_f64x1 Compare_sd;
