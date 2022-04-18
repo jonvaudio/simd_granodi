@@ -5021,12 +5021,13 @@ public:
         : data_{sg_set_fromg_pi32(g_pi32)} {}
     #endif
 
-    static int32_t elem_t(const int32_t s32) { return s32; }
-    static int32_t elem_t(const int64_t s64) {
+    static constexpr int32_t elem_t(const int32_t s32) { return s32; }
+    static constexpr int32_t elem_t(const int64_t s64) {
         return static_cast<int32_t>(s64);
     }
-    static int32_t elem_t(const float f32) { return static_cast<int32_t>(f32); }
-    static int32_t elem_t(const double f64) {
+    static constexpr int32_t elem_t(const float f32) {
+        return static_cast<int32_t>(f32); }
+    static constexpr int32_t elem_t(const double f64) {
         return static_cast<int32_t>(f64);
     }
 
@@ -5223,12 +5224,13 @@ public:
         : data_{sg_set_fromg_pi64(g_pi64)} {}
     #endif
 
-    static int64_t elem_t(const int32_t s32) {
+    static constexpr int64_t elem_t(const int32_t s32) {
         return static_cast<int64_t>(s32);
     }
-    static int64_t elem_t(const int64_t s64) { return s64; }
-    static int64_t elem_t(const float f32) { return static_cast<int64_t>(f32); }
-    static int64_t elem_t(const double f64) {
+    static constexpr int64_t elem_t(const int64_t s64) { return s64; }
+    static constexpr int64_t elem_t(const float f32) {
+        return static_cast<int64_t>(f32); }
+    static constexpr int64_t elem_t(const double f64) {
         return static_cast<int64_t>(f64);
     }
 
@@ -5427,10 +5429,16 @@ public:
     // into:
     //     var = vec_ps_arg * (Vec_ps::scalar(0.312) *
     //         Vec_ps::scalar(double_function_arg));
-    static float elem_t(const int32_t s32) { return static_cast<float>(s32); }
-    static float elem_t(const int64_t s64) { return static_cast<float>(s64); }
-    static float elem_t(const float f32) { return f32; }
-    static float elem_t(const double f64) { return static_cast<float>(f64); }
+    static constexpr float elem_t(const int32_t s32) {
+        return static_cast<float>(s32);
+    }
+    static constexpr float elem_t(const int64_t s64) {
+        return static_cast<float>(s64);
+    }
+    static constexpr float elem_t(const float f32) { return f32; }
+    static constexpr float elem_t(const double f64) {
+        return static_cast<float>(f64);
+        }
 
     static Compare_ps compare_t(const Compare_pi32& cmp) {
         return sg_cvtcmp_pi32_ps(cmp.data());
@@ -5670,10 +5678,16 @@ public:
     static Vec_pd minus_infinity() { return sg_minus_infinity_pd; }
     static Vec_pd infinity() { return sg_infinity_pd; }
 
-    static double elem_t(const int32_t s32) { return static_cast<double>(s32); }
-    static double elem_t(const int64_t s64) { return static_cast<double>(s64); }
-    static double elem_t(const float f32) { return static_cast<double>(f32); }
-    static double elem_t(const double f64) { return f64; }
+    static constexpr double elem_t(const int32_t s32) {
+        return static_cast<double>(s32);
+    }
+    static constexpr double elem_t(const int64_t s64) {
+        return static_cast<double>(s64);
+    }
+    static constexpr double elem_t(const float f32) {
+        return static_cast<double>(f32);
+    }
+    static constexpr double elem_t(const double f64) { return f64; }
 
     static Compare_pd compare_t(const Compare_pi32& cmp) {
         return sg_cvtcmp_pi32_pd(cmp.data());
@@ -6232,14 +6246,14 @@ public:
     Vec_s32x1() : data_{0} {}
     Vec_s32x1(const int32_t s32) : data_{s32} {}
 
-    static int32_t elem_t(const int32_t s32) { return s32; }
-    static int32_t elem_t(const int64_t s64) {
+    static constexpr int32_t elem_t(const int32_t s32) { return s32; }
+    static constexpr int32_t elem_t(const int64_t s64) {
         return static_cast<int32_t>(s64);
     }
-    static int32_t elem_t(const float f32) {
+    static constexpr int32_t elem_t(const float f32) {
         return static_cast<int32_t>(f32);
     }
-    static int32_t elem_t(const double f64) {
+    static constexpr int32_t elem_t(const double f64) {
         return static_cast<int32_t>(f64);
     }
 
@@ -6407,14 +6421,14 @@ public:
     Vec_s64x1() : data_{0} {}
     Vec_s64x1(const int64_t s64) : data_{s64} {}
 
-    static int64_t elem_t(const int32_t s32) {
+    static constexpr int64_t elem_t(const int32_t s32) {
         return static_cast<int64_t>(s32);
     }
-    static int64_t elem_t(const int64_t s64) { return s64; }
-    static int64_t elem_t(const float f32) {
+    static constexpr int64_t elem_t(const int64_t s64) { return s64; }
+    static constexpr int64_t elem_t(const float f32) {
         return static_cast<int64_t>(f32);
     }
-    static int64_t elem_t(const double f64) {
+    static constexpr int64_t elem_t(const double f64) {
         return static_cast<int64_t>(f64);
     }
 
@@ -6592,10 +6606,16 @@ public:
     static Vec_f32x1 minus_infinity() { return sg_minus_infinity_f32x1; }
     static Vec_f32x1 infinity() { return sg_infinity_f32x1; }
 
-    static float elem_t(const int32_t s32) { return static_cast<float>(s32); }
-    static float elem_t(const int64_t s64) { return static_cast<float>(s64); }
-    static float elem_t(const float f32) { return f32; }
-    static float elem_t(const double f64) { return static_cast<float>(f64); }
+    static constexpr float elem_t(const int32_t s32) {
+        return static_cast<float>(s32);
+    }
+    static constexpr float elem_t(const int64_t s64) {
+        return static_cast<float>(s64);
+    }
+    static constexpr float elem_t(const float f32) { return f32; }
+    static constexpr float elem_t(const double f64) {
+        return static_cast<float>(f64);
+    }
 
     static Compare_f32x1 compare_t(const Compare_s32x1& cmp) {
         return cmp.data();
@@ -6799,10 +6819,16 @@ public:
     static Vec_f64x1 minus_infinity() { return sg_minus_infinity_f64x1; }
     static Vec_f64x1 infinity() { return sg_infinity_f64x1; }
 
-    static double elem_t(const int32_t s32) { return static_cast<double>(s32); }
-    static double elem_t(const int64_t s64) { return static_cast<double>(s64); }
-    static double elem_t(const float f32) { return static_cast<double>(f32); }
-    static double elem_t(const double f64) { return f64; }
+    static constexpr double elem_t(const int32_t s32) {
+        return static_cast<double>(s32);
+    }
+    static constexpr double elem_t(const int64_t s64) {
+        return static_cast<double>(s64);
+    }
+    static constexpr double elem_t(const float f32) {
+        return static_cast<double>(f32);
+    }
+    static constexpr double elem_t(const double f64) { return f64; }
 
     static Compare_f64x1 compare_t(const Compare_s32x1& cmp) {
         return cmp.data();
