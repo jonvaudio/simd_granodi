@@ -6274,6 +6274,7 @@ public:
 
     int32_t data() const { return data_; }
     explicit operator int32_t() const { return data_; }
+    Vec_pi32 set1() const { return sg_set1_pi32(data_); }
 
     Vec_s32x1& operator++() {
         ++data_;
@@ -6449,6 +6450,7 @@ public:
 
     int64_t data() const { return data_; }
     explicit operator int64_t() const { return data_; }
+    Vec_pi64 set1() const { return sg_set1_pi64(data_); }
 
     Vec_s64x1& operator++() {
         ++data_;
@@ -6634,6 +6636,7 @@ public:
 
     float data() const { return data_; }
     explicit operator float() const { return data_; }
+    Vec_ps set1() const { return sg_set1_ps(data_); }
 
     Vec_f32x1& operator+=(const Vec_f32x1& rhs) {
         data_ += rhs.data();
@@ -6847,6 +6850,7 @@ public:
 
     double data() const { return data_; }
     explicit operator double() const { return data_; }
+    Vec_pd set1() const { return sg_set1_pd(data_); }
 
     Vec_f64x1& operator+=(const Vec_f64x1& rhs) {
         data_ += rhs.data();
