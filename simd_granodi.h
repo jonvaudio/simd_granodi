@@ -4806,6 +4806,12 @@ public:
 class Compare_pi32; class Compare_pi64; class Compare_ps; class Compare_pd;
 class Vec_pi32; class Vec_pi64; class Vec_ps; class Vec_pd;
 
+// Shim types - for using double / float etc in template code that expects
+// a vector type
+class Vec_s32x1; class Vec_s64x1; class Vec_f32x1; class Vec_f64x1;
+class Compare_s32x1; class Compare_s64x1;
+class Compare_f32x1; class Compare_f64x1;
+
 class Compare_pi32 {
     sg_cmp_pi32 data_;
 public:
@@ -5210,6 +5216,9 @@ public:
 
     static Vec_pi32 from(const Vec_pi32& pi32) { return pi32; }
     static inline Vec_pi32 from(const Vec_pi64& pi64);
+
+    static inline Vec_pi32 from(const Vec_s32x1& s32);
+    static inline Vec_pi32 from(const Vec_s64x1& s64);
 };
 
 class Vec_pi64 {
@@ -5406,7 +5415,10 @@ public:
     static Vec_pi64 from(const Vec_pi32& pi32) {
         return sg_cvt_pi32_pi64(pi32.data());
     }
-    static inline Vec_pi64 from(const Vec_pi64& pi64) { return pi64; }
+    static Vec_pi64 from(const Vec_pi64& pi64) { return pi64; }
+
+    static inline Vec_pi64 from(const Vec_s32x1& s32);
+    static inline Vec_pi64 from(const Vec_s64x1& s64);
 };
 
 class Vec_ps {
@@ -5609,6 +5621,11 @@ public:
     }
     static Vec_ps from(const Vec_ps& ps) { return ps; }
     static inline Vec_ps from(const Vec_pd& pd);
+
+    static inline Vec_ps from(const Vec_s32x1& s32);
+    static inline Vec_ps from(const Vec_s64x1& s64);
+    static inline Vec_ps from(const Vec_f32x1& f32);
+    static inline Vec_ps from(const Vec_f64x1& f64);
 
     // exponent_frexp() version is equivalent to C standard lib, and computes
     // exponent + 1 for some reason
@@ -5853,6 +5870,11 @@ public:
     }
     static Vec_pd from(const Vec_pd& pd) { return pd; }
 
+    static inline Vec_pd from(const Vec_s32x1& s32);
+    static inline Vec_pd from(const Vec_s64x1& s64);
+    static inline Vec_pd from(const Vec_f32x1& f32);
+    static inline Vec_pd from(const Vec_f64x1& f64);
+
     Vec_pi64 exponent_frexp() const {
         return sg_sub_pi64(sg_and_pi64(
             sg_srl_imm_pi64(sg_bitcast_pd_pi64(data_), 52),
@@ -6085,13 +6107,6 @@ inline Vec_pi32 Vec_pi32::from(const Vec_pi64& pi64) {
 inline Vec_ps Vec_ps::from(const Vec_pd& pd) {
     return sg_cvt_pd_ps(pd.data());
 }
-
-// Shim types - for using double / float etc in template code that expects
-// a vector type
-
-class Vec_s32x1; class Vec_s64x1; class Vec_f32x1; class Vec_f64x1;
-class Compare_s32x1; class Compare_s64x1;
-class Compare_f32x1; class Compare_f64x1;
 
 class Compare_s32x1 {
 private:
@@ -6414,6 +6429,11 @@ public:
 
     static Vec_s32x1 from(const Vec_s32x1& s32) { return s32; }
     static inline Vec_s32x1 from(const Vec_s64x1& s64);
+
+    static Vec_s32x1 from(const Vec_pi32& pi32) { return pi32.i0(); }
+    static Vec_s32x1 from(const Vec_pi64& pi64) {
+        return static_cast<int32_t>(pi64.l0());
+    }
 };
 
 class Vec_s64x1 {
@@ -6597,6 +6617,11 @@ public:
         return static_cast<int64_t>(s32.data());
     }
     static Vec_s64x1 from(const Vec_s64x1& s64) { return s64; }
+
+    static Vec_s64x1 from(const Vec_pi32& pi32) {
+        return static_cast<int64_t>(pi32.i0());
+    }
+    static Vec_s64x1 from(const Vec_pi64& pi64) { return pi64.l0(); }
 };
 
 class Vec_f32x1 {
@@ -6788,6 +6813,17 @@ public:
     }
     static Vec_f32x1 from(const Vec_f32x1& f32) { return f32; }
     static inline Vec_f32x1 from(const Vec_f64x1& f64);
+
+    static Vec_f32x1 from(const Vec_pi32& pi32) {
+        return static_cast<float>(pi32.i0());
+    }
+    static Vec_f32x1 from(const Vec_pi64& pi64) {
+        return static_cast<float>(pi64.l0());
+    }
+    static Vec_f32x1 from(const Vec_ps& ps) { return ps.f0(); }
+    static Vec_f32x1 from(const Vec_pd& pd) {
+        return static_cast<float>(pd.d0());
+    }
 
     Vec_s32x1 exponent_frexp() const {
         return static_cast<int32_t>(std::ilogb(data_) + 1);
@@ -7009,6 +7045,17 @@ public:
     }
     static Vec_f64x1 from(const Vec_f64x1& f64) { return f64; }
 
+    static Vec_f64x1 from(const Vec_pi32& pi32) {
+        return static_cast<double>(pi32.i0());
+    }
+    static Vec_f64x1 from(const Vec_pi64& pi64) {
+        return static_cast<double>(pi64.l0());
+    }
+    static Vec_f64x1 from(const Vec_ps& ps) {
+        return static_cast<double>(ps.f0());
+    }
+    static Vec_f64x1 from(const Vec_pd& pd) { return pd.d0(); }
+
     Vec_s64x1 exponent_frexp() const {
         return static_cast<int64_t>(std::ilogb(data_) + 1);
     }
@@ -7040,6 +7087,46 @@ public:
 
 typedef Vec_f32x1 Vec_ss;
 typedef Vec_f64x1 Vec_sd;
+
+inline Vec_pi32 Vec_pi32::from(const Vec_s32x1& s32) {
+    return sg_set1_pi32(s32.data());
+}
+inline Vec_pi32 Vec_pi32::from(const Vec_s64x1& s64) {
+    return sg_set1_pi32(static_cast<int32_t>(s64.data()));
+}
+
+inline Vec_pi64 Vec_pi64::from(const Vec_s32x1& s32) {
+    return sg_set1_pi64(static_cast<int64_t>(s32.data()));
+}
+inline Vec_pi64 Vec_pi64::from(const Vec_s64x1& s64) {
+    return sg_set1_pi64(s64.data());
+}
+
+inline Vec_ps Vec_ps::from(const Vec_s32x1& s32) {
+    return sg_set1_ps(static_cast<float>(s32.data()));
+}
+inline Vec_ps Vec_ps::from(const Vec_s64x1& s64) {
+    return sg_set1_ps(static_cast<float>(s64.data()));
+}
+inline Vec_ps Vec_ps::from(const Vec_f32x1& f32) {
+    return sg_set1_ps(f32.data());
+}
+inline Vec_ps Vec_ps::from(const Vec_f64x1& f64) {
+    return sg_set1_ps(static_cast<float>(f64.data()));
+}
+
+inline Vec_pd Vec_pd::from(const Vec_s32x1& s32) {
+    return sg_set1_pd(static_cast<double>(s32.data()));
+}
+inline Vec_pd Vec_pd::from(const Vec_s64x1& s64) {
+    return sg_set1_pd(static_cast<double>(s64.data()));
+}
+inline Vec_pd Vec_pd::from(const Vec_f32x1& f32) {
+    return sg_set1_pd(static_cast<double>(f32.data()));
+}
+inline Vec_pd Vec_pd::from(const Vec_f64x1& f64) {
+    return sg_set1_pd(f64.data());
+}
 
 inline Vec_s64x1 Vec_s32x1::bitcast_to_s64() const {
     return static_cast<int64_t>(sg_bitcast_s32x1_u32x1(data_));
