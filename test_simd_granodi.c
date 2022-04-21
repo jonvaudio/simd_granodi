@@ -1399,19 +1399,21 @@ static void test_opover() {
     sg_assert((Vec_pi32{5, 4, 3, 2}.i2() == 4));
     sg_assert((Vec_pi32{5, 4, 3, 2}.i1() == 3));
     sg_assert((Vec_pi32{5, 4, 3, 2}.i0() == 2));
+    sg_assert((Vec_s32x1{2}.i0() == 2));
 
     sg_assert((Vec_pi64{5, 4}.l1() == 5));
     sg_assert((Vec_pi64{5, 4}.l0() == 4));
+    sg_assert((Vec_s64x1{4}.l0() == 4));
 
     sg_assert((Vec_ps{5.0f, 4.0f, 3.0f, 2.0f}.f3() == 5.0f));
     sg_assert((Vec_ps{5.0f, 4.0f, 3.0f, 2.0f}.f2() == 4.0f));
     sg_assert((Vec_ps{5.0f, 4.0f, 3.0f, 2.0f}.f1() == 3.0f));
     sg_assert((Vec_ps{5.0f, 4.0f, 3.0f, 2.0f}.f0() == 2.0f));
+    sg_assert((Vec_f32x1{2.0f}.f0() == 2.0f));
 
-    sg_assert((Vec_pi64{5, 4}.l1() == 5));
-    sg_assert((Vec_pi64{5, 4}.l0() == 4));
-
-    sg_assert((float{Vec_f32x1{5}} == 5.0f));
+    sg_assert((Vec_pd{5.0, 4.0}.d1() == 5.0));
+    sg_assert((Vec_pd{5.0, 4.0}.d0() == 4.0));
+    sg_assert((Vec_f64x1{4.0}.d0() == 4.0));
 
     // Arithmetic
     Vec_pi32 pi32, rv_pi32; Vec_pi64 pi64, rv_pi64;
