@@ -5240,6 +5240,9 @@ public:
         return sg_debug_eq_pi32(data_, i3, i2, i1, i0);
     }
     bool debug_eq(const int32_t i) const { return debug_eq(i, i, i, i); }
+    bool debug_eq(const Vec_pi32& pi32) const {
+        return (Vec_pi32{data_} == pi32).debug_valid_eq(true);
+    }
 
     Vec_pi32 bitcast_to_s32() const { return *this; }
     inline Vec_pi64 bitcast_to_s64() const;
@@ -5422,6 +5425,9 @@ public:
         return sg_debug_eq_pi64(data_, l1, l0);
     }
     bool debug_eq(const int64_t l) const { return debug_eq(l, l); }
+    bool debug_eq(const Vec_pi64& pi64) const {
+        return (Vec_pi64{data_} == pi64).debug_valid_eq(true);
+    }
 
     inline Vec_pi32 bitcast_to_s32() const;
     Vec_pi64 bitcast_to_s64() const { return *this; }
@@ -5597,6 +5603,9 @@ public:
         return sg_debug_eq_ps(data_, f3, f2, f1, f0);
     }
     bool debug_eq(const float f) const { return debug_eq(f, f, f, f); }
+    bool debug_eq(const Vec_ps& ps) const {
+        return (bitcast_to_s32() == ps.bitcast_to_s32()).debug_valid_eq(true);
+    }
 
     inline Vec_pi32 bitcast_to_s32() const;
     inline Vec_pi64 bitcast_to_s64() const;
@@ -5826,6 +5835,9 @@ public:
         return sg_debug_eq_pd(data_, d1, d0);
     }
     bool debug_eq(const double d) const { return debug_eq(d, d); }
+    bool debug_eq(const Vec_pd& pd) const {
+        return (bitcast_to_s64() == pd.bitcast_to_s64()).debug_valid_eq(true);
+    }
 
     inline Vec_pi32 bitcast_to_s32() const;
     inline Vec_pi64 bitcast_to_s64() const;
@@ -6494,7 +6506,7 @@ public:
         return Vec_s32x1::min(Vec_s32x1::max(lowerb, data_), upperb);
     }
 
-    bool debug_eq(int32_t i) const { return data_ == i; }
+    bool debug_eq(const Vec_s32x1& i) const { return data_ == i.data(); }
 
     Vec_s32x1 bitcast_to_s32() const { return *this; }
     inline Vec_s64x1 bitcast_to_s64() const;
@@ -6658,7 +6670,7 @@ public:
         return Vec_s64x1::min(Vec_s64x1::max(lowerb, data_), upperb);
     }
 
-    bool debug_eq(int64_t i) const { return data_ == i; }
+    bool debug_eq(const Vec_s64x1& i) const { return data_ == i.data(); }
 
     Vec_s32x1 bitcast_to_s32() const {
         return sg_bitcast_u32x1_s32x1(
@@ -6818,8 +6830,9 @@ public:
         return Vec_f32x1::min_fast(Vec_f32x1::max_fast(lowerb, data_), upperb);
     }
 
-    bool debug_eq(float f) const {
-        return sg_bitcast_f32x1_u32x1(data_) == sg_bitcast_f32x1_u32x1(f);
+    bool debug_eq(const Vec_f32x1& f) const {
+        return sg_bitcast_f32x1_u32x1(data_) ==
+            sg_bitcast_f32x1_u32x1(f.data());
     }
 
     Vec_s32x1 bitcast_to_s32() const {
@@ -7026,8 +7039,9 @@ public:
         return Vec_f64x1::min_fast(Vec_f64x1::max_fast(lowerb, data_), upperb);
     }
 
-    bool debug_eq(double d) const {
-        return sg_bitcast_f64x1_u64x1(data_) == sg_bitcast_f64x1_u64x1(d);
+    bool debug_eq(const Vec_f64x1& d) const {
+        return sg_bitcast_f64x1_u64x1(data_) ==
+            sg_bitcast_f64x1_u64x1(d.data());
     }
 
     Vec_s32x1 bitcast_to_s32() const {
