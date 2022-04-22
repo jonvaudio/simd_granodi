@@ -5687,6 +5687,16 @@ public:
             std::cos(sg_get2_ps(data_)), std::cos(sg_get1_ps(data_)),
             std::cos(sg_get0_ps(data_)) };
     }
+    Vec_ps std_tan() const {
+        return Vec_ps { std::tan(sg_get3_ps(data_)),
+            std::tan(sg_get2_ps(data_)), std::tan(sg_get1_ps(data_)),
+            std::tan(sg_get0_ps(data_)) };
+    }
+    Vec_ps std_sqrt() const {
+        return Vec_ps { std::sqrt(sg_get3_ps(data_)),
+            std::sqrt(sg_get2_ps(data_)), std::sqrt(sg_get1_ps(data_)),
+            std::sqrt(sg_get0_ps(data_)) };
+    }
 };
 
 class Vec_pd {
@@ -5915,6 +5925,14 @@ public:
     Vec_pd std_cos() const {
         return Vec_pd { std::cos(sg_get1_pd(data_)),
             std::cos(sg_get0_pd(data_)) };
+    }
+    Vec_pd std_tan() const {
+        return Vec_pd { std::tan(sg_get1_pd(data_)),
+            std::tan(sg_get0_pd(data_)) };
+    }
+    Vec_pd std_sqrt() const {
+        return Vec_pd { std::sqrt(sg_get1_pd(data_)),
+            std::sqrt(sg_get0_pd(data_)) };
     }
 };
 
@@ -6905,6 +6923,8 @@ public:
     Vec_f32x1 std_exp() const { return std::exp(data_); }
     Vec_f32x1 std_sin() const { return std::sin(data_); }
     Vec_f32x1 std_cos() const { return std::cos(data_); }
+    Vec_f32x1 std_tan() const { return std::tan(data_); }
+    Vec_f32x1 std_sqrt() const { return std::sqrt(data_); }
 };
 
 class Vec_f64x1 {
@@ -7125,6 +7145,8 @@ public:
     Vec_f64x1 std_exp() const { return std::exp(data_); }
     Vec_f64x1 std_sin() const { return std::sin(data_); }
     Vec_f64x1 std_cos() const { return std::cos(data_); }
+    Vec_f64x1 std_tan() const { return std::tan(data_); }
+    Vec_f64x1 std_sqrt() const { return std::sqrt(data_); }
 };
 
 typedef Vec_f32x1 Vec_ss;
