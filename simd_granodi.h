@@ -139,13 +139,16 @@ TODO:
 
 #ifdef __cplusplus
 #include <algorithm> // for std::min(), std::max()
+#include <cstdlib> // for std::abs() of int32/64
+#include <cmath>
+#include <cstdint>
+#else
+#include <stdbool.h>
+#include <stdlib.h> // for abs(int32/64)
+#include <math.h>
+#include <stdint.h>
 #endif
 
-#ifndef __cplusplus
-#include <stdbool.h>
-#endif
-#include <stdint.h>
-#include <stdlib.h> // for abs(int32/64)
 #include <string.h> // for memcpy
 
 // For rint, rintf, fabs, fabsf
