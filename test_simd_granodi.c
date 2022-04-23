@@ -1818,22 +1818,38 @@ static void test_opover() {
 
     // Shift
     sg_assert(Vec_pi32{1}.shift_l_imm<1>().debug_eq(2));
+    sg_assert(Vec_pi32{1}.shift_l(1).debug_eq(2));
     sg_assert(Vec_pi32{2}.shift_rl_imm<1>().debug_eq(1));
+    sg_assert(Vec_pi32{2}.shift_rl(1).debug_eq(1));
     sg_assert(Vec_pi32{-2}.shift_rl_imm<1>().debug_eq(2147483647));
+    sg_assert(Vec_pi32{-2}.shift_rl(1).debug_eq(2147483647));
     sg_assert(Vec_pi32{-2}.shift_ra_imm<1>().debug_eq(-1));
+    sg_assert(Vec_pi32{-2}.shift_ra(1).debug_eq(-1));
     sg_assert(Vec_s32x1{1}.shift_l_imm<1>().debug_eq(2));
+    sg_assert(Vec_s32x1{1}.shift_l(1).debug_eq(2));
     sg_assert(Vec_s32x1{2}.shift_rl_imm<1>().debug_eq(1));
+    sg_assert(Vec_s32x1{2}.shift_rl(1).debug_eq(1));
     sg_assert(Vec_s32x1{-2}.shift_rl_imm<1>().debug_eq(2147483647));
+    sg_assert(Vec_s32x1{-2}.shift_rl(1).debug_eq(2147483647));
     sg_assert(Vec_s32x1{-2}.shift_ra_imm<1>().debug_eq(-1));
+    sg_assert(Vec_s32x1{-2}.shift_ra(1).debug_eq(-1));
 
     sg_assert(Vec_pi64{1}.shift_l_imm<1>().debug_eq(2));
+    sg_assert(Vec_pi64{1}.shift_l(1).debug_eq(2));
     sg_assert(Vec_pi64{2}.shift_rl_imm<1>().debug_eq(1));
+    sg_assert(Vec_pi64{2}.shift_rl(1).debug_eq(1));
     sg_assert(Vec_pi64{-2}.shift_rl_imm<1>().debug_eq(9223372036854775807));
+    sg_assert(Vec_pi64{-2}.shift_rl(1).debug_eq(9223372036854775807));
     sg_assert(Vec_pi64{-2}.shift_ra_imm<1>().debug_eq(-1));
+    sg_assert(Vec_pi64{-2}.shift_ra(1).debug_eq(-1));
     sg_assert(Vec_s64x1{1}.shift_l_imm<1>().debug_eq(2));
+    sg_assert(Vec_s64x1{1}.shift_l(1).debug_eq(2));
     sg_assert(Vec_s64x1{2}.shift_rl_imm<1>().debug_eq(1));
+    sg_assert(Vec_s64x1{2}.shift_rl(1).debug_eq(1));
     sg_assert(Vec_s64x1{-2}.shift_rl_imm<1>().debug_eq(9223372036854775807));
+    sg_assert(Vec_s64x1{-2}.shift_rl(1).debug_eq(9223372036854775807));
     sg_assert(Vec_s64x1{-2}.shift_ra_imm<1>().debug_eq(-1));
+    sg_assert(Vec_s64x1{-2}.shift_ra(1).debug_eq(-1));
 
     // Shuffle
     sg_assert((Vec_pi32{3, 2, 1, 0}.shuffle<0, 1, 2, 3>()

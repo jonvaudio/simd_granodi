@@ -463,7 +463,7 @@ static inline sg_ps sg_bitcast_pd_ps(const sg_pd a) {
         src1_compile_time_constant, \
         src0_compile_time_constant))
 static inline sg_pi32 sg_shuffle_pi32_switch_(const sg_pi32 a,
-    const int imm8_compile_time_constant)
+    const int32_t imm8_compile_time_constant)
 {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
     const int32_t array[] = { a.i0, a.i1, a.i2, a.i3 };
@@ -1003,7 +1003,7 @@ default: return a; }
     sg_shuffle_pi64_switch_(a, sg_sse2_shuffle64_imm( \
         src1_compile_time_constant, src0_compile_time_constant))
 static inline sg_pi64 sg_shuffle_pi64_switch_(const sg_pi64 a,
-    const int imm8_compile_time_constant) {
+    const int32_t imm8_compile_time_constant) {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
     const int64_t array[] = { a.l0, a.l1 };
     sg_pi64 result;
@@ -1041,7 +1041,7 @@ static inline sg_pi64 sg_shuffle_pi64_switch_(const sg_pi64 a,
         src1_compile_time_constant, \
         src0_compile_time_constant))
 static inline sg_ps sg_shuffle_ps_switch_(const sg_ps a,
-    const int imm8_compile_time_constant)
+    const int32_t imm8_compile_time_constant)
 {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
     const float array[] = { a.f0, a.f1, a.f2, a.f3 };
@@ -1582,7 +1582,7 @@ default: return a; }
         src1_compile_time_constant, \
         src0_compile_time_constant))
 static inline sg_pd sg_shuffle_pd_switch_(const sg_pd a,
-    const int imm8_compile_time_constant)
+    const int32_t imm8_compile_time_constant)
 {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
     const double array[] = { a.d0, a.d1 };
@@ -5207,14 +5207,24 @@ public:
         return sg_cmpgt_pi32(data_, rhs.data());
     }
 
-    template <int shift>
+    template <int32_t shift>
     Vec_pi32 shift_l_imm() const { return sg_sl_imm_pi32(data_, shift); }
-    template <int shift>
+    template <int32_t shift>
     Vec_pi32 shift_rl_imm() const { return sg_srl_imm_pi32(data_, shift); }
-    template <int shift>
+    template <int32_t shift>
     Vec_pi32 shift_ra_imm() const { return sg_sra_imm_pi32(data_, shift); }
 
-    template <int src3, int src2, int src1, int src0>
+    Vec_pi32 shift_l(const Vec_pi32& shift) const {
+        return sg_sl_pi32(data_, shift.data());
+    }
+    Vec_pi32 shift_rl(const Vec_pi32& shift) const {
+        return sg_srl_pi32(data_, shift.data());
+    }
+    Vec_pi32 shift_ra(const Vec_pi32& shift) const {
+        return sg_sra_pi32(data_, shift.data());
+    }
+
+    template <int32_t src3, int32_t src2, int32_t src1, int32_t src0>
     Vec_pi32 shuffle() const {
         return sg_shuffle_pi32(data_, src3, src2, src1, src0);
     }
@@ -5396,14 +5406,24 @@ public:
         return sg_cmpgt_pi64(data_, rhs.data());
     }
 
-    template <int shift>
+    template <int32_t shift>
     Vec_pi64 shift_l_imm() const { return sg_sl_imm_pi64(data_, shift); }
-    template <int shift>
+    template <int32_t shift>
     Vec_pi64 shift_rl_imm() const { return sg_srl_imm_pi64(data_, shift); }
-    template <int shift>
+    template <int32_t shift>
     Vec_pi64 shift_ra_imm() const { return sg_sra_imm_pi64(data_, shift); }
 
-    template <int src1, int src0>
+    Vec_pi64 shift_l(const Vec_pi64& shift) const {
+        return sg_sl_pi64(data_, shift.data());
+    }
+    Vec_pi64 shift_rl(const Vec_pi64& shift) const {
+        return sg_srl_pi64(data_, shift.data());
+    }
+    Vec_pi64 shift_ra(const Vec_pi64& shift) const {
+        return sg_sra_pi64(data_, shift.data());
+    }
+
+    template <int32_t src1, int32_t src0>
     Vec_pi64 shuffle() const { return sg_shuffle_pi64(data_, src1, src0); }
 
     Vec_pi64 safe_divide_by(const Vec_pi64& rhs) const {
@@ -5574,7 +5594,7 @@ public:
         return sg_cmpgt_ps(data_, rhs.data());
     }
 
-    template <int src3, int src2, int src1, int src0>
+    template <int32_t src3, int32_t src2, int32_t src1, int32_t src0>
     Vec_ps shuffle() const {
         return sg_shuffle_ps(data_, src3, src2, src1, src0);
     }
@@ -5820,7 +5840,7 @@ public:
         return sg_cmpgt_pd(data_, rhs.data());
     }
 
-    template <int src1, int src0>
+    template <int32_t src1, int32_t src0>
     Vec_pd shuffle() const { return sg_shuffle_pd(data_, src1, src0); }
 
     Vec_pd safe_divide_by(const Vec_pd& rhs) const {
@@ -6503,12 +6523,23 @@ public:
         return data_ > rhs.data();
     }
 
-    template<int shift>
+    template<int32_t shift>
     Vec_s32x1 shift_l_imm() const { return data_ << shift; }
-    template<int shift>
+    template<int32_t shift>
     Vec_s32x1 shift_rl_imm() const { return sg_srl_s32x1(data_, shift); }
-    template<int shift>
+    template<int32_t shift>
     Vec_s32x1 shift_ra_imm() const { return data_ >> shift; }
+
+    Vec_s32x1 shift_l(const Vec_s32x1& shift) const {
+        return data_ << shift.data();
+    }
+    Vec_s32x1 shift_rl(const Vec_s32x1& shift) const {
+        return sg_bitcast_u32x1_s32x1(sg_bitcast_s32x1_u32x1(data_) >>
+            sg_bitcast_s32x1_u32x1(shift.data()));
+    }
+    Vec_s32x1 shift_ra(const Vec_s32x1& shift) const {
+        return data_ >> shift.data();
+    }
 
     Vec_s32x1 safe_divide_by(const Vec_s32x1& rhs) const {
         return rhs.data() == 0 ? data_ : data_ / rhs.data();
@@ -6667,12 +6698,23 @@ public:
         return data_ > rhs.data();
     }
 
-    template<int shift>
+    template<int32_t shift>
     Vec_s64x1 shift_l_imm() const { return data_ << shift; }
-    template<int shift>
+    template<int32_t shift>
     Vec_s64x1 shift_rl_imm() const { return sg_srl_s64x1(data_, shift); }
-    template<int shift>
+    template<int32_t shift>
     Vec_s64x1 shift_ra_imm() const { return data_ >> shift; }
+
+    Vec_s64x1 shift_l(const Vec_s64x1& shift) const {
+        return data_ << shift.data();
+    }
+    Vec_s64x1 shift_rl(const Vec_s64x1& shift) const {
+        return sg_bitcast_u64x1_s64x1(sg_bitcast_s64x1_u64x1(data_) >>
+            sg_bitcast_s64x1_u64x1(shift.data()));
+    }
+    Vec_s64x1 shift_ra(const Vec_s64x1& shift) const {
+        return data_ >> shift.data();
+    }
 
     Vec_s64x1 safe_divide_by(const Vec_s64x1& rhs) const {
         return rhs.data() == 0 ? data_ : data_ / rhs.data();
@@ -6910,7 +6952,7 @@ public:
     }
     Vec_s32x1 exponent_s32() const { return exponent(); }
     Vec_f32x1 mantissa_frexp() const {
-        int discard;
+        int32_t discard;
         return std::frexp(data_, &discard);
     }
     Vec_f32x1 mantissa() const { return mantissa_frexp() * 2.0f; }
@@ -7129,7 +7171,7 @@ public:
     }
     Vec_s32x1 exponent_s32() const { return exponent().convert_to_s32(); }
     Vec_f64x1 mantissa_frexp() const {
-        int discard;
+        int32_t discard;
         return std::frexp(data_, &discard);
     }
     Vec_f64x1 mantissa() const { return mantissa_frexp() * 2.0; }

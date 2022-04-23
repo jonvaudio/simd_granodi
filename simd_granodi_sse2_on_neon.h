@@ -121,9 +121,9 @@ static inline float64x2_t _mm_shuffle_pd(const float64x2_t a,
 #define _mm_cmpgt_pd(a, b) vreinterpretq_f64_u64(sg_cmpgt_pd(a, b))
 // Note: min/max handle signed zero differently than on intel, but shouldn't
 // matter!
-#define _mm_min_ps sg_min_fast_ps
-#define _mm_min_pd sg_min_fast_pd
-#define _mm_max_ps sg_max_fast_ps
-#define _mm_max_pd sg_max_fast_pd
+#define _mm_min_ps sg_min_ps
+#define _mm_min_pd sg_min_pd
+#define _mm_max_ps sg_max_ps
+#define _mm_max_pd sg_max_pd
 
 #endif
