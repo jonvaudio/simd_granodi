@@ -142,14 +142,14 @@ TODO:
 #include <cstdlib> // for std::abs() of int32/64
 #include <cmath>
 #include <cstdint>
+#include <cstring>
 #else
 #include <stdbool.h>
 #include <stdlib.h> // for abs(int32/64)
 #include <math.h>
 #include <stdint.h>
-#endif
-
 #include <string.h> // for memcpy
+#endif
 
 // For rint, rintf, fabs, fabsf
 // SSE2 uses rintf() for sg_cvt_ps_pi64()
