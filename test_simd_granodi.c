@@ -1159,43 +1159,43 @@ void test_min_max() {
     assert_eq_pi64(sg_min_pi64(sg_set_pi64(1, 0), sg_set_pi64(4, 2)),
         1, 0);
 
-    assert_eq_ps(sg_max_fast_ps(
+    assert_eq_ps(sg_max_ps(
         sg_set_ps(3.0f, 2.0f, 1.0f, 0.0f), sg_set_ps(3.0f, 2.0f, 1.0f, 0.0f)),
         3.0f, 2.0f, 1.0f, 0.0f);
-    assert_eq_ps(sg_max_fast_ps(
+    assert_eq_ps(sg_max_ps(
         sg_set_ps(8.0f, 6.0f, 4.0f, 2.0f), sg_set_ps(7.0f, 5.0f, 3.0f, 1.0f)),
         8.0f, 6.0f, 4.0f, 2.0f);
-    assert_eq_ps(sg_max_fast_ps(
+    assert_eq_ps(sg_max_ps(
         sg_set_ps(7.0f, 5.0f, 3.0f, 1.0f), sg_set_ps(8.0f, 6.0f, 4.0f, 2.0f)),
         8.0f, 6.0f, 4.0f, 2.0f);
 
-    assert_eq_ps(sg_min_fast_ps(
+    assert_eq_ps(sg_min_ps(
         sg_set_ps(3.0f, 2.0f, 1.0f, 0.0f), sg_set_ps(3.0f, 2.0f, 1.0f, 0.0f)),
         3.0f, 2.0f, 1.0f, 0.0f);
-    assert_eq_ps(sg_min_fast_ps(
+    assert_eq_ps(sg_min_ps(
         sg_set_ps(8.0f, 6.0f, 4.0f, 2.0f), sg_set_ps(7.0f, 5.0f, 3.0f, 1.0f)),
         7.0f, 5.0f, 3.0f, 1.0f);
-    assert_eq_ps(sg_min_fast_ps(
+    assert_eq_ps(sg_min_ps(
         sg_set_ps(7.0f, 5.0f, 3.0f, 1.0f), sg_set_ps(8.0f, 6.0f, 4.0f, 2.0f)),
         7.0f, 5.0f, 3.0f, 1.0f);
 
-    assert_eq_pd(sg_max_fast_pd(
+    assert_eq_pd(sg_max_pd(
         sg_set_pd(1.0, 0.0), sg_set_pd(1.0, 0.0)),
         1.0, 0.0);
-    assert_eq_pd(sg_max_fast_pd(
+    assert_eq_pd(sg_max_pd(
         sg_set_pd(4.0, 2.0), sg_set_pd(3.0, 1.0)),
         4.0, 2.0);
-    assert_eq_pd(sg_max_fast_pd(
+    assert_eq_pd(sg_max_pd(
         sg_set_pd(3.0, 1.0), sg_set_pd(4.0, 2.0)),
         4.0, 2.0);
 
-    assert_eq_pd(sg_min_fast_pd(
+    assert_eq_pd(sg_min_pd(
         sg_set_pd(1.0, 0.0), sg_set_pd(1.0, 0.0)),
         1.0, 0.0);
-    assert_eq_pd(sg_min_fast_pd(
+    assert_eq_pd(sg_min_pd(
         sg_set_pd(4.0, 2.0), sg_set_pd(3.0, 1.0)),
         3.0, 1.0);
-    assert_eq_pd(sg_min_fast_pd(
+    assert_eq_pd(sg_min_pd(
         sg_set_pd(3.0, 1.0), sg_set_pd(4.0, 2.0)),
         3.0, 1.0);
 
@@ -1915,18 +1915,18 @@ static void test_opover() {
     sg_assert(Vec_pi32::max(Vec_pi32{1}, Vec_pi32{2}).debug_eq(2));
     sg_assert(Vec_pi64::min(Vec_pi64{1}, Vec_pi64{2}).debug_eq(1));
     sg_assert(Vec_pi64::max(Vec_pi64{1}, Vec_pi64{2}).debug_eq(2));
-    sg_assert(Vec_ps::min_fast(Vec_ps{1.0f}, Vec_ps{2.0f}).debug_eq(1.0f));
-    sg_assert(Vec_ps::max_fast(Vec_ps{1.0f}, Vec_ps{2.0f}).debug_eq(2.0f));
-    sg_assert(Vec_pd::min_fast(Vec_pd{1.0}, Vec_pd{2.0}).debug_eq(1.0));
-    sg_assert(Vec_pd::max_fast(Vec_pd{1.0}, Vec_pd{2.0}).debug_eq(2.0));
+    sg_assert(Vec_ps::min(Vec_ps{1.0f}, Vec_ps{2.0f}).debug_eq(1.0f));
+    sg_assert(Vec_ps::max(Vec_ps{1.0f}, Vec_ps{2.0f}).debug_eq(2.0f));
+    sg_assert(Vec_pd::min(Vec_pd{1.0}, Vec_pd{2.0}).debug_eq(1.0));
+    sg_assert(Vec_pd::max(Vec_pd{1.0}, Vec_pd{2.0}).debug_eq(2.0));
     sg_assert(Vec_s32x1::min(Vec_s32x1{1}, Vec_s32x1{2}).debug_eq(1));
     sg_assert(Vec_s32x1::max(Vec_s32x1{1}, Vec_s32x1{2}).debug_eq(2));
     sg_assert(Vec_s64x1::min(Vec_s64x1{1}, Vec_s64x1{2}).debug_eq(1));
     sg_assert(Vec_s64x1::max(Vec_s64x1{1}, Vec_s64x1{2}).debug_eq(2));
-    sg_assert(Vec_f32x1::min_fast(Vec_f32x1{1}, Vec_f32x1{2}).debug_eq(1));
-    sg_assert(Vec_f32x1::max_fast(Vec_f32x1{1}, Vec_f32x1{2}).debug_eq(2));
-    sg_assert(Vec_f64x1::min_fast(Vec_f64x1{1}, Vec_f64x1{2}).debug_eq(1));
-    sg_assert(Vec_f64x1::max_fast(Vec_f64x1{1}, Vec_f64x1{2}).debug_eq(2));
+    sg_assert(Vec_f32x1::min(Vec_f32x1{1}, Vec_f32x1{2}).debug_eq(1));
+    sg_assert(Vec_f32x1::max(Vec_f32x1{1}, Vec_f32x1{2}).debug_eq(2));
+    sg_assert(Vec_f64x1::min(Vec_f64x1{1}, Vec_f64x1{2}).debug_eq(1));
+    sg_assert(Vec_f64x1::max(Vec_f64x1{1}, Vec_f64x1{2}).debug_eq(2));
 
     // Bitcast
     sg_assert(Vec_pi32{1}.bitcast_to_s64().bitcast_to_s32().debug_eq(1));
