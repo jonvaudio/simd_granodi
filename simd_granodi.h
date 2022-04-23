@@ -4603,11 +4603,11 @@ static inline sg_pi64 sg_min_pi64(const sg_pi64 a, const sg_pi64 b) {
     #endif
 }
 
-// The floating point functions are called "max_fast" and "min_fast" as they
-// do not behave identically across platforms with regard to signed zero.
+// The floating point functions do not behave identically across platforms
+// with regard to signed zero.
 // For consistent behaviour, recommend combining with sg_remove_signed_zero()
 #if defined SIMD_GRANODI_FORCE_GENERIC
-static inline sg_ps sg_min_fast_ps(const sg_ps a, const sg_ps b) {
+static inline sg_ps sg_min_ps(const sg_ps a, const sg_ps b) {
     sg_ps result;
     result.f0 = a.f0 < b.f0 ? a.f0 : b.f0;
     result.f1 = a.f1 < b.f1 ? a.f1 : b.f1;
@@ -4616,22 +4616,22 @@ static inline sg_ps sg_min_fast_ps(const sg_ps a, const sg_ps b) {
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_min_fast_ps _mm_min_ps
+#define sg_min_ps _mm_min_ps
 #elif defined SIMD_GRANODI_NEON
-#define sg_min_fast_ps vminq_f32
+#define sg_min_ps vminq_f32
 #endif
 
 #if defined SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pd sg_min_fast_pd(const sg_pd a, const sg_pd b) {
+static inline sg_pd sg_min_pd(const sg_pd a, const sg_pd b) {
     sg_pd result;
     result.d0 = a.d0 < b.d0 ? a.d0 : b.d0;
     result.d1 = a.d1 < b.d1 ? a.d1 : b.d1;
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_min_fast_pd _mm_min_pd
+#define sg_min_pd _mm_min_pd
 #elif defined SIMD_GRANODI_NEON
-#define sg_min_fast_pd vminq_f64
+#define sg_min_pd vminq_f64
 #endif
 
 // max
@@ -4666,7 +4666,7 @@ static inline sg_pi64 sg_max_pi64(const sg_pi64 a, const sg_pi64 b) {
 }
 
 #if defined SIMD_GRANODI_FORCE_GENERIC
-static inline sg_ps sg_max_fast_ps(const sg_ps a, const sg_ps b) {
+static inline sg_ps sg_max_ps(const sg_ps a, const sg_ps b) {
     sg_ps result;
     result.f0 = a.f0 > b.f0 ? a.f0 : b.f0;
     result.f1 = a.f1 > b.f1 ? a.f1 : b.f1;
@@ -4675,22 +4675,22 @@ static inline sg_ps sg_max_fast_ps(const sg_ps a, const sg_ps b) {
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_max_fast_ps _mm_max_ps
+#define sg_max_ps _mm_max_ps
 #elif defined SIMD_GRANODI_NEON
-#define sg_max_fast_ps vmaxq_f32
+#define sg_max_ps vmaxq_f32
 #endif
 
 #if defined SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pd sg_max_fast_pd(const sg_pd a, const sg_pd b) {
+static inline sg_pd sg_max_pd(const sg_pd a, const sg_pd b) {
     sg_pd result;
     result.d0 = a.d0 > b.d0 ? a.d0 : b.d0;
     result.d1 = a.d1 > b.d1 ? a.d1 : b.d1;
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_max_fast_pd _mm_max_pd
+#define sg_max_pd _mm_max_pd
 #elif defined SIMD_GRANODI_NEON
-#define sg_max_fast_pd vmaxq_f64
+#define sg_max_pd vmaxq_f64
 #endif
 
 // Constrain
@@ -4710,13 +4710,13 @@ static inline sg_pi64 sg_constrain_pi64(const sg_pi64 lowerb,
 static inline sg_ps sg_constrain_ps(const sg_ps lowerb,
     const sg_ps upperb, const sg_ps a)
 {
-    return sg_min_fast_ps(sg_max_fast_ps(a, lowerb), upperb);
+    return sg_min_ps(sg_max_ps(a, lowerb), upperb);
 }
 
 static inline sg_pd sg_constrain_pd(const sg_pd lowerb,
     const sg_pd upperb, const sg_pd a)
 {
-    return sg_min_fast_pd(sg_max_fast_pd(a, lowerb), upperb);
+    return sg_min_pd(sg_max_pd(a, lowerb), upperb);
 }
 
 // Disable denormals
@@ -5590,11 +5590,11 @@ public:
         return sg_constrain_ps(lowerb.data(), upperb.data(), data_);
     }
 
-    static Vec_ps min_fast(const Vec_ps& a, const Vec_ps& b) {
-        return sg_min_fast_ps(a.data(), b.data());
+    static Vec_ps min(const Vec_ps& a, const Vec_ps& b) {
+        return sg_min_ps(a.data(), b.data());
     }
-    static Vec_ps max_fast(const Vec_ps& a, const Vec_ps& b) {
-        return sg_max_fast_ps(a.data(), b.data());
+    static Vec_ps max(const Vec_ps& a, const Vec_ps& b) {
+        return sg_max_ps(a.data(), b.data());
     }
 
     bool debug_eq(const float f3, const float f2, const float f1,
@@ -5834,11 +5834,11 @@ public:
         return sg_constrain_pd(lowerb.data(), upperb.data(), data_);
     }
 
-    static Vec_pd min_fast(const Vec_pd& a, const Vec_pd& b) {
-        return sg_min_fast_pd(a.data(), b.data());
+    static Vec_pd min(const Vec_pd& a, const Vec_pd& b) {
+        return sg_min_pd(a.data(), b.data());
     }
-    static Vec_pd max_fast(const Vec_pd& a, const Vec_pd& b) {
-        return sg_max_fast_pd(a.data(), b.data());
+    static Vec_pd max(const Vec_pd& a, const Vec_pd& b) {
+        return sg_max_pd(a.data(), b.data());
     }
 
     bool debug_eq(const double d1, const double d0) const {
@@ -6837,15 +6837,15 @@ public:
     Vec_f32x1 remove_signed_zero() const {
         return data_ == 0.0f ? 0.0f : data_;
     }
-    static Vec_f32x1 min_fast(const Vec_f32x1& a, const Vec_f32x1& b) {
+    static Vec_f32x1 min(const Vec_f32x1& a, const Vec_f32x1& b) {
         return std::min(a.data(), b.data());
     }
-    static Vec_f32x1 max_fast(const Vec_f32x1& a, const Vec_f32x1& b) {
+    static Vec_f32x1 max(const Vec_f32x1& a, const Vec_f32x1& b) {
         return std::max(a.data(), b.data());
     }
     Vec_f32x1 constrain(const Vec_f32x1& lowerb, const Vec_f32x1& upperb) const
     {
-        return Vec_f32x1::min_fast(Vec_f32x1::max_fast(lowerb, data_), upperb);
+        return Vec_f32x1::min(Vec_f32x1::max(lowerb, data_), upperb);
     }
 
     bool debug_eq(const Vec_f32x1& f) const {
@@ -7048,15 +7048,15 @@ public:
     Vec_f64x1 remove_signed_zero() const {
         return data_ == 0.0 ? 0.0 : data_;
     }
-    static Vec_f64x1 min_fast(const Vec_f64x1& a, const Vec_f64x1& b) {
+    static Vec_f64x1 min(const Vec_f64x1& a, const Vec_f64x1& b) {
         return std::min(a.data(), b.data());
     }
-    static Vec_f64x1 max_fast(const Vec_f64x1& a, const Vec_f64x1& b) {
+    static Vec_f64x1 max(const Vec_f64x1& a, const Vec_f64x1& b) {
         return std::max(a.data(), b.data());
     }
     Vec_f64x1 constrain(const Vec_f64x1& lowerb, const Vec_f64x1& upperb) const
     {
-        return Vec_f64x1::min_fast(Vec_f64x1::max_fast(lowerb, data_), upperb);
+        return Vec_f64x1::min(Vec_f64x1::max(lowerb, data_), upperb);
     }
 
     bool debug_eq(const Vec_f64x1& d) const {
