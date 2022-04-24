@@ -180,8 +180,8 @@ typedef struct { double d0, d1; } sg_generic_pd;
 typedef struct { bool b0, b1, b2, b3; } sg_generic_cmp4;
 typedef struct { bool b0, b1; } sg_generic_cmp2;
 
-#define sg_allset_u32 (0xffffffffu)
-#define sg_allset_u64 (0xffffffffffffffffu)
+#define sg_allset_u32 (0xffffffff)
+#define sg_allset_u64 (0xffffffffffffffff)
 #define sg_allset_s32 (-1)
 #define sg_allset_s64 (-1)
 #define sg_fp_signmask_s32 (0x7fffffff)
@@ -3097,111 +3097,111 @@ static inline sg_pi64 sg_sra_imm_pi64(const sg_pi64 a,
     case 10: return _mm_or_si128(_mm_srli_epi64(a, 10),
         _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffc0000000000000)));
     case 11: return _mm_or_si128(_mm_srli_epi64(a, 11),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-9007199254740992)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffe0000000000000)));
     case 12: return _mm_or_si128(_mm_srli_epi64(a, 12),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-4503599627370496)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfff0000000000000)));
     case 13: return _mm_or_si128(_mm_srli_epi64(a, 13),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-2251799813685248)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfff8000000000000)));
     case 14: return _mm_or_si128(_mm_srli_epi64(a, 14),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-1125899906842624)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffc000000000000)));
     case 15: return _mm_or_si128(_mm_srli_epi64(a, 15),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-562949953421312)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffe000000000000)));
     case 16: return _mm_or_si128(_mm_srli_epi64(a, 16),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-281474976710656)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffff000000000000)));
     case 17: return _mm_or_si128(_mm_srli_epi64(a, 17),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-140737488355328)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffff800000000000)));
     case 18: return _mm_or_si128(_mm_srli_epi64(a, 18),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-70368744177664)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffc00000000000)));
     case 19: return _mm_or_si128(_mm_srli_epi64(a, 19),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-35184372088832)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffe00000000000)));
     case 20: return _mm_or_si128(_mm_srli_epi64(a, 20),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-17592186044416)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffff00000000000)));
     case 21: return _mm_or_si128(_mm_srli_epi64(a, 21),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-8796093022208)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffff80000000000)));
     case 22: return _mm_or_si128(_mm_srli_epi64(a, 22),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-4398046511104)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffc0000000000)));
     case 23: return _mm_or_si128(_mm_srli_epi64(a, 23),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-2199023255552)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffe0000000000)));
     case 24: return _mm_or_si128(_mm_srli_epi64(a, 24),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-1099511627776)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffff0000000000)));
     case 25: return _mm_or_si128(_mm_srli_epi64(a, 25),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-549755813888)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffff8000000000)));
     case 26: return _mm_or_si128(_mm_srli_epi64(a, 26),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-274877906944)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffc000000000)));
     case 27: return _mm_or_si128(_mm_srli_epi64(a, 27),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-137438953472)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffe000000000)));
     case 28: return _mm_or_si128(_mm_srli_epi64(a, 28),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-68719476736)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffff000000000)));
     case 29: return _mm_or_si128(_mm_srli_epi64(a, 29),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-34359738368)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffff800000000)));
     case 30: return _mm_or_si128(_mm_srli_epi64(a, 30),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-17179869184)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffc00000000)));
     case 31: return _mm_or_si128(_mm_srli_epi64(a, 31),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-8589934592)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffe00000000)));
     case 32: return _mm_or_si128(_mm_srli_epi64(a, 32),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-4294967296)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffff00000000)));
     case 33: return _mm_or_si128(_mm_srli_epi64(a, 33),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-2147483648)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffff80000000)));
     case 34: return _mm_or_si128(_mm_srli_epi64(a, 34),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-1073741824)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffffc0000000)));
     case 35: return _mm_or_si128(_mm_srli_epi64(a, 35),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-536870912)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffffe0000000)));
     case 36: return _mm_or_si128(_mm_srli_epi64(a, 36),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-268435456)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffff0000000)));
     case 37: return _mm_or_si128(_mm_srli_epi64(a, 37),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-134217728)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffff8000000)));
     case 38: return _mm_or_si128(_mm_srli_epi64(a, 38),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-67108864)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffffc000000)));
     case 39: return _mm_or_si128(_mm_srli_epi64(a, 39),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-33554432)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffffe000000)));
     case 40: return _mm_or_si128(_mm_srli_epi64(a, 40),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-16777216)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffffff000000)));
     case 41: return _mm_or_si128(_mm_srli_epi64(a, 41),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-8388608)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffffff800000)));
     case 42: return _mm_or_si128(_mm_srli_epi64(a, 42),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-4194304)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffffffc00000)));
     case 43: return _mm_or_si128(_mm_srli_epi64(a, 43),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-2097152)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffffffe00000)));
     case 44: return _mm_or_si128(_mm_srli_epi64(a, 44),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-1048576)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffffff00000)));
     case 45: return _mm_or_si128(_mm_srli_epi64(a, 45),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-524288)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffffff80000)));
     case 46: return _mm_or_si128(_mm_srli_epi64(a, 46),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-262144)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffffffc0000)));
     case 47: return _mm_or_si128(_mm_srli_epi64(a, 47),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-131072)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffffffe0000)));
     case 48: return _mm_or_si128(_mm_srli_epi64(a, 48),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-65536)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffffffff0000)));
     case 49: return _mm_or_si128(_mm_srli_epi64(a, 49),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-32768)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffffffff8000)));
     case 50: return _mm_or_si128(_mm_srli_epi64(a, 50),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-16384)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffffffffc000)));
     case 51: return _mm_or_si128(_mm_srli_epi64(a, 51),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-8192)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffffffffe000)));
     case 52: return _mm_or_si128(_mm_srli_epi64(a, 52),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-4096)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffffffff000)));
     case 53: return _mm_or_si128(_mm_srli_epi64(a, 53),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-2048)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffffffff800)));
     case 54: return _mm_or_si128(_mm_srli_epi64(a, 54),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-1024)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffffffffc00)));
     case 55: return _mm_or_si128(_mm_srli_epi64(a, 55),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-512)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffffffffe00)));
     case 56: return _mm_or_si128(_mm_srli_epi64(a, 56),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-256)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffffffffff00)));
     case 57: return _mm_or_si128(_mm_srli_epi64(a, 57),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-128)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffffffffff80)));
     case 58: return _mm_or_si128(_mm_srli_epi64(a, 58),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-64)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffffffffffc0)));
     case 59: return _mm_or_si128(_mm_srli_epi64(a, 59),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-32)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xffffffffffffffe0)));
     case 60: return _mm_or_si128(_mm_srli_epi64(a, 60),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-16)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffffffffff0)));
     case 61: return _mm_or_si128(_mm_srli_epi64(a, 61),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-8)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffffffffff8)));
     case 62: return _mm_or_si128(_mm_srli_epi64(a, 62),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-4)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffffffffffc)));
     case 63: return _mm_or_si128(_mm_srli_epi64(a, 63),
-        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(-2)));
+        _mm_and_si128(signed_shift_mask, _mm_set1_epi64x(0xfffffffffffffffe)));
     default: return signed_shift_mask; // 64 and over
     }
     #endif
