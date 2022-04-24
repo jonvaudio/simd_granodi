@@ -6924,10 +6924,10 @@ public:
     Vec_s64x1 convert_to_nearest_s64() const {
         return static_cast<int64_t>(std::round(data_));
     }
-    Vec_s32x1 truncate_to_s64() const {
+    Vec_s64x1 truncate_to_s64() const {
         return static_cast<int64_t>(data_);
     }
-    Vec_s32x1 floor_to_s64() const {
+    Vec_s64x1 floor_to_s64() const {
         return static_cast<int64_t>(std::floor(data_));
     }
     Vec_f32x1 convert_to_f32() const { return *this; }
