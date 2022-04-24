@@ -6544,8 +6544,7 @@ public:
         return data_ << shift.data();
     }
     Vec_s32x1 shift_rl(const Vec_s32x1& shift) const {
-        return sg_bitcast_u32x1_s32x1(sg_bitcast_s32x1_u32x1(data_) >>
-            sg_bitcast_s32x1_u32x1(shift.data()));
+        return sg_srl_s32x1(data_, shift.data());
     }
     Vec_s32x1 shift_ra(const Vec_s32x1& shift) const {
         return data_ >> shift.data();
@@ -6719,8 +6718,7 @@ public:
         return data_ << shift.data();
     }
     Vec_s64x1 shift_rl(const Vec_s64x1& shift) const {
-        return sg_bitcast_u64x1_s64x1(sg_bitcast_s64x1_u64x1(data_) >>
-            sg_bitcast_s64x1_u64x1(shift.data()));
+        return sg_srl_s64x1(data_, shift.data());
     }
     Vec_s64x1 shift_ra(const Vec_s64x1& shift) const {
         return data_ >> shift.data();
