@@ -1243,19 +1243,19 @@ void test_constrain() {
     //printf("Constrain test succeeded\n");
 }
 
+static volatile float denormal_f;
+static volatile double denormal_d;
+
 void test_denormals() {
     // Testing denormals is complicated for an optimized build, as the
     // compiler will eliminate any calculations into a constant, and that
     // constant will be calculated in an environment where denormals are
     // enabled.
 
-    volatile float prev_nd_f = 1.0f;
-    volatile double prev_nd_d = 1.0;
-
-    volatile int32_t prev_nd_ps = sg_bitcast_f32x1_s32x1(1.0f);
-    volatile int64_t prev_nd_pd = sg_bitcast_f64x1_s64x1(1.0);
-
-    bool zero;
+    // Write largest denormals. Denormals still enabled here, so should
+    // write these values as they are
+    denormal_f = sg_bitcast_u32x1_f32x1(0x007FFFFF);
+    denormal_d = sg_bitcast_u64x1_f64x1(0x000FFFFFFFFFFFFF);
 
     #ifdef __cplusplus
     {
@@ -1264,35 +1264,16 @@ void test_denormals() {
     sg_fp_status previous_status = sg_disable_denormals();
     #endif
 
-    zero = false;
-    while (!zero) {
-        const float new_smallest_f = prev_nd_f * 0.5f;
-        if (new_smallest_f == 0.0f) zero = true;
-        else prev_nd_f = new_smallest_f;
-    }
-    zero = false;
-    while (!zero) {
-        const double new_smallest_d = prev_nd_d * 0.5;
-        if (new_smallest_d == 0.0) zero = true;
-        else prev_nd_d = new_smallest_d;
-    }
+    // If either of the following assertions fail, denormals could not be
+    // disabled on regular float / double scalar code
+    sg_assert(denormal_f == 0.0f);
+    sg_assert(denormal_d == 0.0);
 
-    zero = false;
-    while (!zero) {
-        const int32_t new_smallest_ps = sg_get0_pi32(sg_bitcast_ps_pi32(
-            sg_mul_ps(sg_bitcast_pi32_ps(sg_set1_pi32(prev_nd_ps)),
-                sg_set1_ps(0.5f))));
-        if (new_smallest_ps == 0) zero = true;
-        else prev_nd_ps = new_smallest_ps;
-    }
-    zero = false;
-    while (!zero) {
-        const int64_t new_smallest_pd = sg_get0_pi64(sg_bitcast_pd_pi64(
-            sg_mul_pd(sg_bitcast_pi64_pd(sg_set1_pi64(prev_nd_pd)),
-                sg_set1_pd(0.5))));
-        if (new_smallest_pd == 0) zero = true;
-        else prev_nd_pd = new_smallest_pd;
-    }
+    // If either of the following assertions fail, denormals were successfully
+    // disabled for regular float / double scalar code (due to above
+    // assertions succeeding), but denormals were not disabled for SIMD code.
+    sg_assert(sg_get0_ps(sg_set1_ps(denormal_f)) == 0.0f);
+    sg_assert(sg_get0_pd(sg_set1_pd(denormal_d)) == 0.0);
 
     #ifdef __cplusplus
     }
@@ -1300,54 +1281,14 @@ void test_denormals() {
     sg_restore_fp_status_after_denormals_disabled(previous_status);
     #endif
 
-    volatile float prev_f = prev_nd_f;
-    volatile double prev_d = prev_nd_d;
+    // Write a slightly different denormal value
+    denormal_f = sg_bitcast_u32x1_f32x1(0x007FFFFE);
+    denormal_d = sg_bitcast_u64x1_f64x1(0x000FFFFFFFFFFFFE);
 
-    volatile int32_t prev_ps = prev_nd_ps;
-    volatile int64_t prev_pd = prev_nd_pd;
-
-    zero = false;
-    while (!zero) {
-        const float new_smallest_f = prev_f * 0.5f;
-        if (new_smallest_f == 0.0f) zero = true;
-        else prev_f = new_smallest_f;
-    }
-    zero = false;
-    while (!zero) {
-        const double new_smallest_d = prev_d * 0.5;
-        if (new_smallest_d == 0.0) zero = true;
-        else prev_d = new_smallest_d;
-    }
-
-    zero = false;
-    while (!zero) {
-        const int32_t new_smallest_ps = sg_get0_pi32(sg_bitcast_ps_pi32(
-            sg_mul_ps(sg_bitcast_pi32_ps(sg_set1_pi32(prev_ps)),
-                sg_set1_ps(0.5f))));
-        if (new_smallest_ps == 0) zero = true;
-        else prev_ps = new_smallest_ps;
-    }
-
-    zero = false;
-    while (!zero) {
-        const int64_t new_smallest_pd = sg_get0_pi64(sg_bitcast_pd_pi64(
-            sg_mul_pd(sg_bitcast_pi64_pd(sg_set1_pi64(prev_pd)),
-                sg_set1_pd(0.5))));
-        if (new_smallest_pd == 0) zero = true;
-        else prev_pd = new_smallest_pd;
-    }
-
-    // If either of the following assertions fail, denormals could not be
-    // disabled on regular float / double scalar code
-    sg_assert(prev_f < prev_nd_f);
-    sg_assert(prev_d < prev_nd_d);
-
-    // If either of the following assertions fail, denormals were successfully
-    // disabled for regular float / double scalar code (due to above
-    // assertions succeeding), but denormals were not disabled for SIMD
-    // code.
-    sg_assert(sg_bitcast_s32x1_f32x1(prev_ps) < sg_bitcast_s32x1_f32x1(prev_nd_ps));
-    sg_assert(sg_bitcast_s64x1_f64x1(prev_pd) < sg_bitcast_s64x1_f64x1(prev_nd_pd));
+    sg_assert(denormal_f != 0.0f);
+    sg_assert(denormal_d != 0.0);
+    sg_assert(sg_get0_ps(sg_set1_ps(denormal_f)) != 0.0f);
+    sg_assert(sg_get0_pd(sg_set1_pd(denormal_d)) != 0.0);
 
     //printf("Denormal disable test succeeded\n");
 }
