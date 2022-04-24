@@ -139,6 +139,7 @@ TODO:
 
 #ifdef __cplusplus
 #include <algorithm> // for std::min(), std::max()
+#include <atomic> // for paranoid thread fencing
 #include <cstdlib> // for std::abs() of int32/64
 #include <cmath>
 #include <cstdint>
@@ -4797,11 +4798,17 @@ namespace simd_granodi {
     defined SIMD_GRANODI_ARCH_ARM64 || \
     defined SIMD_GRANODI_ARCH_ARM32
 class ScopedDenormalsDisable {
-    const sg_fp_status fp_status_;
+    sg_fp_status fp_status_;
 public:
-    ScopedDenormalsDisable() : fp_status_{sg_disable_denormals()} {}
+    ScopedDenormalsDisable() {
+        std::atomic_thread_fence(std::memory_order_seq_cst);
+        fp_status_ = sg_disable_denormals();
+        std::atomic_thread_fence(std::memory_order_seq_cst);
+    }
     ~ScopedDenormalsDisable() {
+        std::atomic_thread_fence(std::memory_order_seq_cst);
         sg_restore_fp_status_after_denormals_disabled(fp_status_);
+        std::atomic_thread_fence(std::memory_order_seq_cst);
     }
 };
 #endif
