@@ -6,9 +6,9 @@ Currently has full test coverage, but not used in production yet. Every intrinsi
 
 The C++ classes are written in terms of the C implementation.
 
-`simd_granodi.h` is the only file you need.  
-`simd_granodi_sse2_on_neon.h` contains some macros used by the author of this project, but not needed in new projects.  
-`test_simd_granodi.c` contains the test code.  
+`simd_granodi.h` is the only file you need.
+`simd_granodi_sse2_on_neon.h` contains some macros used by the author of this project, but not needed in new projects.
+`test_simd_granodi.c` contains the test code.
 
 ## Example code (C++)
 
@@ -55,7 +55,7 @@ int main() {
     auto log2_2d = square_vec(Vec_pd{7, 3});
 
     std::cout << "6 squared is " << square_f << std::endl <<
-    "approx log2(10) is " << double{log2_d} << std::endl <<
+    "approx log2(10) is " << log2_d.data() << std::endl <<
 
     "approx log2() of {4, 3, 9, 2} is {" << square_4f.f3() << ", " <<
     square_4f.f2() << ", " << square_4f.f1() << ", " <<
@@ -63,5 +63,4 @@ int main() {
 
     "{7, 3} squared is {" << log2_2d.d1() << ", " << log2_2d.d0() << "}\n";
 }
-
 ```
