@@ -3,7 +3,7 @@
 #include <stdlib.h> // for exit()
 #include <inttypes.h> // For printf PRId64 format
 
-#include "simd_granodi.h"
+#include "../simd_granodi.h"
 
 #ifdef __cplusplus
 using namespace simd_granodi;
