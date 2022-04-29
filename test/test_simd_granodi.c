@@ -112,11 +112,11 @@ void print_platform_start() {
     printf("Fast FMA implementation NOT enabled in compiler\n");
     #endif
 
-    //#ifdef NDEBUG
-    //printf("NDEBUG defined\n");
-    //#else
-    //printf("NDEBUG not defined\n");
-    //#endif
+    #ifdef NDEBUG
+    printf("NDEBUG defined (optimized)\n");
+    #else
+    printf("NDEBUG not defined (debug)\n");
+    #endif
 
     /*print_pi32(sg_set1_pi32(0)); printf(", ");
     print_pi64(sg_set1_pi64(0)); printf(", ");
