@@ -1042,7 +1042,6 @@ void test_denormals() {
     denormal_d = sg_bitcast_u64x1_f64x1(0x000FFFFFFFFFFFFF);
 
     #ifdef __cplusplus
-    {
     ScopedDenormalsDisable sdd;
     #else
     sg_fp_status previous_status = sg_disable_denormals();
@@ -1060,7 +1059,7 @@ void test_denormals() {
     sg_assert(sg_get0_pd(sg_set1_pd(denormal_d)) == 0.0);
 
     #ifdef __cplusplus
-    }
+    sdd.~ScopedDenormalsDisable();
     #else
     sg_restore_fp_status_after_denormals_disabled(previous_status);
     #endif
