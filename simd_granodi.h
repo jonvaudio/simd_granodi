@@ -4725,9 +4725,22 @@ static inline sg_pd sg_constrain_pd(const sg_pd lowerb,
 
 // Disable denormals
 
+#ifdef __clang__
+#define SG_NO_OPT_FUNCTION __attribute__((optnone))
+#elif defined __GNUC__
+#define SG_NO_OPT_FUNCTION __attribute__((optimize("-O0")))
+#elif defined _MSC_VER
+// todo:
+// https://docs.microsoft.com/en-us/cpp/preprocessor/optimize?redirectedfrom=MSDN&view=msvc-170
+#define SG_NO_OPT_FUNCTION __declspec(noinline)
+#else
+#error "Can't prevent fp status optimization"
+#endif
+
 #ifdef SIMD_GRANODI_ARCH_SSE
 typedef uint32_t sg_fp_status;
-__attribute__((noinline))
+
+SG_NO_OPT_FUNCTION
 static sg_fp_status sg_disable_denormals() {
     // flush_to_zero:
     //     "sets denormal results from floating-point calculations to zero"
@@ -4740,7 +4753,7 @@ static sg_fp_status sg_disable_denormals() {
     _mm_setcsr(previous_status | flush_to_zero | denormals_are_zero);
     return previous_status;
 }
-__attribute__((noinline))
+SG_NO_OPT_FUNCTION
 static void sg_restore_fp_status_after_denormals_disabled(
     const sg_fp_status previous_status)
 {
@@ -4773,13 +4786,13 @@ static inline sg_fp_status sg_get_fp_status_arm_() {
 #endif
 
 #if defined SIMD_GRANODI_ARCH_ARM64 || SIMD_GRANODI_ARCH_ARM32
-__attribute__((noinline))
+SG_NO_OPT_FUNCTION
 static sg_fp_status sg_disable_denormals() {
     const sg_fp_status old_fp_status = sg_get_fp_status_arm_();
     sg_set_fp_status_arm_(old_fp_status | 0x1000000);
     return old_fp_status;
 }
-__attribute__((noinline))
+SG_NO_OPT_FUNCTION
 static void sg_restore_fp_status_after_denormals_disabled(
     const sg_fp_status previous_status)
 {
