@@ -1021,8 +1021,14 @@ void test_constrain() {
     //printf("Constrain test succeeded\n");
 }
 
+#ifdef __cplusplus
+// Volatile wasn't strict enough for C++ with some compilers
+static std::atomic<float> denormal_f;
+static std::atomic<double> denormal_d;
+#else
 static volatile float denormal_f;
 static volatile double denormal_d;
+#endif
 
 void test_denormals() {
     // Testing denormals is complicated for an optimized build, as the
