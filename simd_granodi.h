@@ -5076,6 +5076,33 @@ inline Compare_pd operator!=(const Compare_pd& lhs, const Compare_pd& rhs)
     return sg_cmpneq_cmp_pd(lhs.data(), rhs.data());
 }
 
+// Macros for consistency inside templated methods
+
+// For get<i>()
+#define sassert_index_x1(i) static_assert(0 == (i), "invalid_index")
+
+#define sassert_index_x4(i) static_assert(0 <= (i) && (i) < 4, \
+    "invalid index")
+
+#define sassert_index_x2(i) static_assert(0 <= (i) && (i) < 2, \
+    "invalid index")
+
+#define sassert_shuffle_x4(src3, src2, src1, src0) \
+    static_assert(0 <= (src3) && (src3) < 4 && 0 <= (src2) && (src2) < 4 && \
+        0 <= (src1) && (src1) < 4 && 0 <= (src0) && (src0) < 4, \
+            "invalid shuffle source")
+
+#define sassert_shuffle_x2(src1, src0) \
+    static_assert(0 <= (src1) && (src1) < 2, "invalid shuffle source")
+
+// It's UB to shift by an amount greater than or equal to the number of bits
+// in the left operand
+#define sassert_shift_32(shift) \
+    static_assert(0 <= (shift) && (shift) < 32, "invalid shift amount")
+
+#define sassert_shift_64(shift) \
+    static_assert(0 <= (shift) && (shift) < 64, "invalid shift amount")
+
 class Vec_pi32 {
     sg_pi32 data_;
 public:
@@ -5110,6 +5137,11 @@ public:
     int32_t i1() const { return sg_get1_pi32(data_); }
     int32_t i2() const { return sg_get2_pi32(data_); }
     int32_t i3() const { return sg_get3_pi32(data_); }
+
+    template <int32_t i> int32_t get() const {
+        sassert_index_x4(i);
+        return sg_get0_pi32(sg_shuffle_pi32(data_, 3, 2, 1, i));
+    }
 
     Vec_pi32& operator++() {
         data_ = sg_add_pi32(data_, sg_set1_pi32(1));
@@ -5218,11 +5250,20 @@ public:
     }
 
     template <int32_t shift>
-    Vec_pi32 shift_l_imm() const { return sg_sl_imm_pi32(data_, shift); }
+    Vec_pi32 shift_l_imm() const {
+        sassert_shift_32(shift);
+        return sg_sl_imm_pi32(data_, shift);
+    }
     template <int32_t shift>
-    Vec_pi32 shift_rl_imm() const { return sg_srl_imm_pi32(data_, shift); }
+    Vec_pi32 shift_rl_imm() const {
+        sassert_shift_32(shift);
+        return sg_srl_imm_pi32(data_, shift);
+    }
     template <int32_t shift>
-    Vec_pi32 shift_ra_imm() const { return sg_sra_imm_pi32(data_, shift); }
+    Vec_pi32 shift_ra_imm() const {
+        sassert_shift_32(shift);
+        return sg_sra_imm_pi32(data_, shift);
+    }
 
     Vec_pi32 shift_l(const Vec_pi32& shift) const {
         return sg_sl_pi32(data_, shift.data());
@@ -5236,6 +5277,7 @@ public:
 
     template <int32_t src3, int32_t src2, int32_t src1, int32_t src0>
     Vec_pi32 shuffle() const {
+        sassert_shuffle_x4(src3, src2, src1, src0);
         return sg_shuffle_pi32(data_, src3, src2, src1, src0);
     }
 
@@ -5309,6 +5351,11 @@ public:
     sg_generic_pi64 generic() const { return sg_getg_pi64(data_); }
     int64_t l0() const { return sg_get0_pi64(data_); }
     int64_t l1() const { return sg_get1_pi64(data_); }
+
+    template <int32_t i> int64_t get() const {
+        sassert_index_x2(i);
+        return sg_get0_pi64(sg_shuffle_pi64(data_, 1, i));
+    }
 
     Vec_pi64& operator++() {
         data_ = sg_add_pi64(data_, sg_set1_pi64(1));
@@ -5417,11 +5464,20 @@ public:
     }
 
     template <int32_t shift>
-    Vec_pi64 shift_l_imm() const { return sg_sl_imm_pi64(data_, shift); }
+    Vec_pi64 shift_l_imm() const {
+        sassert_shift_64(shift);
+        return sg_sl_imm_pi64(data_, shift);
+    }
     template <int32_t shift>
-    Vec_pi64 shift_rl_imm() const { return sg_srl_imm_pi64(data_, shift); }
+    Vec_pi64 shift_rl_imm() const {
+        sassert_shift_64(shift);
+        return sg_srl_imm_pi64(data_, shift);
+    }
     template <int32_t shift>
-    Vec_pi64 shift_ra_imm() const { return sg_sra_imm_pi64(data_, shift); }
+    Vec_pi64 shift_ra_imm() const {
+        sassert_shift_64(shift);
+        return sg_sra_imm_pi64(data_, shift);
+    }
 
     Vec_pi64 shift_l(const Vec_pi64& shift) const {
         return sg_sl_pi64(data_, shift.data());
@@ -5434,7 +5490,10 @@ public:
     }
 
     template <int32_t src1, int32_t src0>
-    Vec_pi64 shuffle() const { return sg_shuffle_pi64(data_, src1, src0); }
+    Vec_pi64 shuffle() const {
+        sassert_shuffle_x2(src1, src0);
+        return sg_shuffle_pi64(data_, src1, src0);
+    }
 
     Vec_pi64 safe_divide_by(const Vec_pi64& rhs) const {
         return sg_safediv_pi64(data_, rhs.data());
@@ -5513,6 +5572,11 @@ public:
     float f1() const { return sg_get1_ps(data_); }
     float f2() const { return sg_get2_ps(data_); }
     float f3() const { return sg_get3_ps(data_); }
+
+    template <int32_t i> float get() const {
+        sassert_index_x4(i);
+        return sg_get0_ps(sg_shuffle_ps(data_, 3, 2, 1, i));
+    }
 
     Vec_ps& operator+=(const Vec_ps& rhs) {
         data_ = sg_add_ps(data_, rhs.data());
@@ -5606,6 +5670,7 @@ public:
 
     template <int32_t src3, int32_t src2, int32_t src1, int32_t src0>
     Vec_ps shuffle() const {
+        sassert_shuffle_x4(src3, src2, src1, src0);
         return sg_shuffle_ps(data_, src3, src2, src1, src0);
     }
 
@@ -5760,6 +5825,11 @@ public:
     double d0() const { return sg_get0_pd(data_); }
     double d1() const { return sg_get1_pd(data_); }
 
+    template <int32_t i> double get() const {
+        sassert_index_x2(i);
+        return sg_get0_pd(sg_shuffle_pd(data_, 1, i));
+    }
+
     Vec_pd& operator+=(const Vec_pd& rhs) {
         data_ = sg_add_pd(data_, rhs.data());
         return *this;
@@ -5851,7 +5921,10 @@ public:
     }
 
     template <int32_t src1, int32_t src0>
-    Vec_pd shuffle() const { return sg_shuffle_pd(data_, src1, src0); }
+    Vec_pd shuffle() const {
+        sassert_shuffle_x2(src1, src0);
+        return sg_shuffle_pd(data_, src1, src0);
+    }
 
     Vec_pd safe_divide_by(const Vec_pd& rhs) const {
         return sg_safediv_pd(data_, rhs.data());
@@ -6428,6 +6501,11 @@ public:
 
     int32_t data() const { return data_; }
     int32_t i0() const { return data_; }
+    template <int32_t i> int32_t get() const {
+        sassert_index_x1(i);
+        return data_;
+    }
+
     Vec_pi32 set1() const { return sg_set1_pi32(data_); }
 
     Vec_s32x1& operator++() {
@@ -6534,11 +6612,20 @@ public:
     }
 
     template<int32_t shift>
-    Vec_s32x1 shift_l_imm() const { return data_ << shift; }
+    Vec_s32x1 shift_l_imm() const {
+        sassert_shift_32(shift);
+        return data_ << shift;
+    }
     template<int32_t shift>
-    Vec_s32x1 shift_rl_imm() const { return sg_srl_s32x1(data_, shift); }
+    Vec_s32x1 shift_rl_imm() const {
+        sassert_shift_32(shift);
+        return sg_srl_s32x1(data_, shift);
+    }
     template<int32_t shift>
-    Vec_s32x1 shift_ra_imm() const { return data_ >> shift; }
+    Vec_s32x1 shift_ra_imm() const {
+        sassert_shift_32(shift);
+        return data_ >> shift;
+    }
 
     Vec_s32x1 shift_l(const Vec_s32x1& shift) const {
         return data_ << shift.data();
@@ -6602,6 +6689,11 @@ public:
 
     int64_t data() const { return data_; }
     int64_t l0() const { return data_; }
+    template <int32_t i> int64_t get() const {
+        sassert_index_x1(i);
+        return data_;
+    }
+
     Vec_pi64 set1() const { return sg_set1_pi64(data_); }
 
     Vec_s64x1& operator++() {
@@ -6708,11 +6800,20 @@ public:
     }
 
     template<int32_t shift>
-    Vec_s64x1 shift_l_imm() const { return data_ << shift; }
+    Vec_s64x1 shift_l_imm() const {
+        sassert_shift_64(shift);
+        return data_ << shift;
+    }
     template<int32_t shift>
-    Vec_s64x1 shift_rl_imm() const { return sg_srl_s64x1(data_, shift); }
+    Vec_s64x1 shift_rl_imm() const {
+        sassert_shift_64(shift);
+        return sg_srl_s64x1(data_, shift);
+    }
     template<int32_t shift>
-    Vec_s64x1 shift_ra_imm() const { return data_ >> shift; }
+    Vec_s64x1 shift_ra_imm() const {
+        sassert_shift_64(shift);
+        return data_ >> shift;
+    }
 
     Vec_s64x1 shift_l(const Vec_s64x1& shift) const {
         return data_ << shift.data();
@@ -6786,6 +6887,11 @@ public:
 
     float data() const { return data_; }
     float f0() const { return data_; }
+    template <int32_t i> float get() const {
+        sassert_index_x1(i);
+        return data_;
+    }
+
     Vec_ps set1() const { return sg_set1_ps(data_); }
 
     Vec_f32x1& operator+=(const Vec_f32x1& rhs) {
@@ -6997,6 +7103,11 @@ public:
 
     double data() const { return data_; }
     double d0() const { return data_; }
+    template <int32_t i> double get() const {
+        sassert_index_x1(i);
+        return data_;
+    }
+
     Vec_pd set1() const { return sg_set1_pd(data_); }
 
     Vec_f64x1& operator+=(const Vec_f64x1& rhs) {

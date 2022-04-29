@@ -112,11 +112,11 @@ void print_platform_start() {
     printf("Fast FMA implementation NOT enabled in compiler\n");
     #endif
 
-    //#ifdef NDEBUG
-    //printf("NDEBUG defined\n");
-    //#else
-    //printf("NDEBUG not defined\n");
-    //#endif
+    #ifdef NDEBUG
+    printf("NDEBUG defined (optimized)\n");
+    #else
+    printf("NDEBUG not defined (debug)\n");
+    #endif
 
     /*print_pi32(sg_set1_pi32(0)); printf(", ");
     print_pi64(sg_set1_pi64(0)); printf(", ");
@@ -1118,21 +1118,45 @@ static void test_opover() {
     sg_assert((Vec_pi32{5, 4, 3, 2}.i2() == 4));
     sg_assert((Vec_pi32{5, 4, 3, 2}.i1() == 3));
     sg_assert((Vec_pi32{5, 4, 3, 2}.i0() == 2));
+    sg_assert((Vec_pi32{5, 4, 3, 2}.get<3>() == 5));
+    sg_assert((Vec_pi32{5, 4, 3, 2}.get<2>() == 4));
+    sg_assert((Vec_pi32{5, 4, 3, 2}.get<1>() == 3));
+    sg_assert((Vec_pi32{5, 4, 3, 2}.get<0>() == 2));
+
     sg_assert((Vec_s32x1{2}.i0() == 2));
+    sg_assert((Vec_s32x1{2}.get<0>() == 2));
+    sg_assert((Vec_s32x1{2}.data() == 2));
 
     sg_assert((Vec_pi64{5, 4}.l1() == 5));
     sg_assert((Vec_pi64{5, 4}.l0() == 4));
+    sg_assert((Vec_pi64{5, 4}.get<1>() == 5));
+    sg_assert((Vec_pi64{5, 4}.get<0>() == 4));
+
     sg_assert((Vec_s64x1{4}.l0() == 4));
+    sg_assert((Vec_s64x1{4}.get<0>() == 4));
+    sg_assert((Vec_s64x1{4}.data() == 4));
 
     sg_assert((Vec_ps{5.0f, 4.0f, 3.0f, 2.0f}.f3() == 5.0f));
     sg_assert((Vec_ps{5.0f, 4.0f, 3.0f, 2.0f}.f2() == 4.0f));
     sg_assert((Vec_ps{5.0f, 4.0f, 3.0f, 2.0f}.f1() == 3.0f));
     sg_assert((Vec_ps{5.0f, 4.0f, 3.0f, 2.0f}.f0() == 2.0f));
+    sg_assert((Vec_ps{5.0f, 4.0f, 3.0f, 2.0f}.get<3>() == 5.0f));
+    sg_assert((Vec_ps{5.0f, 4.0f, 3.0f, 2.0f}.get<2>() == 4.0f));
+    sg_assert((Vec_ps{5.0f, 4.0f, 3.0f, 2.0f}.get<1>() == 3.0f));
+    sg_assert((Vec_ps{5.0f, 4.0f, 3.0f, 2.0f}.get<0>() == 2.0f));
+
     sg_assert((Vec_f32x1{2.0f}.f0() == 2.0f));
+    sg_assert((Vec_f32x1{2.0f}.get<0>() == 2.0f));
+    sg_assert((Vec_f32x1{2.0f}.data() == 2.0f));
 
     sg_assert((Vec_pd{5.0, 4.0}.d1() == 5.0));
     sg_assert((Vec_pd{5.0, 4.0}.d0() == 4.0));
+    sg_assert((Vec_pd{5.0, 4.0}.get<1>() == 5.0));
+    sg_assert((Vec_pd{5.0, 4.0}.get<0>() == 4.0));
+
     sg_assert((Vec_f64x1{4.0}.d0() == 4.0));
+    sg_assert((Vec_f64x1{4.0}.get<0>() == 4.0));
+    sg_assert((Vec_f64x1{4.0}.data() == 4.0));
 
     // Arithmetic
     Vec_pi32 pi32, rv_pi32; Vec_pi64 pi64, rv_pi64;
