@@ -4727,7 +4727,8 @@ static inline sg_pd sg_constrain_pd(const sg_pd lowerb,
 
 #ifdef SIMD_GRANODI_ARCH_SSE
 typedef uint32_t sg_fp_status;
-static inline sg_fp_status sg_disable_denormals() {
+__attribute__((noinline))
+static sg_fp_status sg_disable_denormals() {
     // flush_to_zero:
     //     "sets denormal results from floating-point calculations to zero"
     // denormals_are_zero:
@@ -4739,7 +4740,8 @@ static inline sg_fp_status sg_disable_denormals() {
     _mm_setcsr(previous_status | flush_to_zero | denormals_are_zero);
     return previous_status;
 }
-static inline void sg_restore_fp_status_after_denormals_disabled(
+__attribute__((noinline))
+static void sg_restore_fp_status_after_denormals_disabled(
     const sg_fp_status previous_status)
 {
     _mm_setcsr(previous_status);
@@ -4771,13 +4773,14 @@ static inline sg_fp_status sg_get_fp_status_arm_() {
 #endif
 
 #if defined SIMD_GRANODI_ARCH_ARM64 || SIMD_GRANODI_ARCH_ARM32
-static inline sg_fp_status sg_disable_denormals() {
+__attribute__((noinline))
+static sg_fp_status sg_disable_denormals() {
     const sg_fp_status old_fp_status = sg_get_fp_status_arm_();
     sg_set_fp_status_arm_(old_fp_status | 0x1000000);
     return old_fp_status;
 }
-
-static inline void sg_restore_fp_status_after_denormals_disabled(
+__attribute__((noinline))
+static void sg_restore_fp_status_after_denormals_disabled(
     const sg_fp_status previous_status)
 {
     sg_set_fp_status_arm_(previous_status);
@@ -4798,17 +4801,13 @@ namespace simd_granodi {
     defined SIMD_GRANODI_ARCH_ARM64 || \
     defined SIMD_GRANODI_ARCH_ARM32
 class ScopedDenormalsDisable {
-    std::atomic<sg_fp_status> fp_status_;
+    sg_fp_status fp_status_;
 public:
     ScopedDenormalsDisable() {
-        //std::atomic_thread_fence(std::memory_order_seq_cst);
         fp_status_ = sg_disable_denormals();
-        //std::atomic_thread_fence(std::memory_order_seq_cst);
     }
     ~ScopedDenormalsDisable() {
-        //std::atomic_thread_fence(std::memory_order_seq_cst);
         sg_restore_fp_status_after_denormals_disabled(fp_status_);
-        //std::atomic_thread_fence(std::memory_order_seq_cst);
     }
 };
 #endif
