@@ -5111,6 +5111,11 @@ public:
     int32_t i2() const { return sg_get2_pi32(data_); }
     int32_t i3() const { return sg_get3_pi32(data_); }
 
+    template <int32_t i> int32_t get() const {
+        static_assert(0 <= i && i < 4, "invalid index");
+        return sg_get0_pi32(sg_shuffle_pi32(data_, 3, 2, 1, i));
+    }
+
     Vec_pi32& operator++() {
         data_ = sg_add_pi32(data_, sg_set1_pi32(1));
         return *this;
@@ -5309,6 +5314,11 @@ public:
     sg_generic_pi64 generic() const { return sg_getg_pi64(data_); }
     int64_t l0() const { return sg_get0_pi64(data_); }
     int64_t l1() const { return sg_get1_pi64(data_); }
+
+    template <int32_t i> int64_t get() const {
+        static_assert(0 <= i && i < 2, "invalid index");
+        return sg_get0_pi64(sg_shuffle_pi64(data_, 1, i));
+    }
 
     Vec_pi64& operator++() {
         data_ = sg_add_pi64(data_, sg_set1_pi64(1));
@@ -5513,6 +5523,11 @@ public:
     float f1() const { return sg_get1_ps(data_); }
     float f2() const { return sg_get2_ps(data_); }
     float f3() const { return sg_get3_ps(data_); }
+
+    template <int32_t i> float get() const {
+        static_assert(0 <= i && i < 4, "invalid index");
+        return sg_get0_ps(sg_shuffle_ps(data_, 3, 2, 1, i));
+    }
 
     Vec_ps& operator+=(const Vec_ps& rhs) {
         data_ = sg_add_ps(data_, rhs.data());
@@ -5759,6 +5774,11 @@ public:
     sg_generic_pd generic() const { return sg_getg_pd(data_); }
     double d0() const { return sg_get0_pd(data_); }
     double d1() const { return sg_get1_pd(data_); }
+
+    template <int32_t i> double get() const {
+        static_assert(0 <= i && i < 2, "invalid index");
+        return sg_get0_pd(sg_shuffle_pd(data_, 1, i));
+    }
 
     Vec_pd& operator+=(const Vec_pd& rhs) {
         data_ = sg_add_pd(data_, rhs.data());
@@ -6428,6 +6448,11 @@ public:
 
     int32_t data() const { return data_; }
     int32_t i0() const { return data_; }
+    template <int32_t i> int32_t get() const {
+        static_assert(i == 0, "invalid index");
+        return data_;
+    }
+
     Vec_pi32 set1() const { return sg_set1_pi32(data_); }
 
     Vec_s32x1& operator++() {
@@ -6602,6 +6627,11 @@ public:
 
     int64_t data() const { return data_; }
     int64_t l0() const { return data_; }
+    template <int32_t i> int64_t get() const {
+        static_assert(i == 0, "invalid index");
+        return data_;
+    }
+
     Vec_pi64 set1() const { return sg_set1_pi64(data_); }
 
     Vec_s64x1& operator++() {
@@ -6786,6 +6816,11 @@ public:
 
     float data() const { return data_; }
     float f0() const { return data_; }
+    template <int32_t i> float get() const {
+        static_assert(i == 0, "invalid index");
+        return data_;
+    }
+
     Vec_ps set1() const { return sg_set1_ps(data_); }
 
     Vec_f32x1& operator+=(const Vec_f32x1& rhs) {
@@ -6997,6 +7032,11 @@ public:
 
     double data() const { return data_; }
     double d0() const { return data_; }
+    template <int32_t i> double get() const {
+        static_assert(i == 0, "invalid index");
+        return data_;
+    }
+
     Vec_pd set1() const { return sg_set1_pd(data_); }
 
     Vec_f64x1& operator+=(const Vec_f64x1& rhs) {
