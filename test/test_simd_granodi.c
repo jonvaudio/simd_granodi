@@ -327,7 +327,7 @@ void test_get() {
 
 
     // Check SSE2 rounding
-    #if defined SIMD_GRANODI_SSE2
+    #if defined SIMD_GRANODI_SSE2 && !defined _MSC_VER
     sg_assert(_mm_cvtsd_si64(_mm_set_pd(0.0, -1.7)) == -2);
     sg_assert(_mm_cvtss_si32(_mm_set_ps(0.0f, 0.0f, 0.0f, -1.7f)) == -2);
     #endif

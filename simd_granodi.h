@@ -160,7 +160,11 @@ TODO:
 //#endif
 
 #ifdef SIMD_GRANODI_ARCH_SSE
+#ifdef _MSC_VER
+#include <intrin.h>
+#else
 #include <emmintrin.h>
+#endif
 #elif defined SIMD_GRANODI_NEON
 #include <arm_neon.h>
 #endif
@@ -2110,7 +2114,8 @@ static inline sg_pi32 sg_cvt_pi64_pi32(const sg_pi64 a) {
 
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_ps sg_cvt_pi64_ps(const sg_pi64 a) {
-    #if defined SIMD_GRANODI_FORCE_GENERIC
+    // msvc doesn't have _mm_cvtsi64_ss()
+    #ifdef SIMD_GRANODI_FORCE_GENERIC
     sg_ps result;
     result.f0 = (float) a.l0; result.f1 = (float) a.l1;
     result.f2 = 0.0f; result.f3 = 0.0f;
@@ -2130,7 +2135,7 @@ static inline sg_ps sg_cvt_pi64_ps(const sg_pi64 a) {
 
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_pd sg_cvt_pi64_pd(const sg_pi64 a) {
-    #if defined SIMD_GRANODI_FORCE_GENERIC
+    #ifdef SIMD_GRANODI_FORCE_GENERIC
     sg_pd result;
     result.d0 = (double) a.l0; result.d1 = (double) a.l1;
     return result;
