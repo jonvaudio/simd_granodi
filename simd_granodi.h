@@ -4724,80 +4724,88 @@ static inline sg_pd sg_constrain_pd(const sg_pd lowerb,
 }
 
 // Disable denormals
+// There was an issue with clang moving the ldmxcsr instruction
+// across signal fences (even with std::atomic etc)
+// So I have taken the step of forcing off optimization for setting &
+// getting the FP status across the 3 major compilers to be sure.
 
-#ifdef __clang__
-#define SG_NO_OPT_FUNCTION __attribute__((optnone))
-#elif defined __GNUC__
-#define SG_NO_OPT_FUNCTION __attribute__((optimize("-O0")))
-#elif defined _MSC_VER
-// todo:
-// https://docs.microsoft.com/en-us/cpp/preprocessor/optimize?redirectedfrom=MSDN&view=msvc-170
-#define SG_NO_OPT_FUNCTION __declspec(noinline)
-#else
-#error "Can't prevent fp status optimization"
+#ifdef SIMD_GRANODI_ARCH_ARM32
+typedef uint32_t sg_fp_status;
+#elif defined SIMD_GRANODI_ARCH_ARM64
+typedef uint64_t sg_fp_status;
+#elif defined SIMD_GRANODI_ARCH_SSE
+// Same size on x86 and x64
+typedef uint32_t sg_fp_status;
 #endif
 
-#ifdef SIMD_GRANODI_ARCH_SSE
-typedef uint32_t sg_fp_status;
+#ifdef __clang__
+#define SG_NO_OPT_FUNCTION __attribute__((noinline, optnone))
+#elif defined __GNUC__
+#define SG_NO_OPT_FUNCTION __attribute__((noinline, optimize("-O0")))
+#elif defined _MSC_VER
+#define SG_NO_OPT_FUNCTION __declspec(noinline)
+#endif
 
+#ifdef _MSC_VER
+// see:
+// https://docs.microsoft.com/en-us/cpp/preprocessor/optimize?redirectedfrom=MSDN&view=msvc-170
+#pragma optimize("", off)
+#endif
+
+#ifdef SG_NO_OPT_FUNCTION
 SG_NO_OPT_FUNCTION
-static sg_fp_status sg_disable_denormals() {
+#endif
+static sg_fp_status sg_get_fp_status() {
+    #if defined SIMD_GRANODI_ARCH_ARM32 || defined SIMD_GRANODI_ARCH_ARM64
+    sg_fp_status fp_status = 0;
+    #endif
+    #ifdef SIMD_GRANODI_ARCH_ARM32
+    __asm__ volatile("vmrs &0, fpscr" : "=r"(fp_status));
+    #elif defined SIMD_GRANODI_ARCH_ARM64
+    __asm__ volatile("mrs %0, fpcr" : "=r"(fp_status));
+    #elif defined SIMD_GRANODI_ARCH_SSE
+    return _mm_getcsr();
+    #else
+    return 0;
+    #endif
+}
+
+#ifdef SG_NO_OPT_FUNCTION
+SG_NO_OPT_FUNCTION
+#endif
+static bool sg_set_fp_status(const sg_fp_status fp_status) {
+    #ifdef SIMD_GRANODI_ARCH_ARM32
+    __asm__ volatile("vmsr fpscr, %0" : : "ri"(fp_status));
+    #elif defined SIMD_GRANODI_ARCH_ARM64
+    __asm__ volatile("msr fpcr, %0" : : "ri"(fp_status));
+    #elif defined SIMD_GRANODI_ARCH_SSE
+    _mm_setcsr(fp_status);
+    #else
+    (void) fp_status;
+    #endif
+    return sg_get_fp_status() == fp_status;
+}
+
+#ifdef SG_NO_OPT_FUNCTION
+SG_NO_OPT_FUNCTION
+#endif
+static inline sg_fp_status sg_disable_denormals() {
+    sg_fp_status previous_fp_status = sg_get_fp_status();
+    #if defined SIMD_GRANODI_ARCH_ARM64 || SIMD_GRANODI_ARCH_ARM32
+    sg_set_fp_status(previous_fp_status | 0x1000000);
+    #elif defined SIMD_GRANODI_ARCH_SSE
     // flush_to_zero:
     //     "sets denormal results from floating-point calculations to zero"
     // denormals_are_zero:
-    //     "treats denormal values used as input to floating-point instructions
-    //     as zero"
-    const sg_fp_status flush_to_zero = 0x8000,
-        denormals_are_zero = 0x40,
-        previous_status = _mm_getcsr();
-    _mm_setcsr(previous_status | flush_to_zero | denormals_are_zero);
-    return previous_status;
+    //     "treats denormal values used as input to floating-point
+    //     instructions as zero"
+    //const sg_fp_status flush_to_zero = 0x8000, denormals_are_zero = 0x40;
+    sg_set_fp_status(previous_fp_status | 0x8040);
+    #endif
+    return previous_fp_status;
 }
-SG_NO_OPT_FUNCTION
-static void sg_restore_fp_status_after_denormals_disabled(
-    const sg_fp_status previous_status)
-{
-    _mm_setcsr(previous_status);
-}
-
-#elif defined SIMD_GRANODI_ARCH_ARM32
-typedef uint32_t sg_fp_status;
-static inline void sg_set_fp_status_arm_(const sg_fp_status fp_status) {
-    __asm__ volatile("vmsr fpscr, %0" : : "ri"(fp_status));
-}
-
-static inline sg_fp_status sg_get_fp_status_arm_() {
-    sg_fp_status fp_status = 0;
-    __asm__ volatile("vmrs &0, fpscr" : "=r"(fpsr));
-}
-
-#elif defined SIMD_GRANODI_ARCH_ARM64
-typedef uint64_t sg_fp_status;
-static inline void sg_set_fp_status_arm_(const sg_fp_status fp_status) {
-    __asm__ volatile("msr fpcr, %0" : : "ri"(fp_status));
-}
-
-static inline sg_fp_status sg_get_fp_status_arm_() {
-    sg_fp_status fp_status = 0;
-    __asm__ volatile("mrs %0, fpcr" : "=r"(fp_status));
-    return fp_status;
-}
-
-#endif
-
-#if defined SIMD_GRANODI_ARCH_ARM64 || SIMD_GRANODI_ARCH_ARM32
-SG_NO_OPT_FUNCTION
-static sg_fp_status sg_disable_denormals() {
-    const sg_fp_status old_fp_status = sg_get_fp_status_arm_();
-    sg_set_fp_status_arm_(old_fp_status | 0x1000000);
-    return old_fp_status;
-}
-SG_NO_OPT_FUNCTION
-static void sg_restore_fp_status_after_denormals_disabled(
-    const sg_fp_status previous_status)
-{
-    sg_set_fp_status_arm_(previous_status);
-}
+#ifdef _MSC_VER
+#pragma optimize("", on)
 #endif
 
 #ifdef __cplusplus
@@ -4814,13 +4822,13 @@ namespace simd_granodi {
     defined SIMD_GRANODI_ARCH_ARM64 || \
     defined SIMD_GRANODI_ARCH_ARM32
 class ScopedDenormalsDisable {
-    sg_fp_status fp_status_;
+    std::atomic<sg_fp_status> fp_status_;
 public:
     ScopedDenormalsDisable() {
         fp_status_ = sg_disable_denormals();
     }
     ~ScopedDenormalsDisable() {
-        sg_restore_fp_status_after_denormals_disabled(fp_status_);
+        sg_set_fp_status(fp_status_);
     }
 };
 #endif

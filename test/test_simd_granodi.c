@@ -1062,7 +1062,7 @@ void test_denormals() {
     #ifdef __cplusplus
     }
     #else
-    sg_restore_fp_status_after_denormals_disabled(previous_status);
+    sg_set_fp_status(previous_status);
     #endif
 
     // Write a slightly different denormal value
