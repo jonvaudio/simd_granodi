@@ -4828,7 +4828,7 @@ public:
         fp_status_ = sg_disable_denormals();
     }
     ~ScopedDenormalsDisable() {
-        sg_set_fp_status(fp_status_);
+        (void) sg_set_fp_status(fp_status_);
     }
 };
 #endif
