@@ -4761,18 +4761,15 @@ typedef uint32_t sg_fp_status;
 SG_NO_OPT_FUNCTION
 #endif
 static sg_fp_status sg_get_fp_status() {
-    #if defined SIMD_GRANODI_ARCH_ARM32 || defined SIMD_GRANODI_ARCH_ARM64
     sg_fp_status fp_status = 0;
-    #endif
     #ifdef SIMD_GRANODI_ARCH_ARM32
     __asm__ volatile("vmrs &0, fpscr" : "=r"(fp_status));
     #elif defined SIMD_GRANODI_ARCH_ARM64
     __asm__ volatile("mrs %0, fpcr" : "=r"(fp_status));
     #elif defined SIMD_GRANODI_ARCH_SSE
-    return _mm_getcsr();
-    #else
-    return 0;
+    fp_status = _mm_getcsr();
     #endif
+    return fp_status;
 }
 #ifdef SG_NO_OPT_FUNCTION
 SG_NO_OPT_FUNCTION
