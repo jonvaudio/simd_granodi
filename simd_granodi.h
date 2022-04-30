@@ -4792,7 +4792,7 @@ static bool sg_set_fp_status(const sg_fp_status fp_status) {
 #ifdef SG_NO_OPT_FUNCTION
 SG_NO_OPT_FUNCTION
 #endif
-static inline sg_fp_status sg_disable_denormals() {
+static sg_fp_status sg_disable_denormals() {
     sg_fp_status previous_fp_status = sg_get_fp_status();
     #if defined SIMD_GRANODI_ARCH_ARM64 || SIMD_GRANODI_ARCH_ARM32
     sg_set_fp_status(previous_fp_status | 0x1000000);
