@@ -4769,7 +4769,6 @@ static sg_fp_status sg_get_fp_status() {
     return 0;
     #endif
 }
-
 #ifdef SG_NO_OPT_FUNCTION
 SG_NO_OPT_FUNCTION
 #endif
@@ -4785,7 +4784,6 @@ static bool sg_set_fp_status(const sg_fp_status fp_status) {
     #endif
     return sg_get_fp_status() == fp_status;
 }
-
 #ifdef SG_NO_OPT_FUNCTION
 SG_NO_OPT_FUNCTION
 #endif
