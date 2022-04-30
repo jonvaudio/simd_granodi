@@ -327,7 +327,7 @@ void test_get() {
 
 
     // Check SSE2 rounding
-    #if defined SIMD_GRANODI_SSE2
+    #if defined SIMD_GRANODI_SSE2 && !defined _MSC_VER
     sg_assert(_mm_cvtsd_si64(_mm_set_pd(0.0, -1.7)) == -2);
     sg_assert(_mm_cvtss_si32(_mm_set_ps(0.0f, 0.0f, 0.0f, -1.7f)) == -2);
     #endif
@@ -1021,8 +1021,14 @@ void test_constrain() {
     //printf("Constrain test succeeded\n");
 }
 
+#ifdef __cplusplus
+// Volatile wasn't strict enough for C++ with some compilers
+static std::atomic<float> denormal_f;
+static std::atomic<double> denormal_d;
+#else
 static volatile float denormal_f;
 static volatile double denormal_d;
+#endif
 
 void test_denormals() {
     // Testing denormals is complicated for an optimized build, as the
@@ -1056,7 +1062,7 @@ void test_denormals() {
     #ifdef __cplusplus
     }
     #else
-    sg_restore_fp_status_after_denormals_disabled(previous_status);
+    sg_set_fp_status(previous_status);
     #endif
 
     // Write a slightly different denormal value

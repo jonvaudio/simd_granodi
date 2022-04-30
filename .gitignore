@@ -1,0 +1,5 @@
+.DS_Store
+*.opendb
+/test/test_simd_granodi_msvc/Debug
+/test/test_simd_granodi_msvc/x64
+/test/test_simd_granodi_msvc/.vs
