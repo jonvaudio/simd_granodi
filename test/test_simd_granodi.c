@@ -38,7 +38,6 @@ static void test_cmp();
 static void test_abs_neg();
 static void test_min_max();
 static void test_constrain();
-static void test_denormals();
 
 #ifdef __cplusplus
 static void test_opover();
@@ -64,7 +63,6 @@ int main() {
     test_abs_neg();
     test_min_max();
     test_constrain();
-    test_denormals();
 
     #ifdef __cplusplus
     test_opover();
@@ -1019,62 +1017,6 @@ void test_constrain() {
         sg_set1_pd(4.0)), 3.0, 3.0);
 
     //printf("Constrain test succeeded\n");
-}
-
-#ifdef __cplusplus
-// Volatile wasn't strict enough for C++ with some compilers
-static std::atomic<float> denormal_f;
-static std::atomic<double> denormal_d;
-#else
-static volatile float denormal_f;
-static volatile double denormal_d;
-#endif
-
-void test_denormals() {
-    // Testing denormals is complicated for an optimized build, as the
-    // compiler will eliminate any calculations into a constant, and that
-    // constant will be calculated in an environment where denormals are
-    // enabled.
-
-    // Write largest denormals. Denormals still enabled here, so should
-    // write these values as they are
-    denormal_f = sg_bitcast_u32x1_f32x1(0x007FFFFF);
-    denormal_d = sg_bitcast_u64x1_f64x1(0x000FFFFFFFFFFFFF);
-
-    #ifdef __cplusplus
-    {
-    ScopedDenormalsDisable sdd;
-    #else
-    sg_fp_status previous_status = sg_disable_denormals();
-    #endif
-
-    // If either of the following assertions fail, denormals could not be
-    // disabled on regular float / double scalar code
-    sg_assert(denormal_f == 0.0f);
-    sg_assert(denormal_d == 0.0);
-
-    // If either of the following assertions fail, denormals were successfully
-    // disabled for regular float / double scalar code (due to above
-    // assertions succeeding), but denormals were not disabled for SIMD code.
-    sg_assert(sg_get0_ps(sg_set1_ps(denormal_f)) == 0.0f);
-    sg_assert(sg_get0_pd(sg_set1_pd(denormal_d)) == 0.0);
-
-    #ifdef __cplusplus
-    }
-    #else
-    sg_set_fp_status(previous_status);
-    #endif
-
-    // Write a slightly different denormal value
-    denormal_f = sg_bitcast_u32x1_f32x1(0x007FFFFE);
-    denormal_d = sg_bitcast_u64x1_f64x1(0x000FFFFFFFFFFFFE);
-
-    sg_assert(denormal_f != 0.0f);
-    sg_assert(denormal_d != 0.0);
-    sg_assert(sg_get0_ps(sg_set1_ps(denormal_f)) != 0.0f);
-    sg_assert(sg_get0_pd(sg_set1_pd(denormal_d)) != 0.0);
-
-    //printf("Denormal disable test succeeded\n");
 }
 
 #ifdef __cplusplus
