@@ -79,20 +79,9 @@ sg_safediv_pi32
 sg_safediv_pi64
 sg_sra_pi64
 
-PLATFORM DETECTION
-32 bit ARM NEON hardware does not have all the intrinsic instructions used here,
-but can compile using SIMD_GRANODI_FORCE_GENERIC, and can disable denormals.
-
-32-bit x86 can work, but you cannot disable denormal numbers on x87,
-so it is recommended to set your compiler to generate SSE2 code for all floats
-if you wish to disable denormal numbers with mixed intrinsic / scalar code.
-
 TODO:
-- Add class methods for shifting by in-register values
 - Set lane
 - Find efficient right shifting implementations for NEON
-- Add truncate, and round, intrinsics
-- Investigate rounding for sg_cvt_pd_ps()
 - sg_abs_pi64() on SSE2 might be easy to implement in-vector
 - Load / store intrinsics
 
@@ -160,11 +149,7 @@ TODO:
 //#endif
 
 #ifdef SIMD_GRANODI_ARCH_SSE
-#ifdef _MSC_VER
-#include <intrin.h>
-#else
 #include <emmintrin.h>
-#endif
 #elif defined SIMD_GRANODI_NEON
 #include <arm_neon.h>
 #endif
@@ -4728,86 +4713,6 @@ static inline sg_pd sg_constrain_pd(const sg_pd lowerb,
     return sg_min_pd(sg_max_pd(a, lowerb), upperb);
 }
 
-// Disable denormals
-// There was an issue with clang moving the ldmxcsr instruction
-// across signal fences (even with std::atomic etc)
-// So I have taken the step of forcing off optimization for setting &
-// getting the FP status across the 3 major compilers to be sure.
-
-#ifdef SIMD_GRANODI_ARCH_ARM32
-typedef uint32_t sg_fp_status;
-#elif defined SIMD_GRANODI_ARCH_ARM64
-typedef uint64_t sg_fp_status;
-#elif defined SIMD_GRANODI_ARCH_SSE
-// Same size on x86 and x64
-typedef uint32_t sg_fp_status;
-#endif
-
-#ifdef __clang__
-#define SG_NO_OPT_FUNCTION __attribute__((noinline, optnone))
-#elif defined __GNUC__
-#define SG_NO_OPT_FUNCTION __attribute__((noinline, optimize("-O0")))
-#elif defined _MSC_VER
-#define SG_NO_OPT_FUNCTION __declspec(noinline)
-#endif
-
-#ifdef _MSC_VER
-// see:
-// https://docs.microsoft.com/en-us/cpp/preprocessor/optimize?redirectedfrom=MSDN&view=msvc-170
-#pragma optimize("", off)
-#endif
-
-#ifdef SG_NO_OPT_FUNCTION
-SG_NO_OPT_FUNCTION
-#endif
-static sg_fp_status sg_get_fp_status() {
-    sg_fp_status fp_status = 0;
-    #ifdef SIMD_GRANODI_ARCH_ARM32
-    __asm__ volatile("vmrs &0, fpscr" : "=r"(fp_status));
-    #elif defined SIMD_GRANODI_ARCH_ARM64
-    __asm__ volatile("mrs %0, fpcr" : "=r"(fp_status));
-    #elif defined SIMD_GRANODI_ARCH_SSE
-    fp_status = _mm_getcsr();
-    #endif
-    return fp_status;
-}
-#ifdef SG_NO_OPT_FUNCTION
-SG_NO_OPT_FUNCTION
-#endif
-static bool sg_set_fp_status(const sg_fp_status fp_status) {
-    #ifdef SIMD_GRANODI_ARCH_ARM32
-    __asm__ volatile("vmsr fpscr, %0" : : "ri"(fp_status));
-    #elif defined SIMD_GRANODI_ARCH_ARM64
-    __asm__ volatile("msr fpcr, %0" : : "ri"(fp_status));
-    #elif defined SIMD_GRANODI_ARCH_SSE
-    _mm_setcsr(fp_status);
-    #else
-    (void) fp_status;
-    #endif
-    return sg_get_fp_status() == fp_status;
-}
-#ifdef SG_NO_OPT_FUNCTION
-SG_NO_OPT_FUNCTION
-#endif
-static sg_fp_status sg_disable_denormals() {
-    sg_fp_status previous_fp_status = sg_get_fp_status();
-    #if defined SIMD_GRANODI_ARCH_ARM64 || SIMD_GRANODI_ARCH_ARM32
-    sg_set_fp_status(previous_fp_status | 0x1000000);
-    #elif defined SIMD_GRANODI_ARCH_SSE
-    // flush_to_zero:
-    //     "sets denormal results from floating-point calculations to zero"
-    // denormals_are_zero:
-    //     "treats denormal values used as input to floating-point
-    //     instructions as zero"
-    //const sg_fp_status flush_to_zero = 0x8000, denormals_are_zero = 0x40;
-    sg_set_fp_status(previous_fp_status | 0x8040);
-    #endif
-    return previous_fp_status;
-}
-#ifdef _MSC_VER
-#pragma optimize("", on)
-#endif
-
 #ifdef __cplusplus
 
 namespace simd_granodi {
@@ -4817,21 +4722,6 @@ namespace simd_granodi {
 // - Are default constructed to zero
 // - All type casts or type conversions must be explicit
 // - Should never use any SSE2 or NEON types or intrinsics directly
-
-#if defined SIMD_GRANODI_ARCH_SSE || \
-    defined SIMD_GRANODI_ARCH_ARM64 || \
-    defined SIMD_GRANODI_ARCH_ARM32
-class ScopedDenormalsDisable {
-    std::atomic<sg_fp_status> fp_status_;
-public:
-    ScopedDenormalsDisable() {
-        fp_status_ = sg_disable_denormals();
-    }
-    ~ScopedDenormalsDisable() {
-        (void) sg_set_fp_status(fp_status_);
-    }
-};
-#endif
 
 class Compare_pi32; class Compare_pi64; class Compare_ps; class Compare_pd;
 class Vec_pi32; class Vec_pi64; class Vec_ps; class Vec_pd;
