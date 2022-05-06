@@ -1025,6 +1025,26 @@ static void test_opover() {
     // These tests do not test the implementation, only that the operator
     // overloads call the correct C functions
 
+    sg_assert(Vec_pi32::elem_size == 4);
+    sg_assert(Vec_pi32::elem_count == 4);
+    sg_assert(Vec_s32x1::elem_size == 4);
+    sg_assert(Vec_s32x1::elem_count == 1);
+
+    sg_assert(Vec_pi64::elem_size == 8);
+    sg_assert(Vec_pi64::elem_count == 2);
+    sg_assert(Vec_s64x1::elem_size == 8);
+    sg_assert(Vec_s64x1::elem_count == 1);
+
+    sg_assert(Vec_ps::elem_size == 4);
+    sg_assert(Vec_ps::elem_count == 4);
+    sg_assert(Vec_f32x1::elem_size == 4);
+    sg_assert(Vec_f32x1::elem_count == 1);
+
+    sg_assert(Vec_pd::elem_size == 8);
+    sg_assert(Vec_pd::elem_count == 2);
+    sg_assert(Vec_f64x1::elem_size == 8);
+    sg_assert(Vec_f64x1::elem_count == 1);
+
     // Constructors and some getters
     sg_assert(Vec_pi32{}.debug_eq(0)); sg_assert(Vec_pi64{}.debug_eq(0));
     sg_assert(Vec_ps{}.debug_eq(0.f)); sg_assert(Vec_pd{}.debug_eq(0.0));
@@ -1048,7 +1068,8 @@ static void test_opover() {
     sg_assert(Vec_pi32::bitcast_from_u32(5, 4, 3, 2).debug_eq(5, 4, 3, 2));
     sg_assert(Vec_pi64::bitcast_from_u64(5).debug_eq(5));
     sg_assert(Vec_pi64::bitcast_from_u64(5, 4).debug_eq(5, 4));
-    sg_assert(Vec_ps::bitcast_from_u32(sg_bitcast_f32x1_u32x1(5.0f)).debug_eq(5.0f));
+    sg_assert(Vec_ps::bitcast_from_u32(sg_bitcast_f32x1_u32x1(5.0f))
+        .debug_eq(5.0f));
     sg_assert(Vec_ps::bitcast_from_u32(sg_bitcast_f32x1_u32x1(5.0f),
         sg_bitcast_f32x1_u32x1(4.0f), sg_bitcast_f32x1_u32x1(3.0f),
         sg_bitcast_f32x1_u32x1(2.0f)).debug_eq(5.0f, 4.0f, 3.0f, 2.0f));

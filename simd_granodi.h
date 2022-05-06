@@ -5032,6 +5032,9 @@ public:
     using vec128_t = Vec_pi32;
     using compare_t = Compare_pi32;
 
+    static constexpr std::size_t elem_size = sizeof(int32_t),
+        elem_count = 4;
+
     static Vec_pi32 bitcast_from_u32(const uint32_t i) {
         return sg_set1_from_u32_pi32(i);
     }
@@ -5250,6 +5253,9 @@ public:
     using vec128_t = Vec_pi64;
     using compare_t = Compare_pi64;
 
+    static constexpr std::size_t elem_size = sizeof(int64_t),
+        elem_count = 2;
+
     static Vec_pi64 bitcast_from_u64(const uint64_t l) {
         return sg_set1_from_u64_pi64(l);
     }
@@ -5466,6 +5472,9 @@ public:
     using scalar_t = Vec_f32x1;
     using vec128_t = Vec_ps;
     using compare_t = Compare_ps;
+
+    static constexpr std::size_t elem_size = sizeof(float),
+        elem_count = 4;
 
     static Vec_ps bitcast_from_u32(const uint32_t i) {
         return sg_set1_from_u32_ps(i);
@@ -5722,6 +5731,9 @@ public:
     using scalar_t = Vec_f64x1;
     using vec128_t = Vec_pd;
     using compare_t = Compare_pd;
+
+    static constexpr size_t elem_size = sizeof(double),
+        elem_count = 2;
 
     static Vec_pd bitcast_from_u64(const uint64_t l) {
         return sg_set1_from_u64_pd(l);
@@ -6405,6 +6417,9 @@ public:
     using vec128_t = Vec_pi32;
     using compare_t = Compare_s32x1;
 
+    static constexpr std::size_t elem_size = sizeof(int32_t),
+        elem_count = 1;
+
     static Vec_s32x1 bitcast_from_u32(const uint32_t i) {
         return sg_bitcast_u32x1_s32x1(i);
     }
@@ -6592,6 +6607,9 @@ public:
     using scalar_t = Vec_s64x1;
     using vec128_t = Vec_pi64;
     using compare_t = Compare_s64x1;
+
+    static constexpr std::size_t elem_size = sizeof(int64_t),
+        elem_count = 1;
 
     static Vec_s64x1 bitcast_from_u64(const uint64_t i) {
         return sg_bitcast_u64x1_s64x1(i);
@@ -6790,6 +6808,9 @@ public:
     using scalar_t = Vec_f32x1;
     using vec128_t = Vec_ps;
     using compare_t = Compare_f32x1;
+
+    static constexpr std::size_t elem_size = sizeof(float),
+        elem_count = 1;
 
     static Vec_f32x1 bitcast_from_u32(const uint32_t i) {
         return sg_bitcast_u32x1_f32x1(i);
@@ -7010,6 +7031,9 @@ public:
     using scalar_t = Vec_f64x1;
     using vec128_t = Vec_pd;
     using compare_t = Compare_f64x1;
+
+    static constexpr std::size_t elem_size = sizeof(double),
+        elem_count = 1;
 
     double data() const { return data_; }
     double d0() const { return data_; }
