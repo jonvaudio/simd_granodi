@@ -6950,14 +6950,14 @@ public:
     inline Vec_f64x1 bitcast_to_f64() const;
 
     Vec_s32x1 convert_to_nearest_s32() const {
-        return static_cast<int32_t>(std::round(data_));
+        return static_cast<int32_t>(std::rint(data_));
     }
     Vec_s32x1 truncate_to_s32() const { return static_cast<int32_t>(data_); }
     Vec_s32x1 floor_to_s32() const {
         return static_cast<int32_t>(std::floor(data_));
     }
     Vec_s64x1 convert_to_nearest_s64() const {
-        return static_cast<int64_t>(std::round(data_));
+        return static_cast<int64_t>(std::rint(data_));
     }
     Vec_s64x1 truncate_to_s64() const {
         return static_cast<int64_t>(data_);
@@ -7173,14 +7173,14 @@ public:
     Vec_f64x1 bitcast_to_f64() const { return *this; }
 
     Vec_s32x1 convert_to_nearest_s32() const {
-        return static_cast<int32_t>(std::round(data_));
+        return static_cast<int32_t>(std::rint(data_));
     }
     Vec_s32x1 truncate_to_s32() const { return static_cast<int32_t>(data_); }
     Vec_s32x1 floor_to_s32() const {
         return static_cast<int32_t>(std::floor(data_));
     }
     Vec_s64x1 convert_to_nearest_s64() const {
-        return static_cast<int64_t>(std::round(data_));
+        return static_cast<int64_t>(std::rint(data_));
     }
     Vec_s64x1 truncate_to_s64() const {
         return static_cast<int64_t>(data_);
