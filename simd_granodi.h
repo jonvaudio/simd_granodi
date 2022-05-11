@@ -5032,6 +5032,12 @@ public:
     using vec128_t = Vec_pi32;
     using compare_t = Compare_pi32;
 
+    using equiv_int_t = Vec_pi32;
+    using fast_int_t = Vec_pi32;
+    using equiv_float_t = Vec_ps;
+
+    static constexpr bool is_int_t = true, is_float_t = false;
+
     static constexpr std::size_t elem_size = sizeof(int32_t),
         elem_count = 4;
 
@@ -5253,6 +5259,16 @@ public:
     using vec128_t = Vec_pi64;
     using compare_t = Compare_pi64;
 
+    using equiv_int_t = Vec_pi64;
+    #ifdef SIMD_GRANODI_SSE2
+    using fast_int_t = Vec_pi32;
+    #else
+    using fast_int_t = Vec_pi64;
+    #endif
+    using equiv_float_t = Vec_pd;
+
+    static constexpr bool is_int_t = true, is_float_t = false;
+
     static constexpr std::size_t elem_size = sizeof(int64_t),
         elem_count = 2;
 
@@ -5472,6 +5488,12 @@ public:
     using scalar_t = Vec_f32x1;
     using vec128_t = Vec_ps;
     using compare_t = Compare_ps;
+
+    using equiv_int_t = Vec_pi32;
+    using fast_int_t = Vec_pi32;
+    using equiv_float_t = Vec_ps;
+
+    static constexpr bool is_int_t = false, is_float_t = true;
 
     static constexpr std::size_t elem_size = sizeof(float),
         elem_count = 4;
@@ -5731,6 +5753,16 @@ public:
     using scalar_t = Vec_f64x1;
     using vec128_t = Vec_pd;
     using compare_t = Compare_pd;
+
+    using equiv_int_t = Vec_pi64;
+    #ifdef SIMD_GRANODI_SSE2
+    using fast_int_t = Vec_pi32;
+    #else
+    using fast_int_t = Vec_pi64;
+    #endif
+    using equiv_float_t = Vec_pd;
+
+    static constexpr bool is_int_t = false, is_float_t = true;
 
     static constexpr size_t elem_size = sizeof(double),
         elem_count = 2;
@@ -6417,6 +6449,12 @@ public:
     using vec128_t = Vec_pi32;
     using compare_t = Compare_s32x1;
 
+    using equiv_int_t = Vec_s32x1;
+    using fast_int_t = Vec_s32x1;
+    using equiv_float_t = Vec_f32x1;
+
+    static constexpr bool is_int_t = true, is_float_t = false;
+
     static constexpr std::size_t elem_size = sizeof(int32_t),
         elem_count = 1;
 
@@ -6607,6 +6645,12 @@ public:
     using scalar_t = Vec_s64x1;
     using vec128_t = Vec_pi64;
     using compare_t = Compare_s64x1;
+
+    using equiv_int_t = Vec_s64x1;
+    using fast_int_t = Vec_s64x1;
+    using equiv_float_t = Vec_f64x1;
+
+    static constexpr bool is_int_t = true, is_float_t = false;
 
     static constexpr std::size_t elem_size = sizeof(int64_t),
         elem_count = 1;
@@ -6808,6 +6852,12 @@ public:
     using scalar_t = Vec_f32x1;
     using vec128_t = Vec_ps;
     using compare_t = Compare_f32x1;
+
+    using equiv_int_t = Vec_s32x1;
+    using fast_int_t = Vec_s32x1;
+    using equiv_float_t = Vec_f32x1;
+
+    static constexpr bool is_int_t = false, is_float_t = true;
 
     static constexpr std::size_t elem_size = sizeof(float),
         elem_count = 1;
@@ -7031,6 +7081,12 @@ public:
     using scalar_t = Vec_f64x1;
     using vec128_t = Vec_pd;
     using compare_t = Compare_f64x1;
+
+    using equiv_int_t = Vec_s64x1;
+    using fast_int_t = Vec_s64x1;
+    using equiv_float_t = Vec_f64x1;
+
+    static constexpr bool is_int_t = false, is_float_t = true;
 
     static constexpr std::size_t elem_size = sizeof(double),
         elem_count = 1;
