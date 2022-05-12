@@ -4732,6 +4732,21 @@ class Vec_s32x1; class Vec_s64x1; class Vec_f32x1; class Vec_f64x1;
 class Compare_s32x1; class Compare_s64x1;
 class Compare_f32x1; class Compare_f64x1;
 
+template <typename From, typename To>
+inline To sg_convert(const From& x);
+
+template <typename From, typename To>
+inline To sg_convert_nearest(const From& x);
+
+template <typename From, typename To>
+inline To sg_convert_truncate(const From& x);
+
+template <typename From, typename To>
+inline To sg_convert_floor(const From& x);
+
+template <typename From, typename To>
+inline To sg_bitcast(const From& x);
+
 class Compare_pi32 {
     sg_cmp_pi32 data_;
 public:
@@ -4766,20 +4781,12 @@ public:
         return debug_valid_eq(b, b, b, b);
     }
 
-    Compare_pi32 convert_to_cmp_s32() const { return *this; }
-    inline Compare_pi64 convert_to_cmp_s64() const;
-    inline Compare_ps convert_to_cmp_f32() const;
-    inline Compare_pd convert_to_cmp_f64() const;
-
-    static Compare_pi32 from(const Compare_pi32& cmp) { return cmp; }
-    static inline Compare_pi32 from(const Compare_pi64& cmp);
-    static inline Compare_pi32 from(const Compare_ps& cmp);
-    static inline Compare_pi32 from(const Compare_pd& cmp);
-
-    static inline Compare_pi32 from(const Compare_s32x1& cmp);
-    static inline Compare_pi32 from(const Compare_s64x1& cmp);
-    static inline Compare_pi32 from(const Compare_f32x1& cmp);
-    static inline Compare_pi32 from(const Compare_f64x1& cmp);
+    template <typename To>
+    To to() const { return sg_convert<Compare_pi32, To>(*this); }
+    template <typename From>
+    static Compare_pi32 from(const From& x) {
+        return sg_convert<From, Compare_pi32>(x);
+    }
 
     inline Vec_pi32 choose_else_zero(const Vec_pi32& if_true) const;
     inline Vec_pi32 choose(const Vec_pi32& if_true,
@@ -4826,22 +4833,12 @@ public:
     }
     bool debug_valid_eq(const bool b) const { return debug_valid_eq(b, b); }
 
-    inline Compare_pi32 convert_to_cmp_s32() const;
-    Compare_pi64 convert_to_cmp_s64() const { return *this; }
-    inline Compare_ps convert_to_cmp_f32() const;
-    inline Compare_pd convert_to_cmp_f64() const;
-
-    static Compare_pi64 from(const Compare_pi32& cmp) {
-        return sg_cvtcmp_pi32_pi64(cmp.data());
+    template <typename To>
+    To to() const { return sg_convert<Compare_pi64, To>(*this); }
+    template <typename From>
+    static Compare_pi64 from(const From& x) {
+        return sg_convert<From, Compare_pi64>(x);
     }
-    static Compare_pi64 from(const Compare_pi64& cmp) { return cmp; }
-    static inline Compare_pi64 from(const Compare_ps& cmp);
-    static inline Compare_pi64 from(const Compare_pd& cmp);
-
-    static inline Compare_pi64 from(const Compare_s32x1& cmp);
-    static inline Compare_pi64 from(const Compare_s64x1& cmp);
-    static inline Compare_pi64 from(const Compare_f32x1& cmp);
-    static inline Compare_pi64 from(const Compare_f64x1& cmp);
 
     inline Vec_pi64 choose_else_zero(const Vec_pi64& if_true) const;
     inline Vec_pi64 choose(const Vec_pi64& if_true,
@@ -4889,24 +4886,12 @@ public:
     }
     bool debug_valid_eq(const bool b) { return debug_valid_eq(b, b, b, b); }
 
-    inline Compare_pi32 convert_to_cmp_s32() const;
-    inline Compare_pi64 convert_to_cmp_s64() const;
-    Compare_ps convert_to_cmp_f32() const { return *this; }
-    inline Compare_pd convert_to_cmp_f64() const;
-
-    static Compare_ps from(const Compare_pi32& cmp) {
-        return sg_cvtcmp_pi32_ps(cmp.data());
+    template <typename To>
+    To to() const { return sg_convert<Compare_ps, To>(*this); }
+    template <typename From>
+    static Compare_ps from(const From& x) {
+        return sg_convert<From, Compare_ps>(x);
     }
-    static Compare_ps from(const Compare_pi64& cmp) {
-        return sg_cvtcmp_pi64_ps(cmp.data());
-    }
-    static Compare_ps from(const Compare_ps& cmp) { return cmp; }
-    static inline Compare_ps from(const Compare_pd& cmp);
-
-    static inline Compare_ps from(const Compare_s32x1& cmp);
-    static inline Compare_ps from(const Compare_s64x1& cmp);
-    static inline Compare_ps from(const Compare_f32x1& cmp);
-    static inline Compare_ps from(const Compare_f64x1& cmp);
 
     inline Vec_ps choose_else_zero(const Vec_ps& if_true) const;
     inline Vec_ps choose(const Vec_ps& if_true, const Vec_ps& if_false) const;
@@ -4951,26 +4936,12 @@ public:
     }
     bool debug_valid_eq(const bool b) const { return debug_valid_eq(b, b); }
 
-    inline Compare_pi32 convert_to_cmp_s32() const;
-    inline Compare_pi64 convert_to_cmp_s64() const;
-    inline Compare_ps convert_to_cmp_f32() const;
-    Compare_pd convert_to_cmp_f64() const { return *this; }
-
-    static Compare_pd from(const Compare_pi32& cmp) {
-        return sg_cvtcmp_pi32_pd(cmp.data());
+    template <typename To>
+    To to() const { return sg_convert<Compare_pd, To>(*this); }
+    template <typename From>
+    static Compare_pd from(const From& x) {
+        return sg_convert<From, Compare_pd>(x);
     }
-    static Compare_pd from(const Compare_pi64& cmp) {
-        return sg_cvtcmp_pi64_pd(cmp.data());
-    }
-    static Compare_pd from(const Compare_ps& cmp) {
-        return sg_cvtcmp_ps_pd(cmp.data());
-    }
-    static inline Compare_pd from(const Compare_pd& cmp) { return cmp; }
-
-    static inline Compare_pd from(const Compare_s32x1& cmp);
-    static inline Compare_pd from(const Compare_s64x1& cmp);
-    static inline Compare_pd from(const Compare_f32x1& cmp);
-    static inline Compare_pd from(const Compare_f64x1& cmp);
 
     inline Vec_pd choose_else_zero(const Vec_pd& if_true) const;
     inline Vec_pd choose(const Vec_pd& if_true, const Vec_pd& if_false) const;
@@ -5031,6 +5002,12 @@ public:
     using scalar_t = Vec_s32x1;
     using vec128_t = Vec_pi32;
     using compare_t = Compare_pi32;
+
+    using equiv_int_t = Vec_pi32;
+    using fast_int_t = Vec_pi32;
+    using equiv_float_t = Vec_ps;
+
+    static constexpr bool is_int_t = true, is_float_t = false;
 
     static constexpr std::size_t elem_size = sizeof(int32_t),
         elem_count = 4;
@@ -5219,21 +5196,19 @@ public:
         return (Vec_pi32{data_} == pi32).debug_valid_eq(true);
     }
 
-    Vec_pi32 bitcast_to_s32() const { return *this; }
-    inline Vec_pi64 bitcast_to_s64() const;
-    inline Vec_ps bitcast_to_f32() const;
-    inline Vec_pd bitcast_to_f64() const;
+    template <typename To>
+    To to() const { return sg_convert<Vec_pi32, To>(*this); }
+    template <typename From>
+    static Vec_pi32 from(const From& x) {
+        return sg_convert<From, Vec_pi32>(x);
+    }
 
-    Vec_pi32 convert_to_s32() const { return *this; }
-    inline Vec_pi64 convert_to_s64() const;
-    inline Vec_ps convert_to_f32() const;
-    inline Vec_pd convert_to_f64() const;
-
-    static Vec_pi32 from(const Vec_pi32& pi32) { return pi32; }
-    static inline Vec_pi32 from(const Vec_pi64& pi64);
-
-    static inline Vec_pi32 from(const Vec_s32x1& s32);
-    static inline Vec_pi32 from(const Vec_s64x1& s64);
+    template <typename To>
+    To bitcast() const { return sg_bitcast<Vec_pi32, To>(*this); }
+    template <typename From>
+    static Vec_pi32 bitcast_from(const From& x) {
+        return sg_bitcast<From, Vec_pi32>(x);
+    }
 };
 
 class Vec_pi64 {
@@ -5252,6 +5227,16 @@ public:
     using scalar_t = Vec_s64x1;
     using vec128_t = Vec_pi64;
     using compare_t = Compare_pi64;
+
+    using equiv_int_t = Vec_pi64;
+    #ifdef SIMD_GRANODI_SSE2
+    using fast_int_t = Vec_pi32;
+    #else
+    using fast_int_t = Vec_pi64;
+    #endif
+    using equiv_float_t = Vec_pd;
+
+    static constexpr bool is_int_t = true, is_float_t = false;
 
     static constexpr std::size_t elem_size = sizeof(int64_t),
         elem_count = 2;
@@ -5434,23 +5419,19 @@ public:
         return (Vec_pi64{data_} == pi64).debug_valid_eq(true);
     }
 
-    inline Vec_pi32 bitcast_to_s32() const;
-    Vec_pi64 bitcast_to_s64() const { return *this; }
-    inline Vec_ps bitcast_to_f32() const;
-    inline Vec_pd bitcast_to_f64() const;
-
-    inline Vec_pi32 convert_to_s32() const;
-    Vec_pi64 convert_to_s64() const { return *this; }
-    inline Vec_ps convert_to_f32() const;
-    inline Vec_pd convert_to_f64() const;
-
-    static Vec_pi64 from(const Vec_pi32& pi32) {
-        return sg_cvt_pi32_pi64(pi32.data());
+    template <typename To>
+    To to() const { return sg_convert<Vec_pi64, To>(*this); }
+    template <typename From>
+    static Vec_pi64 from(const From& x) {
+        return sg_convert<From, Vec_pi64>(x);
     }
-    static Vec_pi64 from(const Vec_pi64& pi64) { return pi64; }
 
-    static inline Vec_pi64 from(const Vec_s32x1& s32);
-    static inline Vec_pi64 from(const Vec_s64x1& s64);
+    template <typename To>
+    To bitcast() const { return sg_bitcast<Vec_pi64, To>(*this); }
+    template <typename From>
+    static Vec_pi64 bitcast_from(const From& x) {
+        return sg_bitcast<From, Vec_pi64>(x);
+    }
 };
 
 class Vec_ps {
@@ -5472,6 +5453,12 @@ public:
     using scalar_t = Vec_f32x1;
     using vec128_t = Vec_ps;
     using compare_t = Compare_ps;
+
+    using equiv_int_t = Vec_pi32;
+    using fast_int_t = Vec_pi32;
+    using equiv_float_t = Vec_ps;
+
+    static constexpr bool is_int_t = false, is_float_t = true;
 
     static constexpr std::size_t elem_size = sizeof(float),
         elem_count = 4;
@@ -5618,67 +5605,30 @@ public:
     }
     bool debug_eq(const float f) const { return debug_eq(f, f, f, f); }
     bool debug_eq(const Vec_ps& ps) const {
-        return (bitcast_to_s32() == ps.bitcast_to_s32()).debug_valid_eq(true);
+        return (bitcast<Vec_pi32>() == ps.bitcast<Vec_pi32>())
+            .debug_valid_eq(true);
     }
 
-    inline Vec_pi32 bitcast_to_s32() const;
-    inline Vec_pi64 bitcast_to_s64() const;
-    Vec_ps bitcast_to_f32() const { return *this; }
-    inline Vec_pd bitcast_to_f64() const;
+    template <typename To>
+    To to() const { return sg_convert<Vec_ps, To>(*this); }
 
-    inline Vec_pi32 convert_to_nearest_s32() const;
-    inline Vec_pi32 truncate_to_s32() const;
-    inline Vec_pi32 floor_to_s32() const;
-    inline Vec_pi64 convert_to_nearest_s64() const;
-    inline Vec_pi64 truncate_to_s64() const;
-    inline Vec_pi64 floor_to_s64() const;
-    Vec_ps convert_to_f32() const { return *this; }
-    inline Vec_pd convert_to_f64() const;
+    template <typename To>
+    To nearest() const { return sg_convert_nearest<Vec_ps, To>(*this); }
+    template <typename To>
+    To truncate() const { return sg_convert_truncate<Vec_ps, To>(*this); }
+    template <typename To>
+    To floor() const { return sg_convert_floor<Vec_ps, To>(*this); }
 
-    static Vec_ps from(const Vec_pi32& pi32) {
-        return sg_cvt_pi32_ps(pi32.data());
-    }
-    static Vec_ps from(const Vec_pi64& pi64) {
-        return sg_cvt_pi64_ps(pi64.data());
-    }
-    static Vec_ps from(const Vec_ps& ps) { return ps; }
-    static inline Vec_ps from(const Vec_pd& pd);
-
-    static inline Vec_ps from(const Vec_s32x1& s32);
-    static inline Vec_ps from(const Vec_s64x1& s64);
-    static inline Vec_ps from(const Vec_f32x1& f32);
-    static inline Vec_ps from(const Vec_f64x1& f64);
-
-    // exponent_frexp() version is equivalent to C standard lib, and computes
-    // exponent + 1 for some reason
-    Vec_pi32 exponent_frexp() const {
-        return sg_sub_pi32(sg_and_pi32(
-            sg_srl_imm_pi32(sg_bitcast_ps_pi32(data_), 23),
-                sg_set1_pi32(0xff)), sg_set1_pi32(126));
-    }
-    Vec_pi32 exponent_frexp_s32() const { return exponent_frexp(); }
-    Vec_pi32 exponent() const {
-        return sg_sub_pi32(sg_and_pi32(
-            sg_srl_imm_pi32(sg_bitcast_ps_pi32(data_), 23),
-                sg_set1_pi32(0xff)), sg_set1_pi32(127));
-    }
-    Vec_pi32 exponent_s32() const { return exponent(); }
-    // mantissa_frexp() computes half the mantissa
-    Vec_ps mantissa_frexp() const {
-        return sg_bitcast_pi32_ps(sg_or_pi32(sg_and_pi32(
-            sg_bitcast_ps_pi32(data_), sg_set1_pi32(0x807fffff)),
-            sg_set1_pi32(0x3f000000)));
-    }
-    Vec_ps mantissa() const {
-        return sg_bitcast_pi32_ps(sg_or_pi32(sg_and_pi32(
-            sg_bitcast_ps_pi32(data_), sg_set1_pi32(0x807fffff)),
-            sg_set1_pi32(0x3f800000)));
+    template <typename From>
+    static Vec_ps from(const From& x) {
+        return sg_convert<From, Vec_ps>(x);
     }
 
-    // Adds e to the existing exponent
-    Vec_ps ldexp(const Vec_pi32& e) const {
-        return sg_bitcast_pi32_ps(sg_add_pi32(sg_bitcast_ps_pi32(data_),
-            sg_sl_imm_pi32(e.data(), 23)));
+    template <typename To>
+    To bitcast() const { return sg_bitcast<Vec_ps, To>(*this); }
+    template <typename From>
+    static Vec_ps bitcast_from(const From& x) {
+        return sg_bitcast<From, Vec_ps>(x);
     }
 
     Vec_ps std_log() const {
@@ -5731,6 +5681,16 @@ public:
     using scalar_t = Vec_f64x1;
     using vec128_t = Vec_pd;
     using compare_t = Compare_pd;
+
+    using equiv_int_t = Vec_pi64;
+    #ifdef SIMD_GRANODI_SSE2
+    using fast_int_t = Vec_pi32;
+    #else
+    using fast_int_t = Vec_pi64;
+    #endif
+    using equiv_float_t = Vec_pd;
+
+    static constexpr bool is_int_t = false, is_float_t = true;
 
     static constexpr size_t elem_size = sizeof(double),
         elem_count = 2;
@@ -5871,69 +5831,30 @@ public:
     }
     bool debug_eq(const double d) const { return debug_eq(d, d); }
     bool debug_eq(const Vec_pd& pd) const {
-        return (bitcast_to_s64() == pd.bitcast_to_s64()).debug_valid_eq(true);
+        return (bitcast<Vec_pi64>() == pd.bitcast<Vec_pi64>())
+            .debug_valid_eq(true);
     }
 
-    inline Vec_pi32 bitcast_to_s32() const;
-    inline Vec_pi64 bitcast_to_s64() const;
-    inline Vec_ps bitcast_to_f32() const;
-    Vec_pd bitcast_to_f64() const { return *this; }
+    template <typename To>
+    To to() const { return sg_convert<Vec_pd, To>(*this); }
+    template <typename To>
+    To nearest() const { return sg_convert_nearest<Vec_pd, To>(*this); }
+    template <typename To>
+    To truncate() const { return sg_convert_truncate<Vec_pd, To>(*this); }
+    template <typename To>
+    To floor() const { return sg_convert_floor<Vec_pd, To>(*this); }
 
-    inline Vec_pi32 convert_to_nearest_s32() const;
-    inline Vec_pi32 truncate_to_s32() const;
-    inline Vec_pi32 floor_to_s32() const;
-    inline Vec_pi64 convert_to_nearest_s64() const;
-    inline Vec_pi64 truncate_to_s64() const;
-    inline Vec_pi64 floor_to_s64() const;
-    inline Vec_ps convert_to_f32() const;
-    Vec_pd convert_to_f64() const { return *this; }
-
-    static Vec_pd from(const Vec_pi32& pi32) {
-        return sg_cvt_pi32_pd(pi32.data());
-    }
-    static Vec_pd from(const Vec_pi64& pi64) {
-        return sg_cvt_pi64_pd(pi64.data());
-    }
-    static Vec_pd from(const Vec_ps& ps) {
-        return sg_cvt_ps_pd(ps.data());
-    }
-    static Vec_pd from(const Vec_pd& pd) { return pd; }
-
-    static inline Vec_pd from(const Vec_s32x1& s32);
-    static inline Vec_pd from(const Vec_s64x1& s64);
-    static inline Vec_pd from(const Vec_f32x1& f32);
-    static inline Vec_pd from(const Vec_f64x1& f64);
-
-    Vec_pi64 exponent_frexp() const {
-        return sg_sub_pi64(sg_and_pi64(
-            sg_srl_imm_pi64(sg_bitcast_pd_pi64(data_), 52),
-                sg_set1_pi64(0x7ff)), sg_set1_pi64(1022));
-    }
-    Vec_pi32 exponent_frexp_s32() const {
-        return exponent_frexp().convert_to_s32();
-    }
-    Vec_pi64 exponent() const {
-        return sg_sub_pi64(sg_and_pi64(
-            sg_srl_imm_pi64(sg_bitcast_pd_pi64(data_), 52),
-                sg_set1_pi64(0x7ff)), sg_set1_pi64(1023));
-    }
-    Vec_pi32 exponent_s32() const { return exponent().convert_to_s32(); }
-    Vec_pd mantissa_frexp() const {
-        return sg_bitcast_pi64_pd(sg_or_pi64(sg_and_pi64(
-            sg_bitcast_pd_pi64(data_), sg_set1_pi64(0x800fffffffffffff)),
-            sg_set1_pi64(0x3fe0000000000000)));
-    }
-    Vec_pd mantissa() const {
-        return sg_bitcast_pi64_pd(sg_or_pi64(sg_and_pi64(
-            sg_bitcast_pd_pi64(data_), sg_set1_pi64(0x800fffffffffffff)),
-            sg_set1_pi64(0x3ff0000000000000)));
+    template <typename From>
+    static Vec_pd from(const From& x) {
+        return sg_convert<From, Vec_pd>(x);
     }
 
-    Vec_pd ldexp(const Vec_pi64& e) const {
-        return sg_bitcast_pi64_pd(sg_add_pi64(sg_bitcast_pd_pi64(data_),
-            sg_sl_imm_pi64(e.data(), 52)));
+    template <typename To>
+    To bitcast() const { return sg_bitcast<Vec_pd, To>(*this); }
+    template <typename From>
+    static Vec_pd bitcast_from(const From& x) {
+        return sg_bitcast<From, Vec_pd>(x);
     }
-    Vec_pd ldexp(const Vec_pi32& e) const { return ldexp(e.convert_to_s64()); }
 
     Vec_pd std_log() const {
         return Vec_pd { std::log(sg_get1_pd(data_)),
@@ -5961,26 +5882,6 @@ public:
     }
 };
 
-inline Compare_pi64 Compare_pi32::convert_to_cmp_s64() const {
-    return sg_cvtcmp_pi32_pi64(data_);
-}
-inline Compare_ps Compare_pi32::convert_to_cmp_f32() const {
-    return sg_cvtcmp_pi32_ps(data_);
-}
-inline Compare_pd Compare_pi32::convert_to_cmp_f64() const {
-    return sg_cvtcmp_pi32_pd(data_);
-}
-
-inline Compare_pi32 Compare_pi32::from(const Compare_pi64& cmp) {
-    return sg_cvtcmp_pi64_pi32(cmp.data());
-}
-inline Compare_pi32 Compare_pi32::from(const Compare_ps& cmp) {
-    return sg_cvtcmp_ps_pi32(cmp.data());
-}
-inline Compare_pi32 Compare_pi32::from(const Compare_pd& cmp) {
-    return sg_cvtcmp_pd_pi32(cmp.data());
-}
-
 inline Vec_pi32 Compare_pi32::choose_else_zero(const Vec_pi32& if_true) const {
     return sg_choose_else_zero_pi32(data_, if_true.data());
 }
@@ -5988,23 +5889,6 @@ inline Vec_pi32 Compare_pi32::choose(const Vec_pi32& if_true,
     const Vec_pi32& if_false) const
 {
     return sg_choose_pi32(data_, if_true.data(), if_false.data());
-}
-
-inline Compare_pi32 Compare_pi64::convert_to_cmp_s32() const {
-    return sg_cvtcmp_pi64_pi32(data_);
-}
-inline Compare_ps Compare_pi64::convert_to_cmp_f32() const {
-    return sg_cvtcmp_pi64_ps(data_);
-}
-inline Compare_pd Compare_pi64::convert_to_cmp_f64() const {
-    return sg_cvtcmp_pi64_pd(data_);
-}
-
-inline Compare_pi64 Compare_pi64::from(const Compare_ps& cmp) {
-    return sg_cvtcmp_ps_pi64(cmp.data());
-}
-inline Compare_pi64 Compare_pi64::from(const Compare_pd& cmp) {
-    return sg_cvtcmp_pd_pi64(cmp.data());
 }
 
 inline Vec_pi64 Compare_pi64::choose_else_zero(const Vec_pi64& if_true) const {
@@ -6016,20 +5900,6 @@ inline Vec_pi64 Compare_pi64::choose(const Vec_pi64& if_true,
     return sg_choose_pi64(data_, if_true.data(), if_false.data());
 }
 
-inline Compare_pi32 Compare_ps::convert_to_cmp_s32() const {
-    return sg_cvtcmp_ps_pi32(data_);
-}
-inline Compare_pi64 Compare_ps::convert_to_cmp_s64() const {
-    return sg_cvtcmp_ps_pi64(data_);
-}
-inline Compare_pd Compare_ps::convert_to_cmp_f64() const {
-    return sg_cvtcmp_ps_pd(data_);
-}
-
-inline Compare_ps Compare_ps::from(const Compare_pd& cmp) {
-    return sg_cvtcmp_pd_ps(cmp.data());
-}
-
 inline Vec_ps Compare_ps::choose_else_zero(const Vec_ps& if_true) const {
     return sg_choose_else_zero_ps(data_, if_true.data());
 }
@@ -6039,16 +5909,6 @@ inline Vec_ps Compare_ps::choose(const Vec_ps& if_true,
     return sg_choose_ps(data_, if_true.data(), if_false.data());
 }
 
-inline Compare_pi32 Compare_pd::convert_to_cmp_s32() const {
-    return sg_cvtcmp_pd_pi32(data_);
-}
-inline Compare_pi64 Compare_pd::convert_to_cmp_s64() const {
-    return sg_cvtcmp_pd_pi64(data_);
-}
-inline Compare_ps Compare_pd::convert_to_cmp_f32() const {
-    return sg_cvtcmp_pd_ps(data_);
-}
-
 inline Vec_pd Compare_pd::choose_else_zero(const Vec_pd& if_true) const {
     return sg_choose_else_zero_pd(data_, if_true.data());
 }
@@ -6056,114 +5916,6 @@ inline Vec_pd Compare_pd::choose(const Vec_pd& if_true,
     const Vec_pd& if_false) const
 {
     return sg_choose_pd(data_, if_true.data(), if_false.data());
-}
-
-inline Vec_pi64 Vec_pi32::bitcast_to_s64() const {
-    return sg_bitcast_pi32_pi64(data_);
-}
-inline Vec_ps Vec_pi32::bitcast_to_f32() const {
-    return sg_bitcast_pi32_ps(data_);
-}
-inline Vec_pd Vec_pi32::bitcast_to_f64() const {
-    return sg_bitcast_pi32_pd(data_);
-}
-inline Vec_pi64 Vec_pi32::convert_to_s64() const {
-    return sg_cvt_pi32_pi64(data_);
-}
-inline Vec_ps Vec_pi32::convert_to_f32() const {
-    return sg_cvt_pi32_ps(data_);
-}
-inline Vec_pd Vec_pi32::convert_to_f64() const {
-    return sg_cvt_pi32_pd(data_);
-}
-
-inline Vec_pi32 Vec_pi64::bitcast_to_s32() const {
-    return sg_bitcast_pi64_pi32(data_);
-}
-inline Vec_ps Vec_pi64::bitcast_to_f32() const {
-    return sg_bitcast_pi64_ps(data_);
-}
-inline Vec_pd Vec_pi64::bitcast_to_f64() const {
-    return sg_bitcast_pi64_pd(data_);
-}
-inline Vec_pi32 Vec_pi64::convert_to_s32() const {
-    return sg_cvt_pi64_pi32(data_);
-}
-inline Vec_ps Vec_pi64::convert_to_f32() const {
-    return sg_cvt_pi64_ps(data_);
-}
-inline Vec_pd Vec_pi64::convert_to_f64() const {
-    return sg_cvt_pi64_pd(data_);
-}
-
-inline Vec_pi32 Vec_ps::bitcast_to_s32() const {
-    return sg_bitcast_ps_pi32(data_);
-}
-inline Vec_pi64 Vec_ps::bitcast_to_s64() const {
-    return sg_bitcast_ps_pi64(data_);
-}
-inline Vec_pd Vec_ps::bitcast_to_f64() const {
-    return sg_bitcast_ps_pd(data_);
-}
-inline Vec_pi32 Vec_ps::convert_to_nearest_s32() const {
-    return sg_cvt_ps_pi32(data_);
-}
-inline Vec_pi32 Vec_ps::truncate_to_s32() const {
-    return sg_cvtt_ps_pi32(data_);
-}
-inline Vec_pi32 Vec_ps::floor_to_s32() const {
-    return sg_cvtf_ps_pi32(data_);
-}
-inline Vec_pi64 Vec_ps::convert_to_nearest_s64() const {
-    return sg_cvt_ps_pi64(data_);
-}
-inline Vec_pi64 Vec_ps::truncate_to_s64() const {
-    return sg_cvtt_ps_pi64(data_);
-}
-inline Vec_pi64 Vec_ps::floor_to_s64() const {
-    return sg_cvtf_ps_pi64(data_);
-}
-inline Vec_pd Vec_ps::convert_to_f64() const {
-    return sg_cvt_ps_pd(data_);
-}
-
-inline Vec_pi32 Vec_pd::bitcast_to_s32() const {
-    return sg_bitcast_pd_pi32(data_);
-}
-inline Vec_pi64 Vec_pd::bitcast_to_s64() const {
-    return sg_bitcast_pd_pi64(data_);
-}
-inline Vec_ps Vec_pd::bitcast_to_f32() const {
-    return sg_bitcast_pd_ps(data_);
-}
-inline Vec_pi32 Vec_pd::convert_to_nearest_s32() const {
-    return sg_cvt_pd_pi32(data_);
-}
-inline Vec_pi32 Vec_pd::truncate_to_s32() const {
-    return sg_cvtt_pd_pi32(data_);
-}
-inline Vec_pi32 Vec_pd::floor_to_s32() const {
-    return sg_cvtf_pd_pi32(data_);
-}
-inline Vec_pi64 Vec_pd::convert_to_nearest_s64() const {
-    return sg_cvt_pd_pi64(data_);
-}
-inline Vec_pi64 Vec_pd::truncate_to_s64() const {
-    return sg_cvtt_pd_pi64(data_);
-}
-inline Vec_pi64 Vec_pd::floor_to_s64() const {
-    return sg_cvtf_pd_pi64(data_);
-}
-inline Vec_ps Vec_pd::convert_to_f32() const {
-    return sg_cvt_pd_ps(data_);
-}
-
-inline Vec_pi32 Vec_pi32::from(const Vec_pi64& pi64) {
-    return sg_cvt_pi64_pi32(pi64.data());
-}
-
-inline Vec_ps Vec_ps::from(const Vec_pd& pd) {
-    return sg_cvt_pd_ps(pd.data());
 }
 
 class Compare_s32x1 {
@@ -6333,79 +6085,6 @@ inline Compare_f64x1 operator!=(const Compare_f64x1& lhs,
     return lhs.data() != rhs.data();
 }
 
-inline Compare_pi32 Compare_pi32::from(const Compare_s32x1& cmp) {
-    return Compare_pi32{cmp.data()};
-}
-inline Compare_pi32 Compare_pi32::from(const Compare_s64x1& cmp) {
-    return Compare_pi32{cmp.data()};
-}
-inline Compare_pi32 Compare_pi32::from(const Compare_f32x1& cmp) {
-    return Compare_pi32{cmp.data()};
-}
-inline Compare_pi32 Compare_pi32::from(const Compare_f64x1& cmp) {
-    return Compare_pi32{cmp.data()};
-}
-
-inline Compare_pi64 Compare_pi64::from(const Compare_s32x1& cmp) {
-    return Compare_pi64{cmp.data()};
-}
-inline Compare_pi64 Compare_pi64::from(const Compare_s64x1& cmp) {
-    return Compare_pi64{cmp.data()};
-}
-inline Compare_pi64 Compare_pi64::from(const Compare_f32x1& cmp) {
-    return Compare_pi64{cmp.data()};
-}
-inline Compare_pi64 Compare_pi64::from(const Compare_f64x1& cmp) {
-    return Compare_pi64{cmp.data()};
-}
-
-inline Compare_ps Compare_ps::from(const Compare_s32x1& cmp) {
-    return Compare_ps{cmp.data()};
-}
-inline Compare_ps Compare_ps::from(const Compare_s64x1& cmp) {
-    return Compare_ps{cmp.data()};
-}
-inline Compare_ps Compare_ps::from(const Compare_f32x1& cmp) {
-    return Compare_ps{cmp.data()};
-}
-inline Compare_ps Compare_ps::from(const Compare_f64x1& cmp) {
-    return Compare_ps{cmp.data()};
-}
-
-inline Compare_pd Compare_pd::from(const Compare_s32x1& cmp) {
-    return Compare_pd{cmp.data()};
-}
-inline Compare_pd Compare_pd::from(const Compare_s64x1& cmp) {
-    return Compare_pd{cmp.data()};
-}
-inline Compare_pd Compare_pd::from(const Compare_f32x1& cmp) {
-    return Compare_pd{cmp.data()};
-}
-inline Compare_pd Compare_pd::from(const Compare_f64x1& cmp) {
-    return Compare_pd{cmp.data()};
-}
-
-inline Compare_s32x1 Compare_s32x1::from(const Compare_s64x1& cmp) {
-    return cmp.data();
-}
-inline Compare_s32x1 Compare_s32x1::from(const Compare_f32x1& cmp) {
-    return cmp.data();
-}
-inline Compare_s32x1 Compare_s32x1::from(const Compare_f64x1& cmp) {
-    return cmp.data();
-}
-
-inline Compare_s64x1 Compare_s64x1::from(const Compare_f32x1& cmp) {
-    return cmp.data();
-}
-inline Compare_s64x1 Compare_s64x1::from(const Compare_f64x1& cmp) {
-    return cmp.data();
-}
-
-inline Compare_f32x1 Compare_f32x1::from(const Compare_f64x1& cmp) {
-    return cmp.data();
-}
-
 class Vec_s32x1 {
     int32_t data_;
 public:
@@ -6416,6 +6095,12 @@ public:
     using scalar_t = Vec_s32x1;
     using vec128_t = Vec_pi32;
     using compare_t = Compare_s32x1;
+
+    using equiv_int_t = Vec_s32x1;
+    using fast_int_t = Vec_s32x1;
+    using equiv_float_t = Vec_f32x1;
+
+    static constexpr bool is_int_t = true, is_float_t = false;
 
     static constexpr std::size_t elem_size = sizeof(int32_t),
         elem_count = 1;
@@ -6578,22 +6263,18 @@ public:
 
     bool debug_eq(const Vec_s32x1& i) const { return data_ == i.data(); }
 
-    Vec_s32x1 bitcast_to_s32() const { return *this; }
-    inline Vec_s64x1 bitcast_to_s64() const;
-    inline Vec_f32x1 bitcast_to_f32() const;
-    inline Vec_f64x1 bitcast_to_f64() const;
+    template <typename To>
+    To to() const { return sg_convert<Vec_s32x1, To>(*this); }
+    template <typename From>
+    static Vec_s32x1 from(const From& x) {
+        return sg_convert<From, Vec_s32x1>(x);
+    }
 
-    Vec_s32x1 convert_to_s32() const { return *this; }
-    inline Vec_s64x1 convert_to_s64() const;
-    inline Vec_f32x1 convert_to_f32() const;
-    inline Vec_f64x1 convert_to_f64() const;
-
-    static Vec_s32x1 from(const Vec_s32x1& s32) { return s32; }
-    static inline Vec_s32x1 from(const Vec_s64x1& s64);
-
-    static Vec_s32x1 from(const Vec_pi32& pi32) { return pi32.i0(); }
-    static Vec_s32x1 from(const Vec_pi64& pi64) {
-        return static_cast<int32_t>(pi64.l0());
+    template <typename To>
+    To bitcast() const { return sg_bitcast<Vec_s32x1, To>(*this); }
+    template <typename From>
+    static Vec_s32x1 bitcast_from(const From& x) {
+        return sg_bitcast<From, Vec_s32x1>(x);
     }
 };
 
@@ -6607,6 +6288,12 @@ public:
     using scalar_t = Vec_s64x1;
     using vec128_t = Vec_pi64;
     using compare_t = Compare_s64x1;
+
+    using equiv_int_t = Vec_s64x1;
+    using fast_int_t = Vec_s64x1;
+    using equiv_float_t = Vec_f64x1;
+
+    static constexpr bool is_int_t = true, is_float_t = false;
 
     static constexpr std::size_t elem_size = sizeof(int64_t),
         elem_count = 1;
@@ -6769,30 +6456,19 @@ public:
 
     bool debug_eq(const Vec_s64x1& i) const { return data_ == i.data(); }
 
-    Vec_s32x1 bitcast_to_s32() const {
-        return sg_bitcast_u32x1_s32x1(
-            static_cast<uint32_t>(data_ & 0xffffffff));
+    template <typename To>
+    To to() const { return sg_convert<Vec_s64x1, To>(*this); }
+    template <typename From>
+    static Vec_s64x1 from(const From& x) {
+        return sg_convert<From, Vec_s64x1>(x);
     }
-    Vec_s64x1 bitcast_to_s64() const { return *this; }
-    inline Vec_f32x1 bitcast_to_f32() const;
-    inline Vec_f64x1 bitcast_to_f64() const;
 
-    Vec_s32x1 convert_to_s32() const {
-        return static_cast<int32_t>(data_);
+    template <typename To>
+    To bitcast() const { return sg_bitcast<Vec_s64x1, To>(*this); }
+    template <typename From>
+    static Vec_s64x1 bitcast_from(const From& x) {
+        return sg_bitcast<From, Vec_s64x1>(x);
     }
-    Vec_s64x1 convert_to_s64() const { return *this; }
-    inline Vec_f32x1 convert_to_f32() const;
-    inline Vec_f64x1 convert_to_f64() const;
-
-    static Vec_s64x1 from(const Vec_s32x1& s32) {
-        return static_cast<int64_t>(s32.data());
-    }
-    static Vec_s64x1 from(const Vec_s64x1& s64) { return s64; }
-
-    static Vec_s64x1 from(const Vec_pi32& pi32) {
-        return static_cast<int64_t>(pi32.i0());
-    }
-    static Vec_s64x1 from(const Vec_pi64& pi64) { return pi64.l0(); }
 };
 
 class Vec_f32x1 {
@@ -6808,6 +6484,12 @@ public:
     using scalar_t = Vec_f32x1;
     using vec128_t = Vec_ps;
     using compare_t = Compare_f32x1;
+
+    using equiv_int_t = Vec_s32x1;
+    using fast_int_t = Vec_s32x1;
+    using equiv_float_t = Vec_f32x1;
+
+    static constexpr bool is_int_t = false, is_float_t = true;
 
     static constexpr std::size_t elem_size = sizeof(float),
         elem_count = 1;
@@ -6940,70 +6622,25 @@ public:
             sg_bitcast_f32x1_u32x1(f.data());
     }
 
-    Vec_s32x1 bitcast_to_s32() const {
-        return sg_bitcast_f32x1_s32x1(data_);
-    }
-    Vec_s64x1 bitcast_to_s64() const {
-        return static_cast<int64_t>(sg_bitcast_f32x1_u32x1(data_));
-    }
-    Vec_f32x1 bitcast_to_f32() const { return *this; }
-    inline Vec_f64x1 bitcast_to_f64() const;
+    template <typename To>
+    To to() const { return sg_convert<Vec_f32x1, To>(*this); }
+    template <typename To>
+    To nearest() const { return sg_convert_nearest<Vec_f32x1, To>(*this); }
+    template <typename To>
+    To truncate() const { return sg_convert_truncate<Vec_f32x1, To>(*this); }
+    template <typename To>
+    To floor() const { return sg_convert_floor<Vec_f32x1, To>(*this); }
 
-    Vec_s32x1 convert_to_nearest_s32() const {
-        return static_cast<int32_t>(std::rint(data_));
-    }
-    Vec_s32x1 truncate_to_s32() const { return static_cast<int32_t>(data_); }
-    Vec_s32x1 floor_to_s32() const {
-        return static_cast<int32_t>(std::floor(data_));
-    }
-    Vec_s64x1 convert_to_nearest_s64() const {
-        return static_cast<int64_t>(std::rint(data_));
-    }
-    Vec_s64x1 truncate_to_s64() const {
-        return static_cast<int64_t>(data_);
-    }
-    Vec_s64x1 floor_to_s64() const {
-        return static_cast<int64_t>(std::floor(data_));
-    }
-    Vec_f32x1 convert_to_f32() const { return *this; }
-    inline Vec_f64x1 convert_to_f64() const;
-
-    static Vec_f32x1 from(const Vec_s32x1& s32) {
-        return static_cast<float>(s32.data());
-    }
-    static Vec_f32x1 from(const Vec_s64x1& s64) {
-        return static_cast<float>(s64.data());
-    }
-    static Vec_f32x1 from(const Vec_f32x1& f32) { return f32; }
-    static inline Vec_f32x1 from(const Vec_f64x1& f64);
-
-    static Vec_f32x1 from(const Vec_pi32& pi32) {
-        return static_cast<float>(pi32.i0());
-    }
-    static Vec_f32x1 from(const Vec_pi64& pi64) {
-        return static_cast<float>(pi64.l0());
-    }
-    static Vec_f32x1 from(const Vec_ps& ps) { return ps.f0(); }
-    static Vec_f32x1 from(const Vec_pd& pd) {
-        return static_cast<float>(pd.d0());
+    template <typename From>
+    static Vec_f32x1 from(const From& x) {
+        return sg_convert<From, Vec_f32x1>(x);
     }
 
-    Vec_s32x1 exponent_frexp() const {
-        return static_cast<int32_t>(std::ilogb(data_) + 1);
-    }
-    Vec_s32x1 exponent_frexp_s32() const { return exponent_frexp(); }
-    Vec_s32x1 exponent() const {
-        return static_cast<int32_t>(std::ilogb(data_));
-    }
-    Vec_s32x1 exponent_s32() const { return exponent(); }
-    Vec_f32x1 mantissa_frexp() const {
-        int32_t discard;
-        return std::frexp(data_, &discard);
-    }
-    Vec_f32x1 mantissa() const { return mantissa_frexp() * 2.0f; }
-
-    Vec_f32x1 ldexp(const Vec_s32x1& e) const {
-        return std::ldexp(data_, static_cast<int>(e.data()));
+    template <typename To>
+    To bitcast() const { return sg_bitcast<Vec_f32x1, To>(*this); }
+    template <typename From>
+    static Vec_f32x1 bitcast_from(const From& x) {
+        return sg_bitcast<From, Vec_f32x1>(x);
     }
 
     Vec_f32x1 std_log() const { return std::log(data_); }
@@ -7031,6 +6668,12 @@ public:
     using scalar_t = Vec_f64x1;
     using vec128_t = Vec_pd;
     using compare_t = Compare_f64x1;
+
+    using equiv_int_t = Vec_s64x1;
+    using fast_int_t = Vec_s64x1;
+    using equiv_float_t = Vec_f64x1;
+
+    static constexpr bool is_int_t = false, is_float_t = true;
 
     static constexpr std::size_t elem_size = sizeof(double),
         elem_count = 1;
@@ -7159,81 +6802,25 @@ public:
             sg_bitcast_f64x1_u64x1(d.data());
     }
 
-    Vec_s32x1 bitcast_to_s32() const {
-        return sg_bitcast_u32x1_s32x1(
-            static_cast<uint32_t>(sg_bitcast_f64x1_u64x1(data_) & 0xffffffff));
-    }
-    Vec_s64x1 bitcast_to_s64() const {
-        return sg_bitcast_f64x1_s64x1(data_);
-    }
-    Vec_f32x1 bitcast_to_f32() const {
-        return sg_bitcast_u32x1_f32x1(
-            static_cast<uint32_t>(sg_bitcast_f64x1_u64x1(data_) & 0xffffffff));
-    }
-    Vec_f64x1 bitcast_to_f64() const { return *this; }
+    template <typename To>
+    To to() const { return sg_convert<Vec_f64x1, To>(*this); }
+    template <typename To>
+    To nearest() const { return sg_convert_nearest<Vec_f64x1, To>(*this); }
+    template <typename To>
+    To truncate() const { return sg_convert_truncate<Vec_f64x1, To>(*this); }
+    template <typename To>
+    To floor() const { return sg_convert_floor<Vec_f64x1, To>(*this); }
 
-    Vec_s32x1 convert_to_nearest_s32() const {
-        return static_cast<int32_t>(std::rint(data_));
+    template <typename From>
+    static Vec_f64x1 from(const From& x) {
+        return sg_convert<From, Vec_f64x1>(x);
     }
-    Vec_s32x1 truncate_to_s32() const { return static_cast<int32_t>(data_); }
-    Vec_s32x1 floor_to_s32() const {
-        return static_cast<int32_t>(std::floor(data_));
-    }
-    Vec_s64x1 convert_to_nearest_s64() const {
-        return static_cast<int64_t>(std::rint(data_));
-    }
-    Vec_s64x1 truncate_to_s64() const {
-        return static_cast<int64_t>(data_);
-    }
-    Vec_s64x1 floor_to_s64() const {
-        return static_cast<int64_t>(std::floor(data_));
-    }
-    Vec_f32x1 convert_to_f32() const { return static_cast<float>(data_); }
-    Vec_f64x1 convert_to_f64() const { return *this; }
 
-    static Vec_f64x1 from(const Vec_s32x1& s32) {
-        return static_cast<double>(s32.data());
-    }
-    static Vec_f64x1 from(const Vec_s64x1& s64) {
-        return static_cast<double>(s64.data());
-    }
-    static Vec_f64x1 from(const Vec_f32x1& f32) {
-        return static_cast<double>(f32.data());
-    }
-    static Vec_f64x1 from(const Vec_f64x1& f64) { return f64; }
-
-    static Vec_f64x1 from(const Vec_pi32& pi32) {
-        return static_cast<double>(pi32.i0());
-    }
-    static Vec_f64x1 from(const Vec_pi64& pi64) {
-        return static_cast<double>(pi64.l0());
-    }
-    static Vec_f64x1 from(const Vec_ps& ps) {
-        return static_cast<double>(ps.f0());
-    }
-    static Vec_f64x1 from(const Vec_pd& pd) { return pd.d0(); }
-
-    Vec_s64x1 exponent_frexp() const {
-        return static_cast<int64_t>(std::ilogb(data_) + 1);
-    }
-    Vec_s32x1 exponent_frexp_s32() const {
-        return exponent_frexp().convert_to_s32();
-    }
-    Vec_s64x1 exponent() const {
-        return static_cast<int64_t>(std::ilogb(data_));
-    }
-    Vec_s32x1 exponent_s32() const { return exponent().convert_to_s32(); }
-    Vec_f64x1 mantissa_frexp() const {
-        int32_t discard;
-        return std::frexp(data_, &discard);
-    }
-    Vec_f64x1 mantissa() const { return mantissa_frexp() * 2.0; }
-
-    Vec_f64x1 ldexp(const Vec_s64x1& e) const {
-        return std::ldexp(data_, static_cast<int>(e.data()));
-    }
-    Vec_f64x1 ldexp(const Vec_s32x1& e) const {
-        return std::ldexp(data_, static_cast<int>(e.data()));
+    template <typename To>
+    To bitcast() const { return sg_bitcast<Vec_f64x1, To>(*this); }
+    template <typename From>
+    static Vec_f64x1 bitcast_from(const From& x) {
+        return sg_bitcast<From, Vec_f64x1>(x);
     }
 
     Vec_f64x1 std_log() const { return std::log(data_); }
@@ -7246,107 +6833,6 @@ public:
 
 typedef Vec_f32x1 Vec_ss;
 typedef Vec_f64x1 Vec_sd;
-
-inline Vec_pi32 Vec_pi32::from(const Vec_s32x1& s32) {
-    return sg_set1_pi32(s32.data());
-}
-inline Vec_pi32 Vec_pi32::from(const Vec_s64x1& s64) {
-    return sg_set1_pi32(static_cast<int32_t>(s64.data()));
-}
-
-inline Vec_pi64 Vec_pi64::from(const Vec_s32x1& s32) {
-    return sg_set1_pi64(static_cast<int64_t>(s32.data()));
-}
-inline Vec_pi64 Vec_pi64::from(const Vec_s64x1& s64) {
-    return sg_set1_pi64(s64.data());
-}
-
-inline Vec_ps Vec_ps::from(const Vec_s32x1& s32) {
-    return sg_set1_ps(static_cast<float>(s32.data()));
-}
-inline Vec_ps Vec_ps::from(const Vec_s64x1& s64) {
-    return sg_set1_ps(static_cast<float>(s64.data()));
-}
-inline Vec_ps Vec_ps::from(const Vec_f32x1& f32) {
-    return sg_set1_ps(f32.data());
-}
-inline Vec_ps Vec_ps::from(const Vec_f64x1& f64) {
-    return sg_set1_ps(static_cast<float>(f64.data()));
-}
-
-inline Vec_pd Vec_pd::from(const Vec_s32x1& s32) {
-    return sg_set1_pd(static_cast<double>(s32.data()));
-}
-inline Vec_pd Vec_pd::from(const Vec_s64x1& s64) {
-    return sg_set1_pd(static_cast<double>(s64.data()));
-}
-inline Vec_pd Vec_pd::from(const Vec_f32x1& f32) {
-    return sg_set1_pd(static_cast<double>(f32.data()));
-}
-inline Vec_pd Vec_pd::from(const Vec_f64x1& f64) {
-    return sg_set1_pd(f64.data());
-}
-
-inline Vec_s64x1 Vec_s32x1::bitcast_to_s64() const {
-    return static_cast<int64_t>(sg_bitcast_s32x1_u32x1(data_));
-}
-inline Vec_f32x1 Vec_s32x1::bitcast_to_f32() const {
-    return sg_bitcast_s32x1_f32x1(data_);
-}
-inline Vec_f64x1 Vec_s32x1::bitcast_to_f64() const {
-    return sg_bitcast_u64x1_f64x1(
-        static_cast<uint64_t>(sg_bitcast_s32x1_u32x1(data_)));
-}
-
-inline Vec_s64x1 Vec_s32x1::convert_to_s64() const {
-    return static_cast<int64_t>(data_);
-}
-inline Vec_f32x1 Vec_s32x1::convert_to_f32() const {
-    return static_cast<float>(data_);
-}
-inline Vec_f64x1 Vec_s32x1::convert_to_f64() const {
-    return static_cast<double>(data_);
-}
-
-inline Vec_f32x1 Vec_s64x1::bitcast_to_f32() const {
-    return sg_bitcast_u32x1_f32x1(
-        static_cast<uint32_t>((sg_bitcast_s64x1_u64x1(data_) & 0xffffffff)));
-}
-inline Vec_f64x1 Vec_s64x1::bitcast_to_f64() const {
-    return sg_bitcast_s64x1_f64x1(data_);
-}
-
-inline Vec_f32x1 Vec_s64x1::convert_to_f32() const {
-    return static_cast<float>(data_);
-}
-inline Vec_f64x1 Vec_s64x1::convert_to_f64() const {
-    return static_cast<double>(data_);
-}
-
-inline Vec_f64x1 Vec_f32x1::bitcast_to_f64() const {
-    return sg_bitcast_u64x1_f64x1(static_cast<uint64_t>(
-        sg_bitcast_f32x1_u32x1(data_)));
-}
-inline Vec_f64x1 Vec_f32x1::convert_to_f64() const {
-    return static_cast<double>(data_);
-}
-
-inline Vec_s32x1 Vec_s32x1::from(const Vec_s64x1& s64) {
-    return static_cast<int32_t>(s64.data());
-}
-
-inline Vec_f32x1 Vec_f32x1::from(const Vec_f64x1& f64) {
-    return static_cast<float>(f64.data());
-}
-
-inline Compare_s64x1 Compare_s32x1::convert_to_cmp_s64() const { return data_; }
-inline Compare_f32x1 Compare_s32x1::convert_to_cmp_f32() const { return data_; }
-inline Compare_f64x1 Compare_s32x1::convert_to_cmp_f64() const { return data_; }
-
-inline Compare_f32x1 Compare_s64x1::convert_to_cmp_f32() const { return data_; }
-inline Compare_f64x1 Compare_s64x1::convert_to_cmp_f64() const { return data_; }
-
-inline Compare_f64x1 Compare_f32x1::convert_to_cmp_f64() const { return data_; }
 
 inline Vec_s32x1 Compare_s32x1::choose_else_zero(const Vec_s32x1& if_true) const
 {
@@ -7385,6 +6871,430 @@ inline Vec_f64x1 Compare_f64x1::choose(const Vec_f64x1& if_true,
     const Vec_f64x1& if_false) const
 {
     return data_ ? if_true : if_false;
+}
+
+//
+//
+// Convert vectors
+
+template <> inline Vec_pi32 sg_convert(const Vec_pi32& x) { return x; }
+template <> inline Vec_pi64 sg_convert(const Vec_pi32& x) {
+    return sg_cvt_pi32_pi64(x.data());
+}
+template <> inline Vec_ps sg_convert(const Vec_pi32& x) {
+    return sg_cvt_pi32_ps(x.data());
+}
+template <> inline Vec_pd sg_convert(const Vec_pi32& x) {
+    return sg_cvt_pi32_pd(x.data());
+}
+
+template <> inline Vec_pi32 sg_convert(const Vec_pi64& x) {
+    return sg_cvt_pi64_pi32(x.data());
+}
+template <> inline Vec_pi64 sg_convert(const Vec_pi64& x) { return x; }
+template <> inline Vec_ps sg_convert(const Vec_pi64& x) {
+    return sg_cvt_pi64_ps(x.data());
+}
+template <> inline Vec_pd sg_convert(const Vec_pi64& x) {
+    return sg_cvt_pi64_pd(x.data());
+}
+
+template <> inline Vec_pi32 sg_convert_nearest(const Vec_ps& x) {
+    return sg_cvt_ps_pi32(x.data());
+}
+template <> inline Vec_pi32 sg_convert_truncate(const Vec_ps& x) {
+    return sg_cvtt_ps_pi32(x.data());
+}
+template <> inline Vec_pi32 sg_convert_floor(const Vec_ps& x) {
+    return sg_cvtf_ps_pi32(x.data());
+}
+template <> inline Vec_pi64 sg_convert_nearest(const Vec_ps& x) {
+    return sg_cvt_ps_pi64(x.data());
+}
+template <> inline Vec_pi64 sg_convert_truncate(const Vec_ps& x) {
+    return sg_cvtt_ps_pi64(x.data());
+}
+template <> inline Vec_pi64 sg_convert_floor(const Vec_ps& x) {
+    return sg_cvtf_ps_pi64(x.data());
+}
+template <> inline Vec_ps sg_convert(const Vec_ps& x) { return x; }
+template <> inline Vec_pd sg_convert(const Vec_ps& x) {
+    return sg_cvt_ps_pd(x.data());
+}
+
+template <> inline Vec_pi32 sg_convert_nearest(const Vec_pd& x) {
+    return sg_cvt_pd_pi32(x.data());
+}
+template <> inline Vec_pi32 sg_convert_truncate(const Vec_pd& x) {
+    return sg_cvtt_pd_pi32(x.data());
+}
+template <> inline Vec_pi32 sg_convert_floor(const Vec_pd& x) {
+    return sg_cvtf_pd_pi32(x.data());
+}
+template <> inline Vec_pi64 sg_convert_nearest(const Vec_pd& x) {
+    return sg_cvt_pd_pi64(x.data());
+}
+template <> inline Vec_pi64 sg_convert_truncate(const Vec_pd& x) {
+    return sg_cvtt_pd_pi64(x.data());
+}
+template <> inline Vec_pi64 sg_convert_floor(const Vec_pd& x) {
+    return sg_cvtf_pd_pi64(x.data());
+}
+template <> inline Vec_ps sg_convert(const Vec_pd& x) {
+    return sg_cvt_pd_ps(x.data());
+}
+template <> inline Vec_pd sg_convert(const Vec_pd& x) { return x; }
+
+template <> inline Vec_s32x1 sg_convert(const Vec_s32x1& x) { return x; }
+template <> inline Vec_pi32 sg_convert(const Vec_s32x1& x) { return x.data(); }
+template <> inline Vec_s64x1 sg_convert(const Vec_s32x1& x) {
+    return static_cast<int64_t>(x.data());
+}
+template <> inline Vec_pi64 sg_convert(const Vec_s32x1& x) {
+    return sg_convert<Vec_s32x1, Vec_s64x1>(x).data();
+}
+template <> inline Vec_f32x1 sg_convert(const Vec_s32x1& x) {
+    return static_cast<float>(x.data());
+}
+template <> inline Vec_ps sg_convert(const Vec_s32x1& x) {
+    return sg_convert<Vec_s32x1, Vec_f32x1>(x).data();
+}
+template <> inline Vec_f64x1 sg_convert(const Vec_s32x1& x) {
+    return static_cast<double>(x.data());
+}
+template <> inline Vec_pd sg_convert(const Vec_s32x1& x) {
+    return sg_convert<Vec_s32x1, Vec_f64x1>(x).data();
+}
+
+template <> inline Vec_s32x1 sg_convert(const Vec_s64x1& x) {
+    return static_cast<int32_t>(x.data() & 0xffffffff);
+}
+template <> inline Vec_pi32 sg_convert(const Vec_s64x1& x) {
+    return sg_convert<Vec_s64x1, Vec_s32x1>(x).data();
+}
+template <> inline Vec_s64x1 sg_convert(const Vec_s64x1& x) { return x; }
+template <> inline Vec_pi64 sg_convert(const Vec_s64x1& x) { return x.data(); }
+template <> inline Vec_f32x1 sg_convert(const Vec_s64x1& x) {
+    return static_cast<float>(x.data());
+}
+template <> inline Vec_ps sg_convert(const Vec_s64x1& x) {
+    return sg_convert<Vec_s64x1, Vec_f32x1>(x).data();
+}
+template <> inline Vec_f64x1 sg_convert(const Vec_s64x1& x) {
+    return static_cast<double>(x.data());
+}
+template <> inline Vec_pd sg_convert(const Vec_s64x1& x) {
+    return sg_convert<Vec_s64x1, Vec_f64x1>(x).data();
+}
+
+template <> inline Vec_s32x1 sg_convert_nearest(const Vec_f32x1& x) {
+    return static_cast<int32_t>(std::rint(x.data()));
+}
+template <> inline Vec_pi32 sg_convert_nearest(const Vec_f32x1& x) {
+    return sg_convert_nearest<Vec_f32x1, Vec_s32x1>(x).data();
+}
+template <> inline Vec_s32x1 sg_convert_truncate(const Vec_f32x1& x) {
+    return static_cast<int32_t>(x.data());
+}
+template <> inline Vec_pi32 sg_convert_truncate(const Vec_f32x1& x) {
+    return sg_convert_truncate<Vec_f32x1, Vec_s32x1>(x).data();
+}
+template <> inline Vec_s32x1 sg_convert_floor(const Vec_f32x1& x) {
+    return static_cast<int32_t>(std::floor(x.data()));
+}
+template <> inline Vec_pi32 sg_convert_floor(const Vec_f32x1& x) {
+    return sg_convert_floor<Vec_f32x1, Vec_s32x1>(x).data();
+}
+template <> inline Vec_s64x1 sg_convert_nearest(const Vec_f32x1& x) {
+    return static_cast<int64_t>(std::rint(x.data()));
+}
+template <> inline Vec_pi64 sg_convert_nearest(const Vec_f32x1& x) {
+    return sg_convert_nearest<Vec_f32x1, Vec_s64x1>(x).data();
+}
+template <> inline Vec_s64x1 sg_convert_truncate(const Vec_f32x1& x) {
+    return static_cast<int64_t>(x.data());
+}
+template <> inline Vec_pi64 sg_convert_truncate(const Vec_f32x1& x) {
+    return sg_convert_truncate<Vec_f32x1, Vec_s64x1>(x).data();
+}
+template <> inline Vec_s64x1 sg_convert_floor(const Vec_f32x1& x) {
+    return static_cast<int64_t>(std::floor(x.data()));
+}
+template <> inline Vec_pi64 sg_convert_floor(const Vec_f32x1& x) {
+    return sg_convert_floor<Vec_f32x1, Vec_s64x1>(x).data();
+}
+template <> inline Vec_f32x1 sg_convert(const Vec_f32x1& x) { return x; }
+template <> inline Vec_ps sg_convert(const Vec_f32x1& x) { return x.data(); }
+template <> inline Vec_f64x1 sg_convert(const Vec_f32x1& x) {
+    return static_cast<double>(x.data());
+}
+template <> inline Vec_pd sg_convert(const Vec_f32x1& x) {
+    return sg_convert<Vec_f32x1, Vec_f64x1>(x).data();
+}
+
+template <> inline Vec_s32x1 sg_convert_nearest(const Vec_f64x1& x) {
+    return static_cast<int32_t>(std::rint(x.data()));
+}
+template <> inline Vec_pi32 sg_convert_nearest(const Vec_f64x1& x) {
+    return sg_convert_nearest<Vec_f64x1, Vec_s32x1>(x).data();
+}
+template <> inline Vec_s32x1 sg_convert_truncate(const Vec_f64x1& x) {
+    return static_cast<int32_t>(x.data());
+}
+template <> inline Vec_pi32 sg_convert_truncate(const Vec_f64x1& x) {
+    return sg_convert_truncate<Vec_f64x1, Vec_s32x1>(x).data();
+}
+template <> inline Vec_s32x1 sg_convert_floor(const Vec_f64x1& x) {
+    return static_cast<int32_t>(std::floor(x.data()));
+}
+template <> inline Vec_pi32 sg_convert_floor(const Vec_f64x1& x) {
+    return sg_convert_floor<Vec_f64x1, Vec_s32x1>(x).data();
+}
+template <> inline Vec_s64x1 sg_convert_nearest(const Vec_f64x1& x) {
+    return static_cast<int64_t>(std::rint(x.data()));
+}
+template <> inline Vec_pi64 sg_convert_nearest(const Vec_f64x1& x) {
+    return sg_convert_nearest<Vec_f64x1, Vec_s64x1>(x).data();
+}
+template <> inline Vec_s64x1 sg_convert_truncate(const Vec_f64x1& x) {
+    return static_cast<int64_t>(x.data());
+}
+template <> inline Vec_pi64 sg_convert_truncate(const Vec_f64x1& x) {
+    return sg_convert_truncate<Vec_f64x1, Vec_pi64>(x).data();
+}
+template <> inline Vec_s64x1 sg_convert_floor(const Vec_f64x1& x) {
+    return static_cast<int64_t>(std::floor(x.data()));
+}
+template <> inline Vec_pi64 sg_convert_floor(const Vec_f64x1& x) {
+    return sg_convert_floor<Vec_f64x1, Vec_s64x1>(x).data();
+}
+template <> inline Vec_f32x1 sg_convert(const Vec_f64x1& x) {
+    return static_cast<float>(x.data());
+}
+template <> inline Vec_ps sg_convert(const Vec_f64x1& x) {
+    return sg_convert<Vec_f64x1, Vec_f32x1>(x).data();
+}
+template <> inline Vec_f64x1 sg_convert(const Vec_f64x1& x) { return x; }
+template <> inline Vec_pd sg_convert(const Vec_f64x1& x) { return x.data(); }
+
+//
+//
+// Bitcast vectors
+
+template <> inline Vec_pi32 sg_bitcast(const Vec_pi32& x) { return x; }
+template <> inline Vec_pi64 sg_bitcast(const Vec_pi32& x) {
+    return sg_bitcast_pi32_pi64(x.data());
+}
+template <> inline Vec_ps sg_bitcast(const Vec_pi32& x) {
+    return sg_bitcast_pi32_ps(x.data());
+}
+template <> inline Vec_pd sg_bitcast(const Vec_pi32& x) {
+    return sg_bitcast_pi32_pd(x.data());
+}
+
+template <> inline Vec_pi32 sg_bitcast(const Vec_pi64& x) {
+    return sg_bitcast_pi64_pi32(x.data());
+}
+template <> inline Vec_pi64 sg_bitcast(const Vec_pi64& x) { return x; }
+template <> inline Vec_ps sg_bitcast(const Vec_pi64& x) {
+    return sg_bitcast_pi64_ps(x.data());
+}
+template <> inline Vec_pd sg_bitcast(const Vec_pi64& x) {
+    return sg_bitcast_pi64_pd(x.data());
+}
+
+template <> inline Vec_pi32 sg_bitcast(const Vec_ps& x) {
+    return sg_bitcast_ps_pi32(x.data());
+}
+template <> inline Vec_pi64 sg_bitcast(const Vec_ps& x) {
+    return sg_bitcast_ps_pi64(x.data());
+}
+template <> inline Vec_ps sg_bitcast(const Vec_ps& x) { return x; }
+template <> inline Vec_pd sg_bitcast(const Vec_ps& x) {
+    return sg_bitcast_ps_pd(x.data());
+}
+
+template <> inline Vec_pi32 sg_bitcast(const Vec_pd& x) {
+    return sg_bitcast_pd_pi32(x.data());
+}
+template <> inline Vec_pi64 sg_bitcast(const Vec_pd& x) {
+    return sg_bitcast_pd_pi64(x.data());
+}
+template <> inline Vec_ps sg_bitcast(const Vec_pd& x) {
+    return sg_bitcast_pd_ps(x.data());
+}
+template <> inline Vec_pd sg_bitcast(const Vec_pd& x) { return x; }
+
+template <> inline Vec_s32x1 sg_bitcast(const Vec_s32x1& x) { return x; }
+template <> inline Vec_f32x1 sg_bitcast(const Vec_s32x1& x) {
+    return sg_bitcast_s32x1_f32x1(x.data());
+}
+
+template <> inline Vec_s64x1 sg_bitcast(const Vec_s64x1& x) { return x; }
+template <> inline Vec_f64x1 sg_bitcast(const Vec_s64x1& x) {
+    return sg_bitcast_s64x1_f64x1(x.data());
+}
+
+template <> inline Vec_s32x1 sg_bitcast(const Vec_f32x1& x) {
+    return sg_bitcast_f32x1_s32x1(x.data());
+}
+template <> inline Vec_f32x1 sg_bitcast(const Vec_f32x1& x) { return x; }
+
+template <> inline Vec_s64x1 sg_bitcast(const Vec_f64x1& x) {
+    return sg_bitcast_f64x1_s64x1(x.data());
+}
+template <> inline Vec_f64x1 sg_bitcast(const Vec_f64x1& x) { return x; }
+
+//
+//
+// Convert comparisons
+
+template <> inline Compare_pi32 sg_convert(const Compare_pi32& cmp) {
+    return cmp;
+}
+template <> inline Compare_pi64 sg_convert(const Compare_pi32& cmp) {
+    return sg_cvtcmp_pi32_pi64(cmp.data());
+}
+template <> inline Compare_ps sg_convert(const Compare_pi32& cmp) {
+    return sg_cvtcmp_pi32_ps(cmp.data());
+}
+template <> inline Compare_pd sg_convert(const Compare_pi32& cmp) {
+    return sg_cvtcmp_pi32_pd(cmp.data());
+}
+
+template <> inline Compare_pi32 sg_convert(const Compare_pi64& cmp) {
+    return sg_cvtcmp_pi64_pi32(cmp.data());
+}
+template <> inline Compare_pi64 sg_convert(const Compare_pi64& cmp) {
+    return cmp;
+}
+template <> inline Compare_ps sg_convert(const Compare_pi64& cmp) {
+    return sg_cvtcmp_pi64_ps(cmp.data());
+}
+template <> inline Compare_pd sg_convert(const Compare_pi64& cmp) {
+    return sg_cvtcmp_pi64_pd(cmp.data());
+}
+
+template <> inline Compare_pi32 sg_convert(const Compare_ps& cmp) {
+    return sg_cvtcmp_ps_pi32(cmp.data());
+}
+template <> inline Compare_pi64 sg_convert(const Compare_ps& cmp) {
+    return sg_cvtcmp_ps_pi64(cmp.data());
+}
+template <> inline Compare_ps sg_convert(const Compare_ps& cmp) { return cmp; }
+template <> inline Compare_pd sg_convert(const Compare_ps& cmp) {
+    return sg_cvtcmp_ps_pd(cmp.data());
+}
+
+template <> inline Compare_pi32 sg_convert(const Compare_pd& cmp) {
+    return sg_cvtcmp_pd_pi32(cmp.data());
+}
+template <> inline Compare_pi64 sg_convert(const Compare_pd& cmp) {
+    return sg_cvtcmp_pd_pi64(cmp.data());
+}
+template <> inline Compare_ps sg_convert(const Compare_pd& cmp) {
+    return sg_cvtcmp_pd_ps(cmp.data());
+}
+template <> inline Compare_pd sg_convert(const Compare_pd& cmp) { return cmp; }
+
+template <> inline Compare_s32x1 sg_convert(const Compare_s32x1& cmp) {
+    return cmp;
+}
+template <> inline Compare_pi32 sg_convert(const Compare_s32x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_s64x1 sg_convert(const Compare_s32x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_pi64 sg_convert(const Compare_s32x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_f32x1 sg_convert(const Compare_s32x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_ps sg_convert(const Compare_s32x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_f64x1 sg_convert(const Compare_s32x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_pd sg_convert(const Compare_s32x1& cmp) {
+    return cmp.data();
+}
+
+template <> inline Compare_s32x1 sg_convert(const Compare_s64x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_pi32 sg_convert(const Compare_s64x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_s64x1 sg_convert(const Compare_s64x1& cmp) {
+    return cmp;
+}
+template <> inline Compare_pi64 sg_convert(const Compare_s64x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_f32x1 sg_convert(const Compare_s64x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_ps sg_convert(const Compare_s64x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_f64x1 sg_convert(const Compare_s64x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_pd sg_convert(const Compare_s64x1& cmp) {
+    return cmp.data();
+}
+
+template <> inline Compare_s32x1 sg_convert(const Compare_f32x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_pi32 sg_convert(const Compare_f32x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_s64x1 sg_convert(const Compare_f32x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_pi64 sg_convert(const Compare_f32x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_f32x1 sg_convert(const Compare_f32x1& cmp) {
+    return cmp;
+}
+template <> inline Compare_ps sg_convert(const Compare_f32x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_f64x1 sg_convert(const Compare_f32x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_pd sg_convert(const Compare_f32x1& cmp) {
+    return cmp.data();
+}
+
+template <> inline Compare_s32x1 sg_convert(const Compare_f64x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_pi32 sg_convert(const Compare_f64x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_s64x1 sg_convert(const Compare_f64x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_pi64 sg_convert(const Compare_f64x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_f32x1 sg_convert(const Compare_f64x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_ps sg_convert(const Compare_f64x1& cmp) {
+    return cmp.data();
+}
+template <> inline Compare_f64x1 sg_convert(const Compare_f64x1& cmp) {
+    return cmp;
+}
+template <> inline Compare_pd sg_convert(const Compare_f64x1& cmp) {
+    return cmp.data();
 }
 
 } // namespace simd_granodi
