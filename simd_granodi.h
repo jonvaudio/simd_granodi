@@ -6875,6 +6875,20 @@ inline Vec_f64x1 Compare_f64x1::choose(const Vec_f64x1& if_true,
 
 //
 //
+// Extra choose function: if-else if-else, which short-circuits in the same way
+// Note that this is slow for non-trival calculations
+// Maybe variadic arguments can be used to generalise this?
+
+template <typename VecType>
+inline VecType sg_choose3(const typename VecType::compare_t& choose1,
+    const typename VecType::compare_t& choose2,
+    const VecType& if_1, const VecType& else_if_2, const VecType& else_3)
+{
+    return choose1.choose(if_1, choose2.choose(else_if_2, else_3));
+}
+
+//
+//
 // Convert vectors
 
 template <> inline Vec_pi32 sg_convert(const Vec_pi32& x) { return x; }
