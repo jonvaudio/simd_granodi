@@ -6214,6 +6214,9 @@ public:
     Compare_s32x1 operator==(const Vec_s32x1& rhs) const {
         return data_ == rhs.data();
     }
+    Compare_s32x1 operator!=(const Vec_s32x1& rhs) const {
+        return data_ != rhs.data();
+    }
     Compare_s32x1 operator>=(const Vec_s32x1& rhs) const {
         return data_ >= rhs.data();
     }
@@ -6407,6 +6410,9 @@ public:
     Compare_s64x1 operator==(const Vec_s64x1& rhs) const {
         return data_ == rhs.data();
     }
+    Compare_s64x1 operator!=(const Vec_s64x1& rhs) const {
+        return data_ != rhs.data();
+    }
     Compare_s64x1 operator>=(const Vec_s64x1& rhs) const {
         return data_ >= rhs.data();
     }
@@ -6592,6 +6598,9 @@ public:
     Compare_f32x1 operator==(const Vec_f32x1& rhs) const {
         return data_ == rhs.data();
     }
+    Compare_f32x1 operator!=(const Vec_f32x1& rhs) const {
+        return data_ != rhs.data();
+    }
     Compare_f32x1 operator>=(const Vec_f32x1& rhs) const {
         return data_ >= rhs.data();
     }
@@ -6771,6 +6780,9 @@ public:
     }
     Compare_f64x1 operator==(const Vec_f64x1& rhs) const {
         return data_ == rhs.data();
+    }
+    Compare_f64x1 operator!=(const Vec_f64x1& rhs) const {
+        return data_ != rhs.data();
     }
     Compare_f64x1 operator>=(const Vec_f64x1& rhs) const {
         return data_ >= rhs.data();

@@ -1478,6 +1478,31 @@ static void test_opover() {
     sg_assert((Vec_f64x1{2} == 2).debug_valid_eq(true));
     sg_assert((Vec_f64x1{3} == 2).debug_valid_eq(false));
 
+    sg_assert((Vec_pi32{1} != 2).debug_valid_eq(true));
+    sg_assert((Vec_pi32{2} != 2).debug_valid_eq(false));
+    sg_assert((Vec_pi32{3} != 2).debug_valid_eq(true));
+    sg_assert((Vec_pi64{1} != 2).debug_valid_eq(true));
+    sg_assert((Vec_pi64{2} != 2).debug_valid_eq(false));
+    sg_assert((Vec_pi64{3} != 2).debug_valid_eq(true));
+    sg_assert((Vec_ps{1.0f} != 2.0f).debug_valid_eq(true));
+    sg_assert((Vec_ps{2.0f} != 2.0f).debug_valid_eq(false));
+    sg_assert((Vec_ps{3.0f} != 2.0f).debug_valid_eq(true));
+    sg_assert((Vec_pd{1.0} != 2.0).debug_valid_eq(true));
+    sg_assert((Vec_pd{2.0} != 2.0).debug_valid_eq(false));
+    sg_assert((Vec_pd{3.0} != 2.0).debug_valid_eq(true));
+    sg_assert((Vec_s32x1{1} != 2).debug_valid_eq(true));
+    sg_assert((Vec_s32x1{2} != 2).debug_valid_eq(false));
+    sg_assert((Vec_s32x1{3} != 2).debug_valid_eq(true));
+    sg_assert((Vec_s64x1{1} != 2).debug_valid_eq(true));
+    sg_assert((Vec_s64x1{2} != 2).debug_valid_eq(false));
+    sg_assert((Vec_s64x1{3} != 2).debug_valid_eq(true));
+    sg_assert((Vec_f32x1{1} != 2).debug_valid_eq(true));
+    sg_assert((Vec_f32x1{2} != 2).debug_valid_eq(false));
+    sg_assert((Vec_f32x1{3} != 2).debug_valid_eq(true));
+    sg_assert((Vec_f64x1{1} != 2).debug_valid_eq(true));
+    sg_assert((Vec_f64x1{2} != 2).debug_valid_eq(false));
+    sg_assert((Vec_f64x1{3} != 2).debug_valid_eq(true));
+
     sg_assert((Vec_pi32{1} >= 2).debug_valid_eq(false));
     sg_assert((Vec_pi32{2} >= 2).debug_valid_eq(true));
     sg_assert((Vec_pi32{3} >= 2).debug_valid_eq(true));
@@ -1861,6 +1886,24 @@ static void test_opover_cmp() {
             .debug_valid_eq(b1 == b2));
         sg_assert((Compare_f64x1{b1} == (Compare_f64x1{b2}))
             .debug_valid_eq(b1 == b2));
+
+        sg_assert((Compare_pi32{b1} != Compare_pi32{b2})
+            .debug_valid_eq(b1 != b2));
+        sg_assert((Compare_pi64{b1} != Compare_pi64{b2})
+            .debug_valid_eq(b1 != b2));
+        sg_assert((Compare_ps{b1} != Compare_ps{b2})
+            .debug_valid_eq(b1 != b2));
+        sg_assert((Compare_pd{b1} != Compare_pd{b2})
+            .debug_valid_eq(b1 != b2));
+
+        sg_assert((Compare_s32x1{b1} != (Compare_s32x1{b2}))
+            .debug_valid_eq(b1 != b2));
+        sg_assert((Compare_s64x1{b1} != (Compare_s64x1{b2}))
+            .debug_valid_eq(b1 != b2));
+        sg_assert((Compare_f32x1{b1} != (Compare_f32x1{b2}))
+            .debug_valid_eq(b1 != b2));
+        sg_assert((Compare_f64x1{b1} != (Compare_f64x1{b2}))
+            .debug_valid_eq(b1 != b2));
 
         // Not equal (XOR)
         sg_assert((Compare_pi32{b1} != (Compare_pi32{b2}))
