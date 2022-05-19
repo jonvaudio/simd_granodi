@@ -5934,15 +5934,10 @@ public:
         return data_ || rhs.data(); }
     Compare_s32x1 operator!() const { return !data_; }
 
-    Compare_s32x1 convert_to_cmp_s32() const { return *this; }
-    Compare_s64x1 convert_to_cmp_s64() const;
-    Compare_f32x1 convert_to_cmp_f32() const;
-    Compare_f64x1 convert_to_cmp_f64() const;
-
-    static Compare_s32x1 from(const Compare_s32x1& cmp) { return cmp; }
-    static inline Compare_s32x1 from(const Compare_s64x1& cmp);
-    static inline Compare_s32x1 from(const Compare_f32x1& cmp);
-    static inline Compare_s32x1 from(const Compare_f64x1& cmp);
+    template <typename To>
+    To to() const { return data_; }
+    template <typename From>
+    static Compare_s32x1 from(const From& cmp) { return cmp.data(); }
 
     Vec_s32x1 choose_else_zero(const Vec_s32x1& if_true) const;
     Vec_s32x1 choose(const Vec_s32x1& if_true, const Vec_s32x1& if_false) const;
@@ -5975,15 +5970,10 @@ public:
         return data_ || rhs.data(); }
     Compare_s64x1 operator!() const { return !data_; }
 
-    Compare_s32x1 convert_to_cmp_s32() const { return data_; }
-    Compare_s64x1 convert_to_cmp_s64() const { return *this; }
-    Compare_f32x1 convert_to_cmp_f32() const;
-    Compare_f64x1 convert_to_cmp_f64() const;
-
-    static Compare_s64x1 from(const Compare_s32x1& cmp) { return cmp.data(); }
-    static Compare_s64x1 from(const Compare_s64x1& cmp) { return cmp; }
-    static inline Compare_s64x1 from(const Compare_f32x1& cmp);
-    static inline Compare_s64x1 from(const Compare_f64x1& cmp);
+    template <typename To>
+    To to() const { return data_; }
+    template <typename From>
+    static Compare_s64x1 from(const From& cmp) { return cmp.data(); }
 
     Vec_s64x1 choose_else_zero(const Vec_s64x1& if_true) const;
     Vec_s64x1 choose(const Vec_s64x1& if_true, const Vec_s64x1& if_false) const;
@@ -6016,15 +6006,10 @@ public:
         return data_ || rhs.data(); }
     Compare_f32x1 operator!() const { return !data_; }
 
-    Compare_s32x1 convert_to_cmp_s32() const { return data_; }
-    Compare_s64x1 convert_to_cmp_s64() const { return data_; }
-    Compare_f32x1 convert_to_cmp_f32() const { return *this; }
-    Compare_f64x1 convert_to_cmp_f64() const;
-
-    static Compare_f32x1 from(const Compare_s32x1& cmp) { return cmp.data(); }
-    static Compare_f32x1 from(const Compare_s64x1& cmp) { return cmp.data(); }
-    static Compare_f32x1 from(const Compare_f32x1& cmp) { return cmp; }
-    static inline Compare_f32x1 from(const Compare_f64x1& cmp);
+    template <typename To>
+    To to() const { return data_; }
+    template <typename From>
+    static Compare_f32x1 from(const From& cmp) { return cmp.data(); }
 
     Vec_f32x1 choose_else_zero(const Vec_f32x1& if_true) const;
     Vec_f32x1 choose(const Vec_f32x1& if_true, const Vec_f32x1& if_false) const;
@@ -6057,15 +6042,10 @@ public:
         return data_ || rhs.data(); }
     Compare_f64x1 operator!() const { return !data_; }
 
-    Compare_s32x1 convert_to_cmp_s32() const { return data_; }
-    Compare_s64x1 convert_to_cmp_s64() const { return data_; }
-    Compare_f32x1 convert_to_cmp_f32() const { return data_; }
-    Compare_f64x1 convert_to_cmp_f64() const { return *this; }
-
-    static Compare_f64x1 from(const Compare_s32x1& cmp) { return cmp.data(); }
-    static Compare_f64x1 from(const Compare_s64x1& cmp) { return cmp.data(); }
-    static Compare_f64x1 from(const Compare_f32x1& cmp) { return cmp.data(); }
-    static Compare_f64x1 from(const Compare_f64x1& cmp) { return cmp; }
+    template <typename To>
+    To to() const { return data_; }
+    template <typename From>
+    static Compare_f64x1 from(const From& cmp) { return cmp.data(); }
 
     Vec_f64x1 choose_else_zero(const Vec_f64x1& if_true) const;
     Vec_f64x1 choose(const Vec_f64x1& if_true, const Vec_f64x1& if_false) const;
@@ -7222,106 +7202,6 @@ template <> inline Compare_ps sg_convert(const Compare_pd& cmp) {
     return sg_cvtcmp_pd_ps(cmp.data());
 }
 template <> inline Compare_pd sg_convert(const Compare_pd& cmp) { return cmp; }
-
-template <> inline Compare_s32x1 sg_convert(const Compare_s32x1& cmp) {
-    return cmp;
-}
-template <> inline Compare_pi32 sg_convert(const Compare_s32x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_s64x1 sg_convert(const Compare_s32x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_pi64 sg_convert(const Compare_s32x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_f32x1 sg_convert(const Compare_s32x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_ps sg_convert(const Compare_s32x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_f64x1 sg_convert(const Compare_s32x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_pd sg_convert(const Compare_s32x1& cmp) {
-    return cmp.data();
-}
-
-template <> inline Compare_s32x1 sg_convert(const Compare_s64x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_pi32 sg_convert(const Compare_s64x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_s64x1 sg_convert(const Compare_s64x1& cmp) {
-    return cmp;
-}
-template <> inline Compare_pi64 sg_convert(const Compare_s64x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_f32x1 sg_convert(const Compare_s64x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_ps sg_convert(const Compare_s64x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_f64x1 sg_convert(const Compare_s64x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_pd sg_convert(const Compare_s64x1& cmp) {
-    return cmp.data();
-}
-
-template <> inline Compare_s32x1 sg_convert(const Compare_f32x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_pi32 sg_convert(const Compare_f32x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_s64x1 sg_convert(const Compare_f32x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_pi64 sg_convert(const Compare_f32x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_f32x1 sg_convert(const Compare_f32x1& cmp) {
-    return cmp;
-}
-template <> inline Compare_ps sg_convert(const Compare_f32x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_f64x1 sg_convert(const Compare_f32x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_pd sg_convert(const Compare_f32x1& cmp) {
-    return cmp.data();
-}
-
-template <> inline Compare_s32x1 sg_convert(const Compare_f64x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_pi32 sg_convert(const Compare_f64x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_s64x1 sg_convert(const Compare_f64x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_pi64 sg_convert(const Compare_f64x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_f32x1 sg_convert(const Compare_f64x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_ps sg_convert(const Compare_f64x1& cmp) {
-    return cmp.data();
-}
-template <> inline Compare_f64x1 sg_convert(const Compare_f64x1& cmp) {
-    return cmp;
-}
-template <> inline Compare_pd sg_convert(const Compare_f64x1& cmp) {
-    return cmp.data();
-}
 
 } // namespace simd_granodi
 
