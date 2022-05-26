@@ -4729,8 +4729,8 @@ class Vec_pi32; class Vec_pi64; class Vec_ps; class Vec_pd;
 // Shim types - for using double / float etc in template code that expects
 // a vector type
 class Vec_s32x1; class Vec_s64x1; class Vec_f32x1; class Vec_f64x1;
-class Compare_s32x1; class Compare_s64x1;
-class Compare_f32x1; class Compare_f64x1;
+//class Compare_s32x1; class Compare_s64x1;
+//class Compare_f32x1; class Compare_f64x1;
 
 template <typename From, typename To>
 inline To sg_convert(const From& x);
@@ -5918,152 +5918,64 @@ inline Vec_pd Compare_pd::choose(const Vec_pd& if_true,
     return sg_choose_pd(data_, if_true.data(), if_false.data());
 }
 
-class Compare_s32x1 {
+template <typename ScalarType>
+class Compare_scalar {
 private:
     bool data_;
 public:
-    Compare_s32x1() : data_{false} {}
-    Compare_s32x1(const bool b) : data_{b} {}
+    Compare_scalar() : data_{false} {}
+    Compare_scalar(const bool b) : data_{b} {}
 
     bool data() const { return data_; }
     bool debug_valid_eq(const bool b) { return data_ == b; }
 
-    Compare_s32x1 operator&&(const Compare_s32x1& rhs) const {
-        return data_ && rhs.data(); }
-    Compare_s32x1 operator||(const Compare_s32x1& rhs) const {
-        return data_ || rhs.data(); }
-    Compare_s32x1 operator!() const { return !data_; }
+    Compare_scalar<ScalarType> operator&&(const Compare_scalar<ScalarType>& rhs)
+    const
+    {
+        return data_ && rhs.data();
+    }
+    Compare_scalar<ScalarType> operator||(const Compare_scalar<ScalarType>& rhs)
+    const
+    {
+        return data_ || rhs.data();
+    }
+    Compare_scalar<ScalarType> operator!() const { return !data_; }
 
     template <typename To>
     To to() const { return data_; }
     template <typename From>
-    static Compare_s32x1 from(const From& cmp) { return cmp.data(); }
+    static Compare_scalar<ScalarType> from(const From& cmp) {
+        return cmp.data();
+    }
 
-    Vec_s32x1 choose_else_zero(const Vec_s32x1& if_true) const;
-    Vec_s32x1 choose(const Vec_s32x1& if_true, const Vec_s32x1& if_false) const;
+    ScalarType choose_else_zero(const ScalarType& if_true) {
+        return data_ ? if_true : ScalarType{0};
+    }
+    ScalarType choose(const ScalarType& if_true, const ScalarType& if_false)
+    const {
+        return data_ ? if_true : if_false;
+    }
 };
 
-inline Compare_s32x1 operator==(const Compare_s32x1& lhs,
-    const Compare_s32x1& rhs)
+template <typename ScalarType>
+inline Compare_scalar<ScalarType> operator==(
+    const Compare_scalar<ScalarType>& lhs,
+    const Compare_scalar<ScalarType>& rhs)
 {
     return lhs.data() == rhs.data();
 }
-inline Compare_s32x1 operator!=(const Compare_s32x1& lhs,
-    const Compare_s32x1& rhs)
+template <typename ScalarType>
+inline Compare_scalar<ScalarType> operator!=(
+    const Compare_scalar<ScalarType>& lhs,
+    const Compare_scalar<ScalarType>& rhs)
 {
     return lhs.data() != rhs.data();
 }
 
-class Compare_s64x1 {
-private:
-    bool data_;
-public:
-    Compare_s64x1() : data_{false} {}
-    Compare_s64x1(const bool b) : data_{b} {}
-
-    bool data() const { return data_; }
-    bool debug_valid_eq(const bool b) { return data_ == b; }
-
-    Compare_s64x1 operator&&(const Compare_s64x1& rhs) const {
-        return data_ && rhs.data(); }
-    Compare_s64x1 operator||(const Compare_s64x1& rhs) const {
-        return data_ || rhs.data(); }
-    Compare_s64x1 operator!() const { return !data_; }
-
-    template <typename To>
-    To to() const { return data_; }
-    template <typename From>
-    static Compare_s64x1 from(const From& cmp) { return cmp.data(); }
-
-    Vec_s64x1 choose_else_zero(const Vec_s64x1& if_true) const;
-    Vec_s64x1 choose(const Vec_s64x1& if_true, const Vec_s64x1& if_false) const;
-};
-
-inline Compare_s64x1 operator==(const Compare_s64x1& lhs,
-    const Compare_s64x1& rhs)
-{
-    return lhs.data() == rhs.data();
-}
-inline Compare_s64x1 operator!=(const Compare_s64x1& lhs,
-    const Compare_s64x1& rhs)
-{
-    return lhs.data() != rhs.data();
-}
-
-class Compare_f32x1 {
-private:
-    bool data_;
-public:
-    Compare_f32x1() : data_{false} {}
-    Compare_f32x1(const bool b) : data_{b} {}
-
-    bool data() const { return data_; }
-    bool debug_valid_eq(const bool b) { return data_ == b; }
-
-    Compare_f32x1 operator&&(const Compare_f32x1& rhs) const {
-        return data_ && rhs.data(); }
-    Compare_f32x1 operator||(const Compare_f32x1& rhs) const {
-        return data_ || rhs.data(); }
-    Compare_f32x1 operator!() const { return !data_; }
-
-    template <typename To>
-    To to() const { return data_; }
-    template <typename From>
-    static Compare_f32x1 from(const From& cmp) { return cmp.data(); }
-
-    Vec_f32x1 choose_else_zero(const Vec_f32x1& if_true) const;
-    Vec_f32x1 choose(const Vec_f32x1& if_true, const Vec_f32x1& if_false) const;
-};
-
-inline Compare_f32x1 operator==(const Compare_f32x1& lhs,
-    const Compare_f32x1& rhs)
-{
-    return lhs.data() == rhs.data();
-}
-inline Compare_f32x1 operator!=(const Compare_f32x1& lhs,
-    const Compare_f32x1& rhs)
-{
-    return lhs.data() != rhs.data();
-}
-
-class Compare_f64x1 {
-private:
-    bool data_;
-public:
-    Compare_f64x1() : data_{false} {}
-    Compare_f64x1(const bool b) : data_{b} {}
-
-    bool data() const { return data_; }
-    bool debug_valid_eq(const bool b) { return data_ == b; }
-
-    Compare_f64x1 operator&&(const Compare_f64x1& rhs) const {
-        return data_ && rhs.data(); }
-    Compare_f64x1 operator||(const Compare_f64x1& rhs) const {
-        return data_ || rhs.data(); }
-    Compare_f64x1 operator!() const { return !data_; }
-
-    template <typename To>
-    To to() const { return data_; }
-    template <typename From>
-    static Compare_f64x1 from(const From& cmp) { return cmp.data(); }
-
-    Vec_f64x1 choose_else_zero(const Vec_f64x1& if_true) const;
-    Vec_f64x1 choose(const Vec_f64x1& if_true, const Vec_f64x1& if_false) const;
-};
-
-typedef Compare_f32x1 Compare_ss;
-typedef Compare_f64x1 Compare_sd;
-
-inline Compare_f64x1 operator==(const Compare_f64x1& lhs,
-    const Compare_f64x1& rhs)
-{
-    return lhs.data() == rhs.data();
-}
-inline Compare_f64x1 operator!=(const Compare_f64x1& lhs,
-    const Compare_f64x1& rhs)
-{
-    return lhs.data() != rhs.data();
-}
+typedef Compare_scalar<Vec_s32x1> Compare_s32x1;
+typedef Compare_scalar<Vec_s64x1> Compare_s64x1;
+typedef Compare_scalar<Vec_f32x1> Compare_f32x1;
+typedef Compare_scalar<Vec_f64x1> Compare_f64x1;
 
 class Vec_s32x1 {
     int32_t data_;
@@ -6825,45 +6737,6 @@ public:
 
 typedef Vec_f32x1 Vec_ss;
 typedef Vec_f64x1 Vec_sd;
-
-inline Vec_s32x1 Compare_s32x1::choose_else_zero(const Vec_s32x1& if_true) const
-{
-    return data_ ? if_true : 0;
-}
-inline Vec_s64x1 Compare_s64x1::choose_else_zero(const Vec_s64x1& if_true) const
-{
-    return data_ ? if_true : 0;
-}
-inline Vec_f32x1 Compare_f32x1::choose_else_zero(const Vec_f32x1& if_true) const
-{
-    return data_ ? if_true : 0.0f;
-}
-inline Vec_f64x1 Compare_f64x1::choose_else_zero(const Vec_f64x1& if_true) const
-{
-    return data_ ? if_true : 0.0;
-}
-
-inline Vec_s32x1 Compare_s32x1::choose(const Vec_s32x1& if_true,
-    const Vec_s32x1& if_false) const
-{
-    return data_ ? if_true : if_false;
-}
-
-inline Vec_s64x1 Compare_s64x1::choose(const Vec_s64x1& if_true,
-    const Vec_s64x1& if_false) const
-{
-    return data_ ? if_true : if_false;
-}
-inline Vec_f32x1 Compare_f32x1::choose(const Vec_f32x1& if_true,
-    const Vec_f32x1& if_false) const
-{
-    return data_ ? if_true : if_false;
-}
-inline Vec_f64x1 Compare_f64x1::choose(const Vec_f64x1& if_true,
-    const Vec_f64x1& if_false) const
-{
-    return data_ ? if_true : if_false;
-}
 
 //
 //
