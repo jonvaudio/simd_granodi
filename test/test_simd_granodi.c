@@ -1976,5 +1976,9 @@ static void test_opover_cmp() {
     sg_assert(Compare_f64x1{true}.choose(2.0, 3.0).debug_eq(2.0));
 
     //printf("Comparison operator overloading test succeeded\n");
+
+    // Testing scratchpad
+    /*sg_assert((Vec_ps{1.0f} < 2.0f || Vec_ps{1.0f} > 4.0f)
+        .debug_valid_eq(true));*/
 }
 #endif
