@@ -4754,19 +4754,19 @@ class Vec_pi32; class Vec_pi64; class Vec_ps; class Vec_pd;
 class Vec_s32x1; class Vec_s64x1; class Vec_f32x1; class Vec_f64x1;
 
 template <typename From, typename To>
-inline To sg_convert(const From& x);
+inline To sg_convert(const From& x) = delete;
 
 template <typename From, typename To>
-inline To sg_convert_nearest(const From& x);
+inline To sg_convert_nearest(const From& x) = delete;
 
 template <typename From, typename To>
-inline To sg_convert_truncate(const From& x);
+inline To sg_convert_truncate(const From& x) = delete;
 
 template <typename From, typename To>
-inline To sg_convert_floor(const From& x);
+inline To sg_convert_floor(const From& x) = delete;
 
 template <typename From, typename To>
-inline To sg_bitcast(const From& x);
+inline To sg_bitcast(const From& x) = delete;
 
 class Compare_pi32 {
     sg_cmp_pi32 data_;

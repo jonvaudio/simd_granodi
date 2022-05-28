@@ -1980,5 +1980,7 @@ static void test_opover_cmp() {
     // Testing scratchpad
     /*sg_assert((Vec_ps{1.0f} < 2.0f || Vec_ps{1.0f} > 4.0f)
         .debug_valid_eq(true));*/
+    //sg_assert(Vec_ps{1.0f}.to<Vec_pi32>().debug_eq(1));
+    //sg_assert(Vec_ps{1.0f}.to<Vec_f32x1>().debug_eq(1.0f));
 }
 #endif
