@@ -4729,8 +4729,6 @@ class Vec_pi32; class Vec_pi64; class Vec_ps; class Vec_pd;
 // Shim types - for using double / float etc in template code that expects
 // a vector type
 class Vec_s32x1; class Vec_s64x1; class Vec_f32x1; class Vec_f64x1;
-//class Compare_s32x1; class Compare_s64x1;
-//class Compare_f32x1; class Compare_f64x1;
 
 template <typename From, typename To>
 inline To sg_convert(const From& x);
