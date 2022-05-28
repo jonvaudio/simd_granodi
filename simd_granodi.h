@@ -4801,6 +4801,8 @@ inline Compare_pi32 operator!=(const Compare_pi32& lhs, const Compare_pi32& rhs)
     return sg_cmpneq_cmp_pi32(lhs.data(), rhs.data());
 }
 
+typedef Compare_pi32 Compare_s32x4;
+
 class Compare_pi64 {
     sg_cmp_pi64 data_;
 public:
@@ -4852,6 +4854,8 @@ inline Compare_pi64 operator!=(const Compare_pi64& lhs, const Compare_pi64& rhs)
 {
     return sg_cmpneq_cmp_pi64(lhs.data(), rhs.data());
 }
+
+typedef Compare_pi64 Compare_s64x2;
 
 class Compare_ps {
     sg_cmp_ps data_;
@@ -4905,6 +4909,8 @@ inline Compare_ps operator!=(const Compare_ps& lhs, const Compare_ps& rhs)
     return sg_cmpneq_cmp_ps(lhs.data(), rhs.data());
 }
 
+typedef Compare_ps Compare_f32x4;
+
 class Compare_pd {
     sg_cmp_pd data_;
 public:
@@ -4954,6 +4960,8 @@ inline Compare_pd operator!=(const Compare_pd& lhs, const Compare_pd& rhs)
 {
     return sg_cmpneq_cmp_pd(lhs.data(), rhs.data());
 }
+
+typedef Compare_pd Compare_f64x2;
 
 // Macros for consistency inside templated methods
 
@@ -5209,6 +5217,8 @@ public:
     }
 };
 
+typedef Vec_pi32 Vec_s32x4;
+
 class Vec_pi64 {
     sg_pi64 data_;
 public:
@@ -5431,6 +5441,8 @@ public:
         return sg_bitcast<From, Vec_pi64>(x);
     }
 };
+
+typedef Vec_pi64 Vec_s64x2;
 
 class Vec_ps {
     sg_ps data_;
@@ -5661,6 +5673,8 @@ public:
     }
 };
 
+typedef Vec_ps Vec_f32x4;
+
 class Vec_pd {
     sg_pd data_;
 public:
@@ -5879,6 +5893,8 @@ public:
             std::sqrt(sg_get0_pd(data_)) };
     }
 };
+
+typedef Vec_pd Vec_f64x2;
 
 inline Vec_pi32 Compare_pi32::choose_else_zero(const Vec_pi32& if_true) const {
     return sg_choose_else_zero_pi32(data_, if_true.data());
