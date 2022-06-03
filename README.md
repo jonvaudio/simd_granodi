@@ -159,14 +159,59 @@ Any `Vec_` type can be bitcasted to any other `Vec_` type of the same total size
 
 For 128-bit vectors, bitcasing is usually a no-op (compiles to zero instructions), but the subsequent switch to a different "pipeline" may or may not incur a small performance penalty depending on the hardware. But for the "scalar wrapper" types,  bitcasting is achieved via `memcpy()` which usually gets optimized into a single register move instruction.
 
-You can **not** bitcast a `Compare_` type to any other type, but you can convert between `Compare_` types (see below).
+You can **not** bitcast a `Compare_` type to any other type (including another `Compare_` type), but you can convert between `Compare_` types (see below).
 
 ### Conversion between `Vec_` types
 
+You can convert to and from any `Vec_` types. In general, this is achieved using the templated `.to<typename To>()` method. **However**, this method is **not** implemented for converting **from** a floating point type **to** an integer type. This is because a rounding method needs to be specified, using one of the following templated methods: `.truncate<typename To>()`, `.floor<typename To>()`, or `.nearest<typename To>()`.
 
+#### Converting from 32x4 vectors to 64x2 vectors
+
+When you convert from a 32x4 vector (i.e. Vec_pi32 and Vec_ps) to a 64x2 vector (i.e. Vec_pi64 and Vec_pd), the lowest two elements from the 32x4 vector (at indexes 0 and 1) will be converted to new values for the 64x2 vector (and placed at indexes 0 and 1), and the highest two elements from the 32x4 vector (at indexes 2 and 3) will be discarded.
+
+#### Converting from 64x2 vectors to 32x4 vectors
+
+When you convert from a 64x2 vector (i.e. Vec_pi64 and Vec_pd) to a 32x4 vector (i.e. Vec_pi32 and Vec_ps), the elements from the 64x2 vector (at indexes 0 and 1) will be converted to new values and placed into indexes 0 and 1 of the the 32x4 vector. Indexes 2 and 3 of the 32x4 vector will be set to zero.
+
+#### Converting to and from "scalar wrapper" vector types
+
+- A "scalar wrapper" vector can be converted to any other vector type using the conversion methods.
+- A vector with more than one element **cannot** be converted to a "scalar wrapper" vector type using the conversion methods. Instead, you must use the templated `.get<int32_t index>()` method to choose an element from the vector, then use that element to construct a new "scalar wrapper" vector type.
+
+#### Converting between float types
+
+- When converting a 64-bit float type to a 32-bit float type, the platform's default rounding method will be used. This is usually "round to nearest", with ties rounding to even.
+- When converting a 32-bit float vector type to a 64-bit float vector type, there will be no loss of precision as the 64-bit type can represent the 32-bit type exactly.
+
+#### Converting from float types to integer types
+
+When converting from a float type to an integer type, you **cannot** use the templated `.to<typename To>()` method. Instead, you must use one of the following methods:
+
+- `.truncate<typename To>()`: Round towards zero.
+- `.floor<typename To>()`: Round towards minus infinity.
+- `.nearest<typename To>()`: Round to nearest, with ties rounding to even.
+
+#### The static `::from(const FromType& v)` method...
+
+... allows you to construct a new `Vec_` type from a different type, with the exact same behaviour as the `.to<typename To>()` method. As with `.to<typename To>()`, you cannot construct an integer type from a float type.
 
 ### Conversion between `Compare_` types
 
-### Type trait and dependent type members
+The `.to<typename To>()` method also works for `Compare_` types, to resize bitmasks. (For example, comparing two `Vec_pd` and using the result of that comparison to select `Vec_pi64` results).
+
+For `Compare_` types whose elements are of different sizes (i.e. 32x4 or 64x2), the conversion behaviour is identical to that described for vectors above.
+
+### Type traits and member type aliases
+
+To add in templated programming, all `Vec_` types define the following members:
+
+- `elem_t`: The built-in type that corresponds to the elements of the vector. I.e. `Vec_pi32:elem_t` is `int32_t`.
+- `scalar_t`: The "scalar wrapper" type that has a single element with the same type as the elements of the vector. I.e. `Vec_pi32::scalar_t` is `Vec_s32x1`. `Vec_s32x1::scalar_t` is also `Vec_s32x1`.
+- `vec128_t`: The 128-bit vector type whose elements have the same type as the vector. I.e. `Vec_s32x1::vec128_t` is `Vec_pi32`. `Vec_pi32::vec128_t` is also `Vec_pi32`.
+- `compare_t`: The `Compare_` type that corresponds to the vector. I.e. `Vec_pi32::compare_t` is `Compare_pi32`.
+- `equiv_int_t`: The same-sized signed integer type that corresponds to the vector. I.e. `Vec_ps::equiv_int_t` and `Vec_pi32::equiv_int_t` are both `Vec_pi32`. `Vec_ss::equiv_int_t` and `Vec_s32x1::equiv_int_t` are both `Vec_s32x1`.
+- Continue here...
+
+Also, all `Compare_` types define the following members:
 
 ### Utility and convenience methods
