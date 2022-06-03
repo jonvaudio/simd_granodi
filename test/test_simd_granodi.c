@@ -1059,10 +1059,15 @@ static void test_opover() {
     sg_assert(Vec_f64x1{5.0}.debug_eq(5.0));
 
     sg_assert((Vec_pi32{5, 4, 3, 2}.debug_eq(5, 4, 3, 2)));
+    sg_assert(Vec_pi32::set_duo(3, 2).debug_eq(0, 0, 3, 2));
     sg_assert((Vec_pi64{5, 4}.debug_eq(5, 4)));
+    sg_assert((Vec_pi64::set_duo(5, 4).debug_eq(5, 4)));
     sg_assert((Vec_ps{5.0f, 4.0f, 3.0f, 2.0f}
         .debug_eq(5.0f, 4.0f, 3.0f, 2.0f)));
+    sg_assert((Vec_ps::set_duo(3.0f, 2.0f)
+        .debug_eq(0.0f, 0.0f, 3.0f, 2.0f)));
     sg_assert((Vec_pd{5.0, 4.0}.debug_eq(5.0, 4.0)));
+    sg_assert((Vec_pd::set_duo(5.0, 4.0).debug_eq(5.0, 4.0)));
 
     sg_assert(Vec_pi32::bitcast_from_u32(5).debug_eq(5));
     sg_assert(Vec_pi32::bitcast_from_u32(5, 4, 3, 2).debug_eq(5, 4, 3, 2));

@@ -1995,6 +1995,8 @@ static inline double sg_get1_pd(const sg_pd a) {
 #define sg_get1_pd(a) vgetq_lane_f64(a, 1)
 #endif
 
+// Get generic
+
 static inline sg_generic_pi32 sg_getg_pi32(const sg_pi32 a) {
     sg_generic_pi32 result;
     result.i0 = sg_get0_pi32(a); result.i1 = sg_get1_pi32(a);
@@ -5050,6 +5052,10 @@ public:
         return sg_set_from_u32_pi32(i3, i2, i1, i0);
     }
 
+    static Vec_pi32 set_duo(const int32_t i1, const int32_t i0) {
+        return sg_set_pi32(0, 0, i1, i0);
+    }
+
     sg_pi32 data() const { return data_; }
     sg_generic_pi32 generic() const { return sg_getg_pi32(data_); }
     int32_t i0() const { return sg_get0_pi32(data_); }
@@ -5279,6 +5285,10 @@ public:
         return sg_set_from_u64_pi64(l1, l0);
     }
 
+    static Vec_pi64 set_duo(const int64_t l1, const int64_t l0) {
+        return sg_set_pi64(l1, l0);
+    }
+
     sg_pi64 data() const { return data_; }
     sg_generic_pi64 generic() const { return sg_getg_pi64(data_); }
     int64_t l0() const { return sg_get0_pi64(data_); }
@@ -5503,6 +5513,10 @@ public:
         const uint32_t i1, const uint32_t i0)
     {
         return sg_set_from_u32_ps(i3, i2, i1, i0);
+    }
+
+    static Vec_ps set_duo(const float f1, const float f0) {
+        return sg_set_ps(0.0f, 0.0f, f1, f0);
     }
 
     sg_ps data() const { return data_; }
@@ -5735,6 +5749,10 @@ public:
     }
     static Vec_pd bitcast_from_u64(const uint64_t l1, const uint64_t l0) {
         return sg_set_from_u64_pd(l1, l0);
+    }
+
+    static Vec_pd set_duo(const double d1, const double d0) {
+        return sg_set_pd(d1, d0);
     }
 
     sg_pd data() const { return data_; }
