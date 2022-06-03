@@ -1,5 +1,5 @@
 # We do -lm on all builds now as ARM needs it in GCC
-g++ -o test_generic_debug test_simd_granodi.c -Wall -Wextra -std=c++11 -D SIMD_GRANODI_FORCE_GENERIC -lm
-g++ -o test_generic_opt test_simd_granodi.c -Wall -Wextra -std=c++11 -D NDEBUG -D SIMD_GRANODI_FORCE_GENERIC -O3 -lm
-g++ -o test_sse_neon_debug test_simd_granodi.c -Wall -Wextra -std=c++11 -lm
-g++ -o test_sse_neon_opt test_simd_granodi.c -Wall -Wextra -std=c++11 -D NDEBUG -O3 -lm
+g++ -o bin/test_generic_debug test_simd_granodi.c -Wall -Wextra -std=c++11 -D SIMD_GRANODI_FORCE_GENERIC -lm
+g++ -o bin/test_generic_opt test_simd_granodi.c -Wall -Wextra -std=c++11 -D NDEBUG -D SIMD_GRANODI_FORCE_GENERIC -O3 -lm
+g++ -o bin/test_sse_neon_debug test_simd_granodi.c -Wall -Wextra -std=c++11 -lm
+g++ -o bin/test_sse_neon_opt test_simd_granodi.c -Wall -Wextra -std=c++11 -D NDEBUG -O3 -lm
