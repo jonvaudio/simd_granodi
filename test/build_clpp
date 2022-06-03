@@ -1,6 +1,6 @@
 cp test_simd_granodi.c test_simd_granodi.cpp
-clang++ -o test_generic_debug test_simd_granodi.cpp -Wall -Wextra -std=c++11 -D SIMD_GRANODI_FORCE_GENERIC -lm
-clang++ -o test_generic_opt test_simd_granodi.cpp -Wall -Wextra -std=c++11 -D NDEBUG -D SIMD_GRANODI_FORCE_GENERIC -O3 -lm
-clang++ -o test_sse_neon_debug test_simd_granodi.cpp -Wall -Wextra -std=c++11 -lm
-clang++ -o test_sse_neon_opt test_simd_granodi.cpp -Wall -Wextra -std=c++11 -D NDEBUG -O3 -lm
+clang++ -o bin/test_generic_debug test_simd_granodi.cpp -Wall -Wextra -std=c++11 -D SIMD_GRANODI_FORCE_GENERIC -lm
+clang++ -o bin/test_generic_opt test_simd_granodi.cpp -Wall -Wextra -std=c++11 -D NDEBUG -D SIMD_GRANODI_FORCE_GENERIC -O3 -lm
+clang++ -o bin/test_sse_neon_debug test_simd_granodi.cpp -Wall -Wextra -std=c++11 -lm
+clang++ -o bin/test_sse_neon_opt test_simd_granodi.cpp -Wall -Wextra -std=c++11 -D NDEBUG -O3 -lm
 rm test_simd_granodi.cpp
