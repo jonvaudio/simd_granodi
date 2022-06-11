@@ -491,7 +491,7 @@ static inline sg_ps sg_bitcast_pd_ps(const sg_pd a) {
         src2_compile_time_constant, \
         src1_compile_time_constant, \
         src0_compile_time_constant))
-static inline sg_pi32 sg_shuffle_pi32_switch_(const sg_pi32 a,
+static inline sg_pi32 sg_vectorcall(sg_shuffle_pi32_switch_)(const sg_pi32 a,
     const int32_t imm8_compile_time_constant)
 {
     #ifdef SIMD_GRANODI_FORCE_GENERIC
