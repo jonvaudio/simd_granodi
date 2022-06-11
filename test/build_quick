@@ -1,3 +1,1 @@
-cp test_simd_granodi.c test_simd_granodi.cpp
 g++ -o bin/test_sse_neon_debug test_simd_granodi.cpp -Wall -Wextra -std=c++11 -lm -fmax-errors=2
-rm test_simd_granodi.cpp

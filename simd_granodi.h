@@ -119,10 +119,14 @@ TODO:
 #endif
 
 #if defined (__GNUC__) || defined (__clang__)
-    #if defined (__x86_64__) || (defined (__i386__) && defined (__SSE2__))
-        // Warning: on x86 (32-bit), this doesn't guarantee that x87
-        // instructions won't also be generated. Check your compiler options!
+    #if defined (__x86_64__)
         #define SIMD_GRANODI_SSE2
+        #define SIMD_GRANODI_ARCH_SSE
+        #ifdef __clang__
+            #define sg_vectorcall(f) __vectorcall f
+        #endif
+    #elif defined (defined (__i386__) && defined (__SSE2__))
+        #define SIMD_GRANODI_FORCE_GENERIC
         #define SIMD_GRANODI_ARCH_SSE
     #elif defined (__aarch64__)
         #define SIMD_GRANODI_NEON
@@ -134,12 +138,21 @@ TODO:
         #define SIMD_GRANODI_FORCE_GENERIC
     #endif
 #elif defined (_MSC_VER)
-    #if defined (_M_AMD64) || (defined (_M_IX86) && (_M_IX86_FP == 2))
+    #if defined (_M_AMD64)
         #define SIMD_GRANODI_SSE2
         #define SIMD_GRANODI_ARCH_SSE
+        #define sg_vectorcall(f) __vectorcall f
+    #elif defined (_M_IX86) && (_M_IX86_FP == 2))
+        #define SIMD_GRANODI_FORCE_GENERIC
+        #define SIMD_GRANODI_ARCH_SSE
+        #define sg_vectorcall(f) __vectorcall f
     #else
         #define SIMD_GRANODI_FORCE_GENERIC
     #endif
+#endif
+
+#ifndef sg_vectorcall
+#define sg_vectorcall(f) f
 #endif
 
 // In case the user wants to FORCE_GENERIC, the #ifdefs below should prioritize
