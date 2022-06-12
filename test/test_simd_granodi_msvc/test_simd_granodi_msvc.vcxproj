@@ -21,6 +21,9 @@
   <ItemGroup>
     <ClCompile Include="..\test_simd_granodi.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\simd_granodi.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>

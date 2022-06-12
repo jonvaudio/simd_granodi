@@ -213,10 +213,10 @@ void test_128endian() {
         sg_generic_pi32 ag;
         memcpy(&ag, &a, sizeof(sg_generic_pi32));
         if (ag.i0 == 0) {
-            printf("Little endian ordering of 128 bit si32 vector\n");
+            printf("Little endian ordering of 128 bit pi32 vector\n");
         }
         else if (ag.i0 == 3) {
-            printf("Big endian ordering of 128 bit si32 vector\n");
+            printf("Big endian ordering of 128 bit pi32 vector\n");
         }
         else {
             printf("Big problem: memcpy of vector to generic vector "
