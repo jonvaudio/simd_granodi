@@ -125,7 +125,7 @@ TODO:
         #ifdef __clang__
             #define sg_vectorcall(f) __vectorcall f
         #endif
-    #elif defined (defined (__i386__) && defined (__SSE2__))
+    #elif (defined (__i386__) && defined (__SSE2__))
         #define SIMD_GRANODI_FORCE_GENERIC
         #define SIMD_GRANODI_ARCH_SSE
     #elif defined (__aarch64__)
