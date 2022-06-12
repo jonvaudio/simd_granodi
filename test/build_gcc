@@ -1,4 +1,6 @@
+cp test_simd_granodi.cpp test_simd_granodi.c
 gcc -o bin/test_generic_debug test_simd_granodi.c -Wall -Wextra -std=c99 -D SIMD_GRANODI_FORCE_GENERIC -lm
 gcc -o bin/test_generic_opt test_simd_granodi.c -Wall -Wextra -std=c99 -D NDEBUG -D SIMD_GRANODI_FORCE_GENERIC -O3 -lm
 gcc -o bin/test_sse_neon_debug test_simd_granodi.c -Wall -Wextra -std=c99 -lm
 gcc -o bin/test_sse_neon_opt test_simd_granodi.c -Wall -Wextra -std=c99 -D NDEBUG -O3 -lm
+rm test_simd_granodi.c

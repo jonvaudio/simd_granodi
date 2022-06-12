@@ -213,10 +213,10 @@ void test_128endian() {
         sg_generic_pi32 ag;
         memcpy(&ag, &a, sizeof(sg_generic_pi32));
         if (ag.i0 == 0) {
-            printf("Little endian ordering of 128 bit si32 vector\n");
+            printf("Little endian ordering of 128 bit pi32 vector\n");
         }
         else if (ag.i0 == 3) {
-            printf("Big endian ordering of 128 bit si32 vector\n");
+            printf("Big endian ordering of 128 bit pi32 vector\n");
         }
         else {
             printf("Big problem: memcpy of vector to generic vector "
@@ -726,36 +726,44 @@ void test_cmp() {
     for (int b1 = 0; b1 < 2; ++b1) {
     for (int b2 = 0; b2 < 2; ++b2) {
     for (int b3 = 0; b3 < 2; ++b3) {
-        sg_generic_cmp4 a_gcmp4 = { .b0 = (bool) a0, .b1 = (bool) a1,
-            .b2 = (bool) a2, .b3 = (bool) a3 },
-            b_gcmp4 = { .b0 = (bool) b0, .b1 = (bool) b1,
-                .b2 = (bool) b2, .b3 = (bool) b3 },
-            a_and_b = { .b0 = (bool) a0 && (bool) b0,
-                .b1 = (bool) a1 && (bool) b1,
-                .b2 = (bool) a2 && (bool) b2, .b3 = (bool) a3 && (bool) b3 },
-            a_andnot_b = { .b0 = !((bool) a0) && (bool) b0,
-                .b1 = !((bool) a1) && (bool) b1,
-                .b2 = !((bool) a2) && (bool) b2,
-                .b3 = !((bool) a3) && (bool) b3 },
-            a_not = { .b0 = !(bool) a0, .b1 = !(bool) a1,
-                .b2 = !(bool) a2, .b3 = !(bool) a3 },
-            a_or_b = { .b0 = (bool) a0 || (bool) b0,
-                .b1 = (bool) a1 || (bool) b1,
-                .b2 = (bool) a2 || (bool) b2, .b3 = (bool) a3 || (bool) b3 },
-            a_xor_b = { .b0 = (bool) a0 != (bool) b0,
-                .b1 = (bool) a1 != (bool) b1,
-                .b2 = (bool) a2 != (bool) b2, .b3 = (bool) a3 != (bool) b3 },
-            a_eq_b = { .b0 = (bool) a0 == (bool) b0,
-                .b1 = (bool) a1 == (bool) b1,
-                .b2 = (bool) a2 == (bool) b2, .b3 = (bool) a3 == (bool) b3 };
-        sg_generic_cmp2 a_gcmp2 = { .b0 = (bool) a0, .b1 = (bool) a1 },
-            b_gcmp2 = { .b0 = (bool) b0, .b1 = (bool) b1 },
-            a_and_b_2 = { .b0 = a_and_b.b0, .b1 = a_and_b.b1 },
-            a_andnot_b_2 = { .b0 = a_andnot_b.b0, .b1 = a_andnot_b.b1 },
-            a_not_2 = { .b0 = a_not.b0, .b1 = a_not.b1 },
-            a_or_b_2 = { .b0 = a_or_b.b0, .b1 = a_or_b.b1 },
-            a_xor_b_2 = { .b0 = a_xor_b.b0, .b1 = a_xor_b.b1 },
-            a_eq_b_2 = { .b0 = a_eq_b.b0, .b1 = a_eq_b.b1 };
+        sg_generic_cmp4 a_gcmp4, b_gcmp4, a_and_b, a_andnot_b, a_not, a_or_b,
+            a_xor_b, a_eq_b;
+        sg_generic_cmp2 a_gcmp2, b_gcmp2, a_and_b_2, a_andnot_b_2, a_not_2,
+            a_or_b_2, a_xor_b_2, a_eq_b_2;
+        a_gcmp4.b0 = (bool) a0; a_gcmp4.b1 = (bool) a1;
+        a_gcmp4.b2 = (bool) a2; a_gcmp4.b3 = (bool) a3;
+        b_gcmp4.b0 = (bool) b0; b_gcmp4.b1 = (bool) b1;
+        b_gcmp4.b2 = (bool) b2; b_gcmp4.b3 = (bool) b3;
+        a_and_b.b0 = (bool) a0 && (bool) b0;
+        a_and_b.b1 = (bool) a1 && (bool) b1;
+        a_and_b.b2 = (bool) a2 && (bool) b2;
+        a_and_b.b3 = (bool) a3 && (bool) b3;
+        a_andnot_b.b0 = !((bool) a0) && (bool) b0;
+        a_andnot_b.b1 = !((bool) a1) && (bool) b1;
+        a_andnot_b.b2 = !((bool) a2) && (bool) b2;
+        a_andnot_b.b3 = !((bool) a3) && (bool) b3;
+        a_not.b0 = !(bool) a0; a_not.b1 = !(bool) a1;
+        a_not.b2 = !(bool) a2; a_not.b3 = !(bool) a3;
+        a_or_b.b0 = (bool) a0 || (bool) b0;
+        a_or_b.b1 = (bool) a1 || (bool) b1;
+        a_or_b.b2 = (bool) a2 || (bool) b2;
+        a_or_b.b3 = (bool) a3 || (bool) b3;
+        a_xor_b.b0 = (bool) a0 != (bool) b0;
+        a_xor_b.b1 = (bool) a1 != (bool) b1;
+        a_xor_b.b2 = (bool) a2 != (bool) b2;
+        a_xor_b.b3 = (bool) a3 != (bool) b3;
+        a_eq_b.b0 = (bool) a0 == (bool) b0;
+        a_eq_b.b1 = (bool) a1 == (bool) b1;
+        a_eq_b.b2 = (bool) a2 == (bool) b2;
+        a_eq_b.b3 = (bool) a3 == (bool) b3;
+        a_gcmp2.b0 = (bool) a0; a_gcmp2.b1 = (bool) a1;
+        b_gcmp2.b0 = (bool) b0; b_gcmp2.b1 = (bool) b1;
+        a_and_b_2.b0 = a_and_b.b0; a_and_b_2.b1 = a_and_b.b1;
+        a_andnot_b_2.b0 = a_andnot_b.b0; a_andnot_b_2.b1 = a_andnot_b.b1;
+        a_not_2.b0 = a_not.b0; a_not_2.b1 = a_not.b1;
+        a_or_b_2.b0 = a_or_b.b0; a_or_b_2.b1 = a_or_b.b1;
+        a_xor_b_2.b0 = a_xor_b.b0; a_xor_b_2.b1 = a_xor_b.b1;
+        a_eq_b_2.b0 = a_eq_b.b0; a_eq_b_2.b1 = a_eq_b.b1;
         sg_cmp_pi32 a_pi32 = sg_setcmp_fromg_pi32(a_gcmp4),
             b_pi32 = sg_setcmp_fromg_pi32(b_gcmp4);
         sg_cmp_pi64 a_pi64 = sg_setcmp_fromg_pi64(a_gcmp2),
@@ -815,31 +823,40 @@ void test_cmp() {
     for (int c1 = 0; c1 < 2; ++c1) {
     for (int c2 = 0; c2 < 2; ++c2) {
     for (int c3 = 0; c3 < 2; ++c3) {
-        const sg_generic_cmp2 cmp2 = { .b0 = (bool) c0, .b1 = (bool) c1 };
-        const sg_generic_cmp4 cmp4 = { .b0 = (bool) c0, .b1 = (bool) c1,
-            .b2 = (bool) c2, .b3 = (bool) c3 };
-        const sg_generic_pi32 exp_pi32 = {
-            .i0 = c0 ? true_val : false_val,
-            .i1 = c1 ? true_val : false_val,
-            .i2 = c2 ? true_val : false_val,
-            .i3 = c3 ? true_val : false_val };
-        const sg_generic_pi32 exp_oz_pi32 = {
-            .i0 = c0 ? true_val : 0,
-            .i1 = c1 ? true_val : 0,
-            .i2 = c2 ? true_val : 0,
-            .i3 = c3 ? true_val : 0 };
-        const sg_generic_pi64 exp_pi64 = { .l0 = exp_pi32.i0, .l1 = exp_pi32.i1 },
-            exp_oz_pi64 = { .l0 = exp_oz_pi32.i0, .l1 = exp_oz_pi32.i1 };
-        const sg_generic_ps exp_ps = { .f0 = (float) exp_pi32.i0,
-            .f1 = (float) exp_pi32.i1,
-            .f2 = (float) exp_pi32.i2, .f3 = (float) exp_pi32.i3 },
-            exp_oz_ps = { .f0 = (float) exp_oz_pi32.i0,
-                .f1 = (float) exp_oz_pi32.i1,
-                .f2 = (float) exp_oz_pi32.i2, .f3 = (float) exp_oz_pi32.i3 };
-        const sg_generic_pd exp_pd = { .d0 = (double) exp_pi32.i0,
-            .d1 = (double) exp_pi32.i1 },
-            exp_oz_pd = { .d0 = (double) exp_oz_pi32.i0,
-                .d1 = (double) exp_oz_pi32.i1 };
+        sg_generic_cmp2 cmp2; sg_generic_cmp4 cmp4;
+        cmp2.b0 = (bool) c0; cmp2.b1 = (bool) c1;
+        cmp4.b0 = (bool) c0; cmp4.b1 = (bool) c1;
+        cmp4.b2 = (bool) c2; cmp4.b3 = (bool) c3;
+        sg_generic_pi32 exp_pi32;
+        exp_pi32.i0 = c0 ? true_val : false_val;
+        exp_pi32.i1 = c1 ? true_val : false_val;
+        exp_pi32.i2 = c2 ? true_val : false_val;
+        exp_pi32.i3 = c3 ? true_val : false_val;
+        sg_generic_pi32 exp_oz_pi32;
+        exp_oz_pi32.i0 = c0 ? true_val : 0;
+        exp_oz_pi32.i1 = c1 ? true_val : 0;
+        exp_oz_pi32.i2 = c2 ? true_val : 0;
+        exp_oz_pi32.i3 = c3 ? true_val : 0;
+        sg_generic_pi64 exp_pi64;
+        exp_pi64.l0 = exp_pi32.i0; exp_pi64.l1 = exp_pi32.i1;
+        sg_generic_pi64 exp_oz_pi64;
+        exp_oz_pi64.l0 = exp_oz_pi32.i0; exp_oz_pi64.l1 = exp_oz_pi32.i1;
+        sg_generic_ps exp_ps;
+        exp_ps.f0 = (float) exp_pi32.i0;
+        exp_ps.f1 = (float) exp_pi32.i1;
+        exp_ps.f2 = (float) exp_pi32.i2;
+        exp_ps.f3 = (float) exp_pi32.i3;
+        sg_generic_ps exp_oz_ps;
+        exp_oz_ps.f0 = (float) exp_oz_pi32.i0;
+        exp_oz_ps.f1 = (float) exp_oz_pi32.i1;
+        exp_oz_ps.f2 = (float) exp_oz_pi32.i2;
+        exp_oz_ps.f3 = (float) exp_oz_pi32.i3;
+        sg_generic_pd exp_pd;
+        exp_pd.d0 = (double) exp_pi32.i0;
+        exp_pd.d1 = (double) exp_pi32.i1;
+        sg_generic_pd exp_oz_pd;
+        exp_oz_pd.d0 = (double) exp_oz_pi32.i0;
+        exp_oz_pd.d1 = (double) exp_oz_pi32.i1;
 
         const sg_cmp_pi32 cmp_pi32 = sg_setcmp_fromg_pi32(cmp4);
         const sg_cmp_pi64 cmp_pi64 = sg_setcmp_fromg_pi64(cmp2);
