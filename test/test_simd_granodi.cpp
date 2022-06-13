@@ -3,6 +3,8 @@
 #include <stdlib.h> // for exit()
 #include <inttypes.h> // For printf PRId64 format
 
+//#define SIMD_GRANODI_FORCE_GENERIC
+
 #include "../simd_granodi.h"
 
 #ifdef __cplusplus
@@ -229,22 +231,26 @@ void test_128endian() {
 }
 
 void test_cast() {
-    sg_pi32 si32; sg_pi64 si64; sg_ps srps; sg_pd srpd;
+    sg_pi32 pi32; sg_pi64 pi64; sg_ps ps; sg_pd pd;
 
-    si32 = sg_set_pi32(3, 2, 1, 0);
-    assert_eq_pi32(sg_bitcast_pi64_pi32(sg_bitcast_pi32_pi64(si32)), 3, 2, 1, 0);
-    assert_eq_pi32(sg_bitcast_ps_pi32(sg_bitcast_pi32_ps(si32)), 3, 2, 1, 0);
-    assert_eq_pi32(sg_bitcast_pd_pi32(sg_bitcast_pi32_pd(si32)), 3, 2, 1, 0);
+    pi32 = sg_set_pi32(3, 2, 1, 0);
+    assert_eq_pi32(sg_bitcast_pi64_pi32(sg_bitcast_pi32_pi64(pi32)), 3, 2, 1, 0);
+    assert_eq_pi32(sg_bitcast_ps_pi32(sg_bitcast_pi32_ps(pi32)), 3, 2, 1, 0);
+    assert_eq_pi32(sg_bitcast_pd_pi32(sg_bitcast_pi32_pd(pi32)), 3, 2, 1, 0);
 
-    si64 = sg_set_pi64(1, 0);
-    assert_eq_pi64(sg_bitcast_ps_pi64(sg_bitcast_pi64_ps(si64)), 1, 0);
-    assert_eq_pi64(sg_bitcast_pd_pi64(sg_bitcast_pi64_pd(si64)), 1, 0);
+    pi64 = sg_set_pi64(1, 0);
+    assert_eq_pi64(sg_bitcast_ps_pi64(sg_bitcast_pi64_ps(pi64)), 1, 0);
+    assert_eq_pi64(sg_bitcast_pd_pi64(sg_bitcast_pi64_pd(pi64)), 1, 0);
 
-    srps = sg_set_ps(3.0f, 2.0f, 1.0f, 0.0f);
-    assert_eq_ps(sg_bitcast_pd_ps(sg_bitcast_ps_pd(srps)), 3.0f, 2.0f, 1.0f, 0.0f);
+    ps = sg_set_ps(3.0f, 2.0f, 1.0f, 0.0f);
+    assert_eq_ps(sg_bitcast_pd_ps(sg_bitcast_ps_pd(ps)), 3.0f, 2.0f, 1.0f, 0.0f);
 
-    srpd = sg_set_pd(1.0, 0.0);
-    assert_eq_pd(sg_bitcast_ps_pd(sg_bitcast_pd_ps(srpd)), 1.0, 0.0);
+    pd = sg_set_pd(1.0, 0.0);
+    assert_eq_pd(sg_bitcast_ps_pd(sg_bitcast_pd_ps(pd)), 1.0, 0.0);
+
+    sg_s32x2 s32x2; sg_f32x2 f32x2;
+
+    //
 
     //printf("Cast test succeeeded\n");
 }
