@@ -2757,11 +2757,11 @@ static inline sg_ps sg_vectorcall(sg_cvt_f32x2_ps)(const sg_f32x2 a) {
 //
 //
 //
-//
-//
-//
-// Convert (round) section
+// Convert (round) ps section
 // Using current rounding mode, usually banker's rounding
+// ps pi32
+// ps pi64
+// ps s32x2
 
 static inline sg_generic_pi32 sg_vectorcall(sg_cvt_generic_ps_pi32)(
     const sg_generic_ps a)
@@ -2771,46 +2771,51 @@ static inline sg_generic_pi32 sg_vectorcall(sg_cvt_generic_ps_pi32)(
     result.i2 = (int32_t) rintf(a.f2); result.i3 = (int32_t) rintf(a.f3);
     return result;
 }
-
+static inline sg_generic_pi64 sg_vectorcall(sg_cvt_generic_ps_pi64)(
+    const sg_generic_ps a)
+{
+    sg_generic_pi64 result;
+    result.l0 = (int64_t) rintf(a.f0); result.l1 = (int64_t) rintf(a.f1);
+    return result;
+}
+static inline sg_generic_s32x2 sg_vectorcall(sg_cvt_generic_ps_s32x2)(
+    const sg_generic_ps a)
+{
+    sg_generic_s32x2 result;
+    result.i0 = (int32_t) rintf(a.f0); result.i1 = (int32_t) rintf(a.f1);
+    return result;
+}
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 #define sg_cvt_ps_pi32 sg_cvt_generic_ps_pi32
+#define sg_cvt_ps_pi64 sg_cvt_generic_ps_pi64
+#define sg_cvt_ps_s32x2 sg_cvt_generic_ps_s32x2
 
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cvt_ps_pi32 _mm_cvtps_epi32
+static inline sg_pi64 sg_vectorcall(sg_cvt_ps_pi64)(const sg_ps a) {
+    int64_t si0 = (int64_t) rintf(_mm_cvtss_f32(a)),
+        si1 = (int64_t) rintf(_mm_cvtss_f32(
+            _mm_shuffle_ps(a, a, sg_sse2_shuffle32_imm(3, 2, 1, 1))));
+    return _mm_set_epi64x(si1, si0);
+}
+#define sg_cvt_ps_s32x2(a) sg_cvt_generic_pi32_s32x2(sg_cvt_ps_pi32(a))
 
 #elif defined SIMD_GRANODI_NEON
 #define sg_cvt_ps_pi32 vcvtnq_s32_f32
-
-#endif
-
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-static inline sg_f32x2 sg_vectorcall(sg_cvt_ps_f32x2)(const sg_ps a) {
-    sg_f32x2 result;
-    result.f0 = sg_get0_ps(a);
-    result.f1 = sg_get1_ps(a);
-    return result;
-}
-#elif defined SIMD_GRANODI_NEON
-
-#endif
-
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-static inline sg_s32x2 sg_vectorcall(sg_cvt_ps_s32x2)(const sg_ps a) {
-    sg_s32x2 result;
-    #ifdef SIMD_GRANODI_FORCE_GENERIC
-    result.i0 = (int32_t) rintf(a.f0);
-    result.i1 = (int32_t) rintf(a.f1);
-    #elif defined SIMD_GRANODI_SSE2
-    const sg_pi32 ai = sg_cvt_ps_pi32(a);
-    result.i0 = sg_get0_pi32(ai);
-    result.i1 = sg_get1_pi32(ai);
-    #endif
-    return result;
-}
-#elif defined SIMD_GRANODI_NEON
+#define sg_cvt_ps_pi64(a) vcvtnq_s64_f64(vcvt_f64_f32(vget_low_f32(a)))
 #define sg_cvt_ps_s32x2(a) vcvtn_s32_f32(vget_low_f32(a))
+
 #endif
+
+//
+//
+//
+//
+// Convert (round) pd section
+// pd pi32
+// pd pi64
+// pd s32x2
 
 // cvtt (extra t) methods use truncation instead of rounding
 #ifdef SIMD_GRANODI_FORCE_GENERIC
@@ -2894,7 +2899,7 @@ static inline sg_pi64 sg_vectorcall(sg_cvt_ps_pi64)(const sg_ps a) {
     #endif
 }
 #elif defined SIMD_GRANODI_NEON
-#define sg_cvt_ps_pi64(a) vcvtnq_s64_f64(vcvt_f64_f32(vget_low_f32(a)))
+
 #endif
 
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
