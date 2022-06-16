@@ -233,14 +233,14 @@ void test_128endian() {
 void test_cast() {
     sg_pi32 pi32; sg_pi64 pi64; sg_ps ps; sg_pd pd;
 
-    pi32 = sg_set_pi32(3, 2, 1, 0);
-    assert_eq_pi32(sg_bitcast_pi64_pi32(sg_bitcast_pi32_pi64(pi32)), 3, 2, 1, 0);
-    assert_eq_pi32(sg_bitcast_ps_pi32(sg_bitcast_pi32_ps(pi32)), 3, 2, 1, 0);
-    assert_eq_pi32(sg_bitcast_pd_pi32(sg_bitcast_pi32_pd(pi32)), 3, 2, 1, 0);
+    pi32 = sg_set_pi32(-3, -2, -1, 0);
+    assert_eq_pi32(sg_bitcast_pi64_pi32(sg_bitcast_pi32_pi64(pi32)), -3, -2, -1, 0);
+    assert_eq_pi32(sg_bitcast_ps_pi32(sg_bitcast_pi32_ps(pi32)), -3, -2, -1, 0);
+    assert_eq_pi32(sg_bitcast_pd_pi32(sg_bitcast_pi32_pd(pi32)), -3, -2, -1, 0);
 
-    pi64 = sg_set_pi64(1, 0);
-    assert_eq_pi64(sg_bitcast_ps_pi64(sg_bitcast_pi64_ps(pi64)), 1, 0);
-    assert_eq_pi64(sg_bitcast_pd_pi64(sg_bitcast_pi64_pd(pi64)), 1, 0);
+    pi64 = sg_set_pi64(-5, 0);
+    assert_eq_pi64(sg_bitcast_ps_pi64(sg_bitcast_pi64_ps(pi64)), -5, 0);
+    assert_eq_pi64(sg_bitcast_pd_pi64(sg_bitcast_pi64_pd(pi64)), -5, 0);
 
     ps = sg_set_ps(3.0f, 2.0f, 1.0f, 0.0f);
     assert_eq_ps(sg_bitcast_pd_ps(sg_bitcast_ps_pd(ps)), 3.0f, 2.0f, 1.0f, 0.0f);

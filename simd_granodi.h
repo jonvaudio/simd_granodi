@@ -344,12 +344,14 @@ static inline int64_t sg_vectorcall(sg_bitcast_f64x1_s64x1)(const double a) {
 static inline sg_generic_pi64 sg_vectorcall(sg_bitcast_generic_pi32_pi64)(
     const sg_generic_pi32 a)
 {
-    return sg_set_generic_pi64(sg_bitcast_u64x1_s64x1(
+    sg_generic_pi64 result;
+    result.l0 = sg_bitcast_u64x1_s64x1(
             (((uint64_t) sg_bitcast_s32x1_u32x1(a.i1)) << 32) |
-            ((uint64_t) sg_bitcast_s32x1_u32x1(a.i0))),
-        sg_bitcast_u64x1_s64x1(
+            ((uint64_t) sg_bitcast_s32x1_u32x1(a.i0)));
+    result.l1 = sg_bitcast_u64x1_s64x1(
             (((uint64_t) sg_bitcast_s32x1_u32x1(a.i3)) << 32) |
-            ((uint64_t) sg_bitcast_s32x1_u32x1(a.i2))));
+            ((uint64_t) sg_bitcast_s32x1_u32x1(a.i2)));
+    return result;
 }
 
 static inline sg_generic_pi32 sg_vectorcall(sg_bitcast_generic_pi64_pi32)(
@@ -3065,21 +3067,28 @@ static inline sg_pi32 sg_vectorcall(sg_cvtt_f32x2_pi32)(const sg_f32x2 a) {
 static inline sg_generic_pi32 sg_vectorcall(sg_cvtf_generic_ps_pi32)(
     const sg_generic_ps a)
 {
-    return sg_set_generic_pi32((int32_t) floorf(a.f3),
-        (int32_t) floorf(a.f2), (int32_t) floorf(a.f1),
-        (int32_t) floorf(a.f0));
+    sg_generic_pi32 result;
+    result.i0 = (int32_t) floorf(a.f0);
+    result.i1 = (int32_t) floorf(a.f1);
+    result.i2 = (int32_t) floorf(a.f2);
+    result.i3 = (int32_t) floorf(a.f3);
+    return result;
 }
 static inline sg_generic_pi64 sg_vectorcall(sg_cvtf_generic_ps_pi64)(
     const sg_generic_ps a)
 {
-    return sg_set_generic_pi64((int64_t) floorf(a.f1),
-        (int64_t) floorf(a.f0));
+    sg_generic_pi64 result;
+    result.l0 = (int64_t) floorf(a.f0);
+    result.l1 = (int64_t) floorf(a.f1);
+    return result;
 }
 static inline sg_s32x2 sg_vectorcall(sg_cvtf_generic_ps_s32x2)(
     const sg_generic_ps a)
 {
-    return sg_set_generic_s32x2((int32_t) floorf(a.f1),
-        (int32_t) floorf(a.f0));
+    sg_generic_s32x2 result;
+    result.i0 = (int32_t) floorf(a.f0);
+    result.i1 = (int32_t) floorf(a.f1);
+    return result;
 }
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
@@ -3121,18 +3130,27 @@ static inline sg_s32x2 sg_vectorcall(sg_cvtf_ps_s32x2)(const sg_ps a) {
 static inline sg_generic_pi32 sg_vectorcall(sg_cvtf_generic_pd_pi32)(
     const sg_generic_pd a)
 {
-    return sg_set_generic_pi32(0, 0,
-        (int32_t) floor(a.d1), (int32_t) floor(a.d0));
+    sg_generic_pi32 result;
+    result.i0 = (int32_t) floor(a.d0);
+    result.i1 = (int32_t) floor(a.d1);
+    result.i2 = 0; result.i3 = 0;
+    return result;
 }
 static inline sg_generic_pi64 sg_vectorcall(sg_cvtf_generic_pd_pi64)(
     const sg_generic_pd a)
 {
-    return sg_set_generic_pi64((int64_t) floor(a.d1), (int64_t) floor(a.d0));
+    sg_generic_pi64 result;
+    result.l0 = (int64_t) floor(a.d0);
+    result.l1 = (int64_t) floor(a.d1);
+    return result;
 }
 static inline sg_generic_s32x2 sg_vectorcall(sg_cvtf_generic_pd_s32x2)(
     const sg_generic_pd a)
 {
-    return sg_set_generic_s32x2((int32_t) floor(a.d1), (int32_t) floor(a.d0));
+    sg_generic_s32x2 result;
+    result.i0 = (int32_t) floor(a.d0);
+    result.i1 = (int32_t) floor(a.d1);
+    return result;
 }
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
@@ -3173,18 +3191,27 @@ static inline sg_pi32 sg_vectorcall(sg_cvtf_pd_pi32)(const sg_pd a) {
 static inline sg_generic_pi32 sg_vectorcall(sg_cvtf_generic_f32x2_pi32)(
     const sg_generic_f32x2 a)
 {
-    return sg_set_generic_pi32(0, 0,
-        (int32_t) floorf(a.f1), (int32_t) floorf(a.f0));
+    sg_generic_pi32 result;
+    result.i0 = (int32_t) floorf(a.f0);
+    result.i1 = (int32_t) floorf(a.f1);
+    result.i2 = 0; result.i3 = 0;
+    return result;
 }
 static inline sg_generic_pi64 sg_vectorcall(sg_cvtf_generic_f32x2_pi64)(
     const sg_generic_f32x2 a)
 {
-    return sg_set_generic_pi64((int64_t) floorf(a.f1), (int64_t) floorf(a.f0));
+    sg_generic_pi64 result;
+    result.l0 = (int64_t) floorf(a.f0);
+    result.l1 = (int64_t) floorf(a.f1);
+    return result;
 }
 static inline sg_generic_s32x2 sg_vectorcall(sg_cvtf_generic_f32x2_s32x2)(
     const sg_generic_f32x2 a)
 {
-    return sg_set_generic_s32x2((int32_t) floorf(a.f1), (int32_t) floorf(a.f0));
+    sg_generic_s32x2 result;
+    result.i0 = (int32_t) floorf(a.f0);
+    result.i1 = (int32_t) floorf(a.f1);
+    return result;
 }
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
@@ -3205,174 +3232,234 @@ static inline sg_generic_s32x2 sg_vectorcall(sg_cvtf_generic_f32x2_s32x2)(
 #define sg_cvtf_f32x2_s32x2 sg_cvtf_generic_f32x2_s32x2
 #endif
 
-// Arithmetic
+//
+//
+//
+//
+//
+//
+//
+// Add section
 
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pi32 sg_vectorcall(sg_add_pi32)(const sg_pi32 a,
-    const sg_pi32 b)
+static inline sg_generic_pi32 sg_vectorcall(sg_add_generic_pi32)(
+    const sg_generic_pi32 a, const sg_generic_pi32 b)
 {
-    sg_pi32 result;
+    sg_generic_pi32 result;
     result.i0 = a.i0 + b.i0; result.i1 = a.i1 + b.i1;
     result.i2 = a.i2 + b.i2; result.i3 = a.i3 + b.i3;
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_add_pi32 _mm_add_epi32
-#elif defined SIMD_GRANODI_NEON
-#define sg_add_pi32 vaddq_s32
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pi64 sg_vectorcall(sg_add_pi64)(const sg_pi64 a,
-    const sg_pi64 b)
+static inline sg_generic_pi64 sg_vectorcall(sg_add_generic_pi64)(
+    const sg_generic_pi64 a, const sg_generic_pi64 b)
 {
-    sg_pi64 result;
+    sg_generic_pi64 result;
     result.l0 = a.l0 + b.l0; result.l1 = a.l1 + b.l1;
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_add_pi64 _mm_add_epi64
-#elif defined SIMD_GRANODI_NEON
-#define sg_add_pi64 vaddq_s64
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_ps sg_vectorcall(sg_add_ps)(const sg_ps a, const sg_ps b) {
-    sg_ps result;
+static inline sg_generic_ps sg_vectorcall(sg_add_generic_ps)(
+    const sg_generic_ps a, const sg_generic_ps b)
+{
+    sg_generic_ps result;
     result.f0 = a.f0 + b.f0; result.f1 = a.f1 + b.f1;
     result.f2 = a.f2 + b.f2; result.f3 = a.f3 + b.f3;
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_add_ps _mm_add_ps
-#elif defined SIMD_GRANODI_NEON
-#define sg_add_ps vaddq_f32
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pd sg_vectorcall(sg_add_pd)(const sg_pd a, const sg_pd b) {
-    sg_pd result;
+static inline sg_generic_pd sg_vectorcall(sg_add_generic_pd)(
+    const sg_generic_pd a, const sg_generic_pd b)
+{
+    sg_generic_pd result;
     result.d0 = a.d0 + b.d0; result.d1 = a.d1 + b.d1;
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_add_pd _mm_add_pd
-#elif defined SIMD_GRANODI_NEON
-#define sg_add_pd vaddq_f64
-#endif
-
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-static inline sg_s32x2 sg_vectorcall(sg_add_s32x2)(const sg_s32x2 a,
-    const sg_s32x2 b)
+static inline sg_generic_s32x2 sg_vectorcall(sg_add_generic_s32x2)(
+    const sg_generic_s32x2 a, const sg_generic_s32x2 b)
 {
-    sg_s32x2 result;
+    sg_generic_s32x2 result;
     result.i0 = a.i0 + b.i0; result.i1 = a.i1 + b.i1;
     return result;
 }
-#elif defined SIMD_GRANODI_NEON
-#define sg_add_s32x2 vadd_s32
-#endif
-
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-static inline sg_f32x2 sg_vectorcall(sg_add_f32x2)(const sg_f32x2 a,
-    const sg_f32x2 b)
+static inline sg_generic_f32x2 sg_vectorcall(sg_add_generic_f32x2)(
+    const sg_generic_f32x2 a, const sg_generic_f32x2 b)
 {
-    sg_f32x2 result;
+    sg_generic_f32x2 result;
     result.f0 = a.f0 + b.f0; result.f1 = a.f1 + b.f1;
     return result;
 }
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+#define sg_add_pi32 sg_add_generic_pi32
+#define sg_add_pi64 sg_add_generic_pi64
+#define sg_add_ps sg_add_generic_ps
+#define sg_add_pd sg_add_generic_pd
+
+#elif defined SIMD_GRANODI_SSE2
+#define sg_add_pi32 _mm_add_epi32
+#define sg_add_pi64 _mm_add_epi64
+#define sg_add_ps _mm_add_ps
+#define sg_add_pd _mm_add_pd
+
 #elif defined SIMD_GRANODI_NEON
+#define sg_add_pi32 vaddq_s32
+#define sg_add_pi64 vaddq_s64
+#define sg_add_ps vaddq_f32
+#define sg_add_pd vaddq_f64
+#define sg_add_s32x2 vadd_s32
 #define sg_add_f32x2 vadd_f32
 #endif
 
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pi32 sg_vectorcall(sg_sub_pi32)(const sg_pi32 a,
-    const sg_pi32 b)
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
+#define sg_add_s32x2 sg_add_generic_s32x2
+#define sg_add_f32x2 sg_add_generic_f32x2
+#endif
+
+//
+//
+//
+//
+//
+//
+//
+// Subtract section
+
+static inline sg_generic_pi32 sg_vectorcall(sg_sub_generic_pi32)(
+    const sg_generic_pi32 a, const sg_generic_pi32 b)
 {
-    sg_pi32 result;
+    sg_generic_pi32 result;
     result.i0 = a.i0 - b.i0; result.i1 = a.i1 - b.i1;
     result.i2 = a.i2 - b.i2; result.i3 = a.i3 - b.i3;
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_sub_pi32 _mm_sub_epi32
-#elif defined SIMD_GRANODI_NEON
-#define sg_sub_pi32 vsubq_s32
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pi64 sg_vectorcall(sg_sub_pi64)(const sg_pi64 a,
-    const sg_pi64 b)
+static inline sg_generic_pi64 sg_vectorcall(sg_sub_generic_pi64)(
+    const sg_generic_pi64 a, const sg_generic_pi64 b)
 {
-    sg_pi64 result;
+    sg_generic_pi64 result;
     result.l0 = a.l0 - b.l0; result.l1 = a.l1 - b.l1;
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_sub_pi64 _mm_sub_epi64
-#elif defined SIMD_GRANODI_NEON
-#define sg_sub_pi64 vsubq_s64
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_ps sg_vectorcall(sg_sub_ps)(const sg_ps a, const sg_ps b) {
-    sg_ps result;
+static inline sg_generic_ps sg_vectorcall(sg_sub_generic_ps)(
+    const sg_generic_ps a, const sg_generic_ps b)
+{
+    sg_generic_ps result;
     result.f0 = a.f0 - b.f0; result.f1 = a.f1 - b.f1;
     result.f2 = a.f2 - b.f2; result.f3 = a.f3 - b.f3;
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_sub_ps _mm_sub_ps
-#elif defined SIMD_GRANODI_NEON
-#define sg_sub_ps vsubq_f32
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pd sg_vectorcall(sg_sub_pd)(const sg_pd a, const sg_pd b) {
-    sg_pd result;
+static inline sg_generic_pd sg_vectorcall(sg_sub_generic_pd)(
+    const sg_generic_pd a, const sg_generic_pd b)
+{
+    sg_generic_pd result;
     result.d0 = a.d0 - b.d0; result.d1 = a.d1 - b.d1;
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_sub_pd _mm_sub_pd
-#elif defined SIMD_GRANODI_NEON
-#define sg_sub_pd vsubq_f64
-#endif
-
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-static inline sg_s32x2 sg_vectorcall(sg_sub_s32x2)(const sg_s32x2 a,
-    const sg_s32x2 b)
+static inline sg_generic_s32x2 sg_vectorcall(sg_sub_generic_s32x2)(
+    const sg_generic_s32x2 a, const sg_generic_s32x2 b)
 {
-    sg_s32x2 result;
+    sg_generic_s32x2 result;
     result.i0 = a.i0 - b.i0; result.i1 = a.i1 - b.i1;
     return result;
 }
-#elif defined SIMD_GRANODI_NEON
-#define sg_sub_s32x2 vsub_s32
-#endif
-
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-static inline sg_f32x2 sg_vectorcall(sg_sub_f32x2)(const sg_f32x2 a,
-    const sg_f32x2 b)
+static inline sg_generic_f32x2 sg_vectorcall(sg_sub_generic_f32x2)(
+    const sg_generic_f32x2 a, const sg_generic_f32x2 b)
 {
-    sg_f32x2 result;
+    sg_generic_f32x2 result;
     result.f0 = a.f0 - b.f0; result.f1 = a.f1 - b.f1;
     return result;
 }
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+#define sg_sub_pi32 sg_sub_generic_pi32
+#define sg_sub_pi64 sg_sub_generic_pi64
+#define sg_sub_ps sg_sub_generic_ps
+#define sg_sub_pd sg_sub_generic_pd
+
+#elif defined SIMD_GRANODI_SSE2
+#define sg_sub_pi32 _mm_sub_epi32
+#define sg_sub_pi64 _mm_sub_epi64
+#define sg_sub_ps _mm_sub_ps
+#define sg_sub_pd _mm_sub_pd
+
 #elif defined SIMD_GRANODI_NEON
+#define sg_sub_pi32 vsubq_s32
+#define sg_sub_pi64 vsubq_s64
+#define sg_sub_ps vsubq_f32
+#define sg_sub_pd vsubq_f64
+#define sg_sub_s32x2 vsub_s32
 #define sg_sub_f32x2 vsub_f32
 #endif
 
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-static inline sg_pi32 sg_vectorcall(sg_mul_pi32)(const sg_pi32 a,
-    const sg_pi32 b)
+#define sg_sub_s32x2 sg_sub_generic_s32x2
+#define sg_sub_f32x2 sg_sub_generic_f32x2
+#endif
+
+//
+//
+//
+//
+//
+//
+//
+// Multiply section
+
+static inline sg_generic_pi32 sg_vectorcall(sg_mul_generic_pi32)(
+    const sg_generic_pi32 a, const sg_generic_pi32 b)
 {
-    #ifdef SIMD_GRANODI_FORCE_GENERIC
-    sg_pi32 result;
+    sg_generic_pi32 result;
     result.i0 = a.i0 * b.i0; result.i1 = a.i1 * b.i1;
     result.i2 = a.i2 * b.i2; result.i3 = a.i3 * b.i3;
     return result;
-    #elif defined SIMD_GRANODI_SSE2
+}
+static inline sg_generic_pi64 sg_vectorcall(sg_mul_generic_pi64)(
+    const sg_generic_pi64 a, const sg_generic_pi64 b)
+{
+    sg_generic_pi64 result;
+    result.l0 = a.l0 * b.l0; result.l1 = a.l1 * b.l1;
+    return result;
+}
+static inline sg_generic_ps sg_vectorcall(sg_mul_generic_ps)(
+    const sg_generic_ps a, const sg_generic_ps b)
+{
+    sg_generic_ps result;
+    result.f0 = a.f0 * b.f0; result.f1 = a.f1 * b.f1;
+    result.f2 = a.f2 * b.f2; result.f3 = a.f3 * b.f3;
+    return result;
+}
+static inline sg_generic_pd sg_vectorcall(sg_mul_generic_pd)(
+    const sg_generic_pd a, const sg_generic_pd b)
+{
+    sg_generic_pd result;
+    result.d0 = a.d0 * b.d0; result.d1 = a.d1 * b.d1;
+    return result;
+}
+static inline sg_generic_s32x2 sg_vectorcall(sg_mul_generic_s32x2)(
+    const sg_generic_s32x2 a, const sg_generic_s32x2 b)
+{
+    sg_generic_s32x2 result;
+    result.i0 = a.i0 * b.i0; result.i1 = a.i1 * b.i1;
+    return result;
+}
+static inline sg_generic_f32x2 sg_vectorcall(sg_mul_generic_f32x2)(
+    const sg_generic_f32x2 a, const sg_generic_f32x2 b)
+{
+    sg_generic_f32x2 result;
+    result.f0 = a.f0 * b.f0; result.f1 = a.f1 * b.f1;
+    return result;
+}
+
+#define sg_mul_pi64(a, b) sg_from_generic_pi64(sg_mul_generic_pi64( \
+    sg_to_generic_pi64(a), sg_to_generic_pi64(b)))
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+#define sg_mul_pi32 sg_mul_generic_pi32
+#define sg_mul_ps sg_mul_generic_ps
+#define sg_mul_pd sg_mul_generic_pd
+
+#elif defined SIMD_GRANODI_SSE2
+// It's questionable whether this is faster than a generic implementation,
+// but it does stay "inside" the SSE2 registers
+static inline sg_pi32 sg_vectorcall(sg_mul_pi32)(const sg_pi32 a,
+    const sg_pi32 b)
+{
     // Generate ltz masks
     const __m128i a_ltz = _mm_cmplt_epi32(a, _mm_setzero_si128()),
         b_ltz = _mm_cmplt_epi32(b, _mm_setzero_si128());
@@ -3405,201 +3492,178 @@ static inline sg_pi32 sg_vectorcall(sg_mul_pi32)(const sg_pi32 a,
     const __m128i neg_result = _mm_xor_si128(a_ltz, b_ltz);
     return sg_choose_pi32(neg_result,
         _mm_sub_epi32(_mm_setzero_si128(), result), result);
-    #endif
 }
+#define sg_mul_ps _mm_mul_ps
+#define sg_mul_pd _mm_mul_pd
+
 #elif defined SIMD_GRANODI_NEON
 #define sg_mul_pi32 vmulq_s32
-#endif
-
-static inline sg_pi64 sg_vectorcall(sg_mul_pi64)(const sg_pi64 a,
-    const sg_pi64 b)
-{
-    const sg_generic_pi64 ag = sg_to_generic_pi64(a), bg = sg_to_generic_pi64(b);
-    sg_generic_pi64 result;
-    result.l0 = ag.l0 * bg.l0; result.l1 = ag.l1 * bg.l1;
-    return sg_from_generic_pi64(result);
-}
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_ps sg_vectorcall(sg_mul_ps)(const sg_ps a, const sg_ps b) {
-    sg_ps result;
-    result.f0 = a.f0 * b.f0; result.f1 = a.f1 * b.f1;
-    result.f2 = a.f2 * b.f2; result.f3 = a.f3 * b.f3;
-    return result;
-}
-#elif defined SIMD_GRANODI_SSE2
-#define sg_mul_ps _mm_mul_ps
-#elif defined SIMD_GRANODI_NEON
 #define sg_mul_ps vmulq_f32
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pd sg_vectorcall(sg_mul_pd)(const sg_pd a, const sg_pd b) {
-    sg_pd result;
-    result.d0 = a.d0 * b.d0; result.d1 = a.d1 * b.d1;
-    return result;
-}
-#elif defined SIMD_GRANODI_SSE2
-#define sg_mul_pd _mm_mul_pd
-#elif defined SIMD_GRANODI_NEON
 #define sg_mul_pd vmulq_f64
-#endif
-
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-static inline sg_s32x2 sg_vectorcall(sg_mul_s32x2)(const sg_s32x2 a,
-    const sg_s32x2 b)
-{
-    sg_s32x2 result;
-    result.i0 = a.i0 * b.i0; result.i1 = a.i1 * b.i1;
-    return result;
-}
-#elif defined SIMD_GRANODI_NEON
 #define sg_mul_s32x2 vmul_s32
-#endif
-
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-static inline sg_f32x2 sg_vectorcall(sg_mul_f32x2)(const sg_f32x2 a,
-    const sg_f32x2 b)
-{
-    sg_f32x2 result;
-    result.f0 = a.f0 * b.f0; result.f1 = a.f1 * b.f1;
-    return result;
-}
-#elif defined SIMD_GRANODI_NEON
 #define sg_mul_f32x2 vmul_f32
 #endif
 
-static inline sg_pi32 sg_vectorcall(sg_div_pi32)(const sg_pi32 a,
-    const sg_pi32 b)
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
+#define sg_mul_s32x2 sg_mul_generic_s32x2
+#define sg_mul_f32x2 sg_mul_generic_f32x2
+#endif
+
+//
+//
+//
+//
+//
+//
+//
+// Division section
+
+static inline sg_generic_pi32 sg_vectorcall(sg_div_generic_pi32)(
+    const sg_generic_pi32 a, const sg_generic_pi32 b)
 {
-    const sg_generic_pi32 ag = sg_to_generic_pi32(a), bg = sg_to_generic_pi32(b);
     sg_generic_pi32 result;
-    result.i0 = ag.i0 / bg.i0; result.i1 = ag.i1 / bg.i1;
-    result.i2 = ag.i2 / bg.i2; result.i3 = ag.i3 / bg.i3 ;
-    return sg_from_generic_pi32(result);
+    result.i0 = a.i0 / b.i0; result.i1 = a.i1 / b.i1;
+    result.i2 = a.i2 / b.i2; result.i3 = a.i3 / b.i3 ;
+    return result;
 }
 
-static inline sg_pi64 sg_vectorcall(sg_div_pi64)(const sg_pi64 a,
-    const sg_pi64 b)
+static inline sg_generic_pi64 sg_vectorcall(sg_div_generic_pi64)(
+    const sg_generic_pi64 a, const sg_generic_pi64 b)
 {
-    const sg_generic_pi64 ag = sg_to_generic_pi64(a), bg = sg_to_generic_pi64(b);
     sg_generic_pi64 result;
-    result.l0 = ag.l0 / bg.l0; result.l1 = ag.l1 / bg.l1;
-    return sg_from_generic_pi64(result);
+    result.l0 = a.l0 / b.l0; result.l1 = a.l1 / b.l1;
+    return result;
 }
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_ps sg_vectorcall(sg_div_ps)(const sg_ps a, const sg_ps b) {
-    sg_ps result;
+static inline sg_generic_ps sg_vectorcall(sg_div_generic_ps)(
+    const sg_generic_ps a, const sg_generic_ps b)
+{
+    sg_generic_ps result;
     result.f0 = a.f0 / b.f0; result.f1 = a.f1 / b.f1;
     result.f2 = a.f2 / b.f2; result.f3 = a.f3 / b.f3;
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_div_ps _mm_div_ps
-#elif defined SIMD_GRANODI_NEON
-#define sg_div_ps vdivq_f32
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pd sg_vectorcall(sg_div_pd)(const sg_pd a, const sg_pd b) {
-    sg_pd result;
+static inline sg_generic_pd sg_vectorcall(sg_div_generic_pd)(
+    const sg_generic_pd a, const sg_generic_pd b)
+{
+    sg_generic_pd result;
     result.d0 = a.d0 / b.d0; result.d1 = a.d1 / b.d1;
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_div_pd _mm_div_pd
-#elif defined SIMD_GRANODI_NEON
-#define sg_div_pd vdivq_f64
-#endif
-
-static inline sg_s32x2 sg_vectorcall(sg_div_s32x2)(const sg_s32x2 a,
-    const sg_s32x2 b)
+static inline sg_generic_s32x2 sg_vectorcall(sg_div_generic_s32x2)(
+    const sg_generic_s32x2 a, const sg_generic_s32x2 b)
 {
-    sg_generic_s32x2 ag = sg_from_generic_s32x2(a),
-        bg = sg_from_generic_s32x2(b);
     sg_generic_s32x2 result;
-    result.i0 = ag.i0 / bg.i0; result.i1 = ag.i1 / bg.i1;
+    result.i0 = a.i0 / b.i0; result.i1 = a.i1 / b.i1;
     return result;
 }
-
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-static inline sg_f32x2 sg_vectorcall(sg_div_f32x2)(const sg_f32x2 a,
-    const sg_f32x2 b)
+static inline sg_generic_f32x2 sg_vectorcall(sg_div_generic_f32x2)(
+    const sg_generic_f32x2 a, const sg_generic_f32x2 b)
 {
-    sg_f32x2 result;
+    sg_generic_f32x2 result;
     result.f0 = a.f0 / b.f0; result.f1 = a.f1 / b.f1;
     return result;
 }
+
+#define sg_div_pi32(a, b) sg_from_generic_pi32(sg_div_generic_pi32( \
+    sg_to_generic_pi32(a), sg_to_generic_pi32(b)))
+#define sg_div_pi64(a, b) sg_from_generic_pi64(sg_div_generic_pi64( \
+    sg_to_generic_pi64(a), sg_to_generic_pi64(b)))
+#define sg_div_s32x2(a, b) sg_from_generic_s32x2(sg_div_generic_s32x2( \
+    sg_to_generic_s32x2(a), sg_to_generic_s32x2(b)))
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+#define sg_div_ps sg_div_generic_ps
+#define sg_div_pd sg_div_generic_pd
+
+#elif defined SIMD_GRANODI_SSE2
+#define sg_div_ps _mm_div_ps
+#define sg_div_pd _mm_div_pd
+
 #elif defined SIMD_GRANODI_NEON
+#define sg_div_ps vdivq_f32
 #define sg_div_f32x2 vdiv_f32
 #endif
 
-// a * b + c
-// Optionally fused on architectures that have it. May add the AVX version in
-// future.
-// In C++ the class method, when chained together, is syntactically nicer for
-// evaluating polynomials
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
+#define sg_div_f32x2 sg_div_generic_f32x2
+#endif
+
+//
+//
+// FMA section
+// Use fast FMA intrinsics if they exist. If not, fall back to add and multiply
+// operations.
+// All have the format a * b + c
 // On NEON, GCC will (by default) optimize separate mul and add intrinsics into
 // a single fma anyway. NEON + Clang will not.
+
+#define sg_mul_add_generic_f(a, b, c) (((a)*(b))+(c))
 
 #ifdef FP_FAST_FMAF
 #define sg_mul_add_f32x1 fmaf
 #else
-#define sg_mul_add_f32x1(a, b, c) (((a)*(b))+(c))
+#define sg_mul_add_f32x1 sg_mul_add_generic_f
 #endif
 
 #ifdef FP_FAST_FMA
 #define sg_mul_add_f64x1 fma
 #else
-#define sg_mul_add_f64x1(a, b, c) (((a)*(b))+(c))
+#define sg_mul_add_f64x1 sg_mul_add_generic_f
 #endif
 
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_ps sg_vectorcall(sg_mul_add_ps)(const sg_ps a, const sg_ps b,
-    const sg_ps c)
+static inline sg_generic_ps sg_vectorcall(sg_mul_add_generic_ps)(
+    const sg_generic_ps a, const sg_generic_ps b, const sg_generic_ps c)
 {
-    sg_ps result;
+    sg_generic_ps result;
     result.f0 = sg_mul_add_f32x1(a.f0, b.f0, c.f0);
     result.f1 = sg_mul_add_f32x1(a.f1, b.f1, c.f1);
     result.f2 = sg_mul_add_f32x1(a.f2, b.f2, c.f2);
     result.f3 = sg_mul_add_f32x1(a.f3, b.f3, c.f3);
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_mul_add_ps(a, b, c) _mm_add_ps(_mm_mul_ps(a, b), c)
-#elif defined SIMD_GRANODI_NEON
-#define sg_mul_add_ps(a, b, c) vfmaq_f32(c, a, b)
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pd sg_vectorcall(sg_mul_add_pd)(const sg_pd a, const sg_pd b,
-    const sg_pd c)
+static inline sg_generic_pd sg_vectorcall(sg_mul_add_generic_pd)(
+    const sg_generic_pd a, const sg_generic_pd b, const sg_generic_pd c)
 {
-    sg_pd result;
+    sg_generic_pd result;
     result.d0 = sg_mul_add_f64x1(a.d0, b.d0, c.d0);
     result.d1 = sg_mul_add_f64x1(a.d1, b.d1, c.d1);
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_mul_add_pd(a, b, c) _mm_add_pd(_mm_mul_pd(a, b), c)
-#elif defined SIMD_GRANODI_NEON
-#define sg_mul_add_pd(a, b, c) vfmaq_f64(c, a, b)
-#endif
-
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-static inline sg_f32x2 sg_vectorcall(sg_mul_add_f32x2)(const sg_f32x2 a,
-    const sg_f32x2 b, const sg_f32x2 c)
+static inline sg_generic_f32x2 sg_vectorcall(sg_mul_add_generic_f32x2)(
+    const sg_generic_f32x2 a, const sg_generic_f32x2 b,
+    const sg_generic_f32x2 c)
 {
-    sg_f32x2 result;
+    sg_generic_f32x2 result;
     result.f0 = sg_mul_add_f32x1(a.f0, b.f0, c.f0);
     result.f1 = sg_mul_add_f32x1(a.f1, b.f1, c.f1);
     return result;
 }
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+#define sg_mul_add_ps sg_mul_add_generic_ps
+#define sg_mul_add_pd sg_mul_add_generic_pd
+#define sg_mul_add_f32x2 sg_mul_add_generic_f32x2
+
+#elif defined SIMD_GRANODI_SSE2
+#define sg_mul_add_ps(a, b, c) _mm_add_ps(_mm_mul_ps(a, b), c)
+#define sg_mul_add_pd(a, b, c) _mm_add_pd(_mm_mul_pd(a, b), c)
+
 #elif defined SIMD_GRANODI_NEON
-#define sg_mul_add_f32x2(a, b, c) vfma_f32(c, a, b)
+#define sg_mul_add_ps(a, b, c) vfmaq_f32(c, a, b)
+#define sg_mul_add_pd(a, b, c) vfmaq_f64(c, a, b)
 #endif
 
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
+#define sg_mul_add_f32x2 sg_mul_add_generic_f32x2
+#endif
+
+//
+//
+//
+//
+//
+//
+//
 // Bitwise logic
 
 #ifdef SIMD_GRANODI_SSE2
