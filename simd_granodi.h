@@ -3877,84 +3877,69 @@ static inline sg_generic_s32x2 sg_vectorcall(sg_not_generic_s32x2)(
 //
 // Bitwise or section
 
-
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pi32 sg_vectorcall(sg_or_pi32)(const sg_pi32 a,
-    const sg_pi32 b)
+static inline sg_generic_pi32 sg_vectorcall(sg_or_generic_pi32)(
+    const sg_generic_pi32 a, const sg_generic_pi32 b)
 {
-    sg_pi32 result;
+    sg_generic_pi32 result;
     result.i0 = a.i0 | b.i0; result.i1 = a.i1 | b.i1;
     result.i2 = a.i2 | b.i2; result.i3 = a.i3 | b.i3;
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_or_pi32 _mm_or_si128
-#elif defined SIMD_GRANODI_NEON
-#define sg_or_pi32 vorrq_s32
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pi64 sg_vectorcall(sg_or_pi64)(const sg_pi64 a,
-    const sg_pi64 b)
+static inline sg_generic_pi64 sg_vectorcall(sg_or_generic_pi64)(
+    const sg_generic_pi64 a, const sg_generic_pi64 b)
 {
-    sg_pi64 result;
+    sg_generic_pi64 result;
     result.l0 = a.l0 | b.l0; result.l1 = a.l1 | b.l1;
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_or_pi64 _mm_or_si128
-#elif defined SIMD_GRANODI_NEON
-#define sg_or_pi64 vorrq_s64
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_ps sg_vectorcall(sg_or_ps)(const sg_ps a, const sg_ps b) {
-    return sg_bitcast_pi32_ps(sg_or_pi32(sg_bitcast_ps_pi32(a),
-        sg_bitcast_ps_pi32(b)));
-}
-#elif defined SIMD_GRANODI_SSE2
-#define sg_or_ps _mm_or_ps
-#elif defined SIMD_GRANODI_NEON
-#define sg_or_ps(a, b) vreinterpretq_f32_s32(vorrq_s32( \
-    vreinterpretq_s32_f32(a), vreinterpretq_s32_f32(b)))
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pd sg_vectorcall(sg_or_pd)(const sg_pd a, const sg_pd b) {
-    return sg_bitcast_pi64_pd(sg_or_pi64(sg_bitcast_pd_pi64(a),
-        sg_bitcast_pd_pi64(b)));
-}
-#elif defined SIMD_GRANODI_SSE2
-#define sg_or_pd _mm_or_pd
-#elif defined SIMD_GRANODI_NEON
-#define sg_or_pd(a, b) vreinterpretq_f64_s64(vorrq_s64( \
-    vreinterpretq_s64_f64(a), vreinterpretq_s64_f64(b)))
-#endif
-
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-static inline sg_s32x2 sg_vectorcall(sg_or_s32x2)(const sg_s32x2 a,
-    const sg_s32x2 b)
+#define sg_or_generic_ps(a, b) sg_bitcast_generic_pi32_ps( \
+    sg_or_generic_pi32( \
+        sg_bitcast_generic_ps_pi32(a), sg_bitcast_generic_ps_pi32(b)))
+#define sg_or_generic_pd(a, b) sg_bitcast_generic_pi64_pd(sg_or_generic_pi64( \
+    sg_bitcast_generic_pd_pi64(a), sg_bitcast_generic_pd_pi64(b)))
+static inline sg_generic_s32x2 sg_vectorcall(sg_or_generic_s32x2)(
+    const sg_generic_s32x2 a, const sg_generic_s32x2 b)
 {
-    sg_s32x2 result;
+    sg_generic_s32x2 result;
     result.i0 = a.i0 | b.i0; result.i1 = a.i1 | b.i1;
     return result;
 }
-#elif defined SIMD_GRANODI_NEON
-#define sg_or_s32x2 vorr_s32
-#endif
+#define sg_or_generic_f32x2(a, b) sg_bitcast_generic_f32x2_s32x2( \
+    sg_or_generic_s32x2((sg_bitcast_generic_f32x2_s32x2(a), \
+        sg_bitcast_generic_f32x2_s32x2(b))))
 
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-static inline sg_f32x2 sg_vectorcall(sg_or_f32x2)(const sg_f32x2 a,
-    const sg_f32x2 b)
-{
-    return sg_bitcast_s32x2_f32x2(sg_or_s32x2(sg_bitcast_f32x2_s32x2(a),
-        sg_bitcast_f32x2_s32x2(b)));
-}
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+#define sg_or_pi32 sg_or_generic_pi32
+#define sg_or_pi64 sg_or_generic_pi64
+#define sg_or_ps sg_or_generic_ps
+#define sg_or_pd sg_or_generic_pd
+
+#elif defined SIMD_GRANODI_SSE2
+#define sg_or_pi32 _mm_or_si128
+#define sg_or_pi64 _mm_or_si128
+#define sg_or_ps _mm_or_ps
+#define sg_or_pd _mm_or_pd
+
 #elif defined SIMD_GRANODI_NEON
+#define sg_or_pi32 vorrq_s32
+#define sg_or_pi64 vorrq_s64
+#define sg_or_ps(a, b) vreinterpretq_f32_s32(vorrq_s32( \
+    vreinterpretq_s32_f32(a), vreinterpretq_s32_f32(b)))
+#define sg_or_pd(a, b) vreinterpretq_f64_s64(vorrq_s64( \
+    vreinterpretq_s64_f64(a), vreinterpretq_s64_f64(b)))
+#define sg_or_s32x2 vorr_s32
 #define sg_or_f32x2(a, b) vreinterpret_f32_s32(vorr_s32( \
     vreinterpret_s32_f32(a), vreinterpret_s32_f32(b)))
 #endif
+
+//
+//
+//
+//
+//
+//
+//
+// Bitwise xor section
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_vectorcall(sg_xor_pi32)(const sg_pi32 a,
