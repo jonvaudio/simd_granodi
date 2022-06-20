@@ -3941,6 +3941,15 @@ static inline sg_generic_s32x2 sg_vectorcall(sg_or_generic_s32x2)(
 //
 // Bitwise xor section
 
+static inline sg_generic_pi32 sg_vectorcall(sg_xor_pi32)(
+    const sg_generic_pi32 a, const sg_generic_pi32 b)
+{
+    sg_generic_pi32 result;
+    result.i0 = a.i0 ^ b.i0; result.i1 = a.i1 ^ b.i1;
+    result.i2 = a.i2 ^ b.i2; result.i3 = a.i3 ^ b.i3;
+    return result;
+}
+
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_vectorcall(sg_xor_pi32)(const sg_pi32 a,
     const sg_pi32 b)
