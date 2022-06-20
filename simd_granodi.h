@@ -3941,7 +3941,7 @@ static inline sg_generic_s32x2 sg_vectorcall(sg_or_generic_s32x2)(
 //
 // Bitwise xor section
 
-static inline sg_generic_pi32 sg_vectorcall(sg_xor_pi32)(
+static inline sg_generic_pi32 sg_vectorcall(sg_xor_generic_pi32)(
     const sg_generic_pi32 a, const sg_generic_pi32 b)
 {
     sg_generic_pi32 result;
@@ -3949,6 +3949,26 @@ static inline sg_generic_pi32 sg_vectorcall(sg_xor_pi32)(
     result.i2 = a.i2 ^ b.i2; result.i3 = a.i3 ^ b.i3;
     return result;
 }
+static inline sg_generic_pi64 sg_vectorcall(sg_xor_generic_pi64)(
+    const sg_generic_pi64 a, const sg_generic_pi64 b)
+{
+    sg_generic_pi64 result;
+    result.l0 = a.l0 ^ b.l0; result.l1 = a.l1 ^ b.l1;
+    return result;
+}
+#define sg_xor_generic_ps(a, b) sg_bitcast_generic_pi32_ps(sg_xor_generic_pi32( \
+    sg_bitcast_generic_ps_pi32(a), sg_bitcast_generic_ps_pi32(b)))
+#define sg_xor_generic_pd(a, b) sg_bitcast_generic_pi64_pd(sg_xor_generic_pi64( \
+    sg_bitcast_generic_pd_pi64(a), sg_bitcast_generic_pd_pi64(b)))
+static inline sg_generic_s32x2 sg_vectorcall(sg_xor_generic_s32x2)(
+    const sg_generic_s32x2 a, const sg_generic_s32x2 b)
+{
+    sg_generic_s32x2 result;
+    result.i0 = a.i0 ^ b.i0; result.i1 = a.i1 ^ b.i1;
+    return result;
+}
+#define sg_xor_generic_f32x2(a, b) sg_bitcast_generic_s32x2_f32x2(sg_xor_generic_s32x2( \
+    sg_bitcast_generic_f32x2_s32x2(a), sg_bitcast_generic_f32x2_s32x2(b)))
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_vectorcall(sg_xor_pi32)(const sg_pi32 a,
