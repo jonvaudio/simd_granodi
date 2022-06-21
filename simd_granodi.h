@@ -3971,6 +3971,16 @@ static inline sg_generic_s32x2 sg_vectorcall(sg_xor_generic_s32x2)(
     sg_bitcast_generic_f32x2_s32x2(a), sg_bitcast_generic_f32x2_s32x2(b)))
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
+#define sg_xor_pi32 sg_xor_generic_pi32
+#define sg_xor_pi64
+
+#elif defined SIMD_GRANODI_SSE2
+
+#elif defined SIMD_GRANODI_NEON
+
+#endif
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_vectorcall(sg_xor_pi32)(const sg_pi32 a,
     const sg_pi32 b)
 {
