@@ -701,8 +701,8 @@ void test_cmp() {
             (bool) a2, (bool) a3 };
         sg_generic_cmp4 gcmp4_lower = { (bool) a0, (bool) a1, 0, 0 };
         sg_generic_cmp2 gcmp2 = { (bool) a0, (bool) a1 };
-        sg_cmp_pi32 cmp_pi32 = sg_setcmp_fromg_pi32(gcmp4);
-        sg_cmp_pi64 cmp_pi64 = sg_setcmp_fromg_pi64(gcmp2);
+        sg_cmp_pi32 cmp_pi32 = sg_from_generic_cmp_pi32(gcmp4);
+        sg_cmp_pi64 cmp_pi64 = sg_from_generic_cmp_pi64(gcmp2);
         sg_cmp_ps cmp_ps = sg_cvtcmp_pi32_ps(cmp_pi32);
         sg_cmp_pd cmp_pd = sg_cvtcmp_pi64_pd(cmp_pi64);
 
@@ -770,10 +770,10 @@ void test_cmp() {
         a_or_b_2.b0 = a_or_b.b0; a_or_b_2.b1 = a_or_b.b1;
         a_xor_b_2.b0 = a_xor_b.b0; a_xor_b_2.b1 = a_xor_b.b1;
         a_eq_b_2.b0 = a_eq_b.b0; a_eq_b_2.b1 = a_eq_b.b1;
-        sg_cmp_pi32 a_pi32 = sg_setcmp_fromg_pi32(a_gcmp4),
-            b_pi32 = sg_setcmp_fromg_pi32(b_gcmp4);
-        sg_cmp_pi64 a_pi64 = sg_setcmp_fromg_pi64(a_gcmp2),
-            b_pi64 = sg_setcmp_fromg_pi64(b_gcmp2);
+        sg_cmp_pi32 a_pi32 = sg_from_generic_cmp_pi32(a_gcmp4),
+            b_pi32 = sg_from_generic_cmp_pi32(b_gcmp4);
+        sg_cmp_pi64 a_pi64 = sg_from_generic_cmp_pi64(a_gcmp2),
+            b_pi64 = sg_from_generic_cmp_pi64(b_gcmp2);
         sg_cmp_ps a_ps = sg_cvtcmp_pi32_ps(a_pi32),
             b_ps = sg_cvtcmp_pi32_ps(b_pi32);
         sg_cmp_pd a_pd = sg_cvtcmp_pi64_pd(a_pi64),
@@ -864,10 +864,10 @@ void test_cmp() {
         exp_oz_pd.d0 = (double) exp_oz_pi32.i0;
         exp_oz_pd.d1 = (double) exp_oz_pi32.i1;
 
-        const sg_cmp_pi32 cmp_pi32 = sg_setcmp_fromg_pi32(cmp4);
-        const sg_cmp_pi64 cmp_pi64 = sg_setcmp_fromg_pi64(cmp2);
-        const sg_cmp_ps cmp_ps = sg_setcmp_fromg_ps(cmp4);
-        const sg_cmp_pd cmp_pd = sg_setcmp_fromg_pd(cmp2);
+        const sg_cmp_pi32 cmp_pi32 = sg_from_generic_cmp_pi32(cmp4);
+        const sg_cmp_pi64 cmp_pi64 = sg_from_generic_cmp_pi64(cmp2);
+        const sg_cmp_ps cmp_ps = sg_from_generic_cmp_ps(cmp4);
+        const sg_cmp_pd cmp_pd = sg_from_generic_cmp_pd(cmp2);
 
         assert_eq_pi32(sg_choose_pi32(cmp_pi32, if_true_pi32, if_false_pi32),
             exp_pi32.i3, exp_pi32.i2, exp_pi32.i1, exp_pi32.i0);
