@@ -4694,7 +4694,26 @@ static inline sg_cmp_f32x2 sg_vectorcall(sg_from_generic_cmp_f32x2)(
 //
 // Debug comparisons have valid mask section
 
-#ifndef SIMD_GRANODI_FORCE_GENERIC
+static inline bool sg_vectorcall(sg_debug_generic_cmp4_eq)(
+    const sg_generic_cmp4 cmp,
+    const bool b3, const bool b2, const bool b1, const bool b0)
+{
+    return cmp.b3 == b3 && cmp.b2 == b2 && cmp.b1 == b1 && cmp.b0 == b0;
+}
+static inline bool sg_vectorcall(sg_debug_generic_cmp2_eq)(
+    const sg_generic_cmp2 cmp,
+    const bool b1, const bool b0)
+{
+    return cmp.b1 == b1 && cmp.b0 == b0;
+}
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+#define sg_debug_cmp_valid_eq_pi32 sg_debug_generic_cmp4_eq
+#define sg_debug_cmp_valid_eq_pi64 sg_debug_generic_cmp2_eq
+#define sg_debug_cmp_valid_eq_ps sg_debug_generic_cmp4_eq
+#define sg_debug_cmp_valid_eq_pd sg_debug_generic_cmp2_eq
+
+#else
 static inline bool sg_vectorcall(sg_debug_mask_valid_eq_u32)(
     const uint32_t mask, const bool b)
 {
@@ -4707,130 +4726,163 @@ static inline bool sg_vectorcall(sg_debug_mask_valid_eq_u64)(
 }
 #endif
 
+#ifdef SIMD_GRANODI_SSE2
 static inline bool sg_vectorcall(sg_debug_cmp_valid_eq_pi32)(
     const sg_cmp_pi32 cmp, const bool b3, const bool b2, const bool b1,
     const bool b0)
 {
-    #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return cmp.b3 == b3 && cmp.b2 == b2 && cmp.b1 == b1 && cmp.b0 == b0;
-    #elif defined SIMD_GRANODI_SSE2
     return sg_debug_mask_valid_eq_u32(
         sg_bitcast_s32x1_u32x1(sg_get3_pi32(cmp)), b3) &&
         sg_debug_mask_valid_eq_u32(sg_bitcast_s32x1_u32x1(sg_get2_pi32(cmp)), b2) &&
         sg_debug_mask_valid_eq_u32(sg_bitcast_s32x1_u32x1(sg_get1_pi32(cmp)), b1) &&
         sg_debug_mask_valid_eq_u32(sg_bitcast_s32x1_u32x1(sg_get0_pi32(cmp)), b0);
-    #elif defined SIMD_GRANODI_NEON
-    return sg_debug_mask_valid_eq_u32(vgetq_lane_u32(cmp, 3), b3) &&
-        sg_debug_mask_valid_eq_u32(vgetq_lane_u32(cmp, 2), b2) &&
-        sg_debug_mask_valid_eq_u32(vgetq_lane_u32(cmp, 1), b1) &&
-        sg_debug_mask_valid_eq_u32(vgetq_lane_u32(cmp, 0), b0);
-    #endif
 }
-
 static inline bool sg_vectorcall(sg_debug_cmp_valid_eq_pi64)(
     const sg_cmp_pi64 cmp, const bool b1, const bool b0)
 {
-    #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return cmp.b1 == b1 && cmp.b0 == b0;
-    #elif defined SIMD_GRANODI_SSE2
     return sg_debug_mask_valid_eq_u64(
         sg_bitcast_s64x1_u64x1(sg_get1_pi64(cmp)), b1) &&
         sg_debug_mask_valid_eq_u64(sg_bitcast_s64x1_u64x1(sg_get0_pi64(cmp)), b0);
-    #elif defined SIMD_GRANODI_NEON
-    return sg_debug_mask_valid_eq_u64(vgetq_lane_u64(cmp, 1), b1) &&
-        sg_debug_mask_valid_eq_u64(vgetq_lane_u64(cmp, 0), b0);
-    #endif
 }
-
 static inline bool sg_vectorcall(sg_debug_cmp_valid_eq_ps)(const sg_cmp_ps cmp,
     const bool b3, const bool b2, const bool b1, const bool b0)
 {
-    #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return cmp.b3 == b3 && cmp.b2 == b2 && cmp.b1 == b1 && cmp.b0 == b0;
-    #elif defined SIMD_GRANODI_SSE2
     return sg_debug_mask_valid_eq_u32(sg_bitcast_f32x1_u32x1(sg_get3_ps(cmp)), b3) &&
         sg_debug_mask_valid_eq_u32(sg_bitcast_f32x1_u32x1(sg_get2_ps(cmp)), b2) &&
         sg_debug_mask_valid_eq_u32(sg_bitcast_f32x1_u32x1(sg_get1_ps(cmp)), b1) &&
         sg_debug_mask_valid_eq_u32(sg_bitcast_f32x1_u32x1(sg_get0_ps(cmp)), b0);
-    #elif defined SIMD_GRANODI_NEON
+}
+static inline bool sg_vectorcall(sg_debug_cmp_valid_eq_pd)(const sg_cmp_pd cmp,
+    const bool b1, const bool b0)
+{
+    return sg_debug_mask_valid_eq_u64(sg_bitcast_f64x1_u64x1(sg_get1_pd(cmp)), b1) &&
+        sg_debug_mask_valid_eq_u64(sg_bitcast_f64x1_u64x1(sg_get0_pd(cmp)), b0);
+}
+
+#elif defined SIMD_GRANODI_NEON
+static inline bool sg_vectorcall(sg_debug_cmp_valid_eq_u32x4)(
+    const uint32x4_t cmp, const bool b3, const bool b2, const bool b1,
+    const bool b0)
+{
     return sg_debug_mask_valid_eq_u32(vgetq_lane_u32(cmp, 3), b3) &&
         sg_debug_mask_valid_eq_u32(vgetq_lane_u32(cmp, 2), b2) &&
         sg_debug_mask_valid_eq_u32(vgetq_lane_u32(cmp, 1), b1) &&
         sg_debug_mask_valid_eq_u32(vgetq_lane_u32(cmp, 0), b0);
-    #endif
 }
-
-static inline bool sg_vectorcall(sg_debug_cmp_valid_eq_pd)(const sg_cmp_pd cmp,
-    const bool b1, const bool b0)
+static inline bool sg_vectorcall(sg_debug_cmp_valid_eq_u62x2)(
+    const uint64x2_t cmp, const bool b1, const bool b0)
 {
-    #ifdef SIMD_GRANODI_FORCE_GENERIC
-    return cmp.b1 == b1 && cmp.b0 == b0;
-    #elif defined SIMD_GRANODI_SSE2
-    return sg_debug_mask_valid_eq_u64(sg_bitcast_f64x1_u64x1(sg_get1_pd(cmp)), b1) &&
-        sg_debug_mask_valid_eq_u64(sg_bitcast_f64x1_u64x1(sg_get0_pd(cmp)), b0);
-    #elif defined SIMD_GRANODI_NEON
     return sg_debug_mask_valid_eq_u64(vgetq_lane_u64(cmp, 1), b1) &&
         sg_debug_mask_valid_eq_u64(vgetq_lane_u64(cmp, 0), b0);
-    #endif
 }
-
-// Comparisons
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_cmp_pi32 sg_vectorcall(sg_cmplt_pi32)(const sg_pi32 a,
-    const sg_pi32 b)
+#define sg_debug_cmp_valid_eq_pi32 sg_debug_cmp_valid_eq_u32x4
+#define sg_debug_cmp_valid_eq_pi64 sg_debug_cmp_valid_eq_u62x2
+#define sg_debug_cmp_valid_eq_ps sg_debug_cmp_valid_eq_u32x4
+#define sg_debug_cmp_valid_eq_pd sg_debug_cmp_valid_eq_u62x2
+static inline bool sg_vectorcall(sg_debug_cmp_valid_eq_u32x2)(
+    const uint32x2_t cmp, const bool b1, const bool b0)
 {
-    sg_cmp_pi32 result;
+    return sg_debug_mask_valid_eq_u32(vget_lane_u32(cmp, 1), b1) &&
+        sg_debug_mask_valid_eq_u32(vget_lane_u32(cmp, 0), b0);
+}
+#define sg_debug_cmp_valid_eq_s32x2 sg_debug_cmp_valid_eq_u32x2
+#define sg_debug_cmp_valid_eq_f32x2 sg_debug_cmp_valid_eq_u32x2
+
+#endif
+
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
+#define sg_debug_cmp_valid_eq_s32x2 sg_debug_generic_cmp2_eq
+#define sg_debug_cmp_valid_eq_f32x2 sg_debug_generic_cmp2_eq
+#endif
+
+//
+//
+//
+//
+//
+//
+//
+// Compare less than section
+
+static inline sg_generic_cmp4 sg_vectorcall(sg_cmplt_generic_pi32)(
+    const sg_generic_pi32 a, const sg_generic_pi32 b)
+{
+    sg_generic_cmp4 result;
     result.b0 = a.i0 < b.i0; result.b1 = a.i1 < b.i1;
     result.b2 = a.i2 < b.i2; result.b3 = a.i3 < b.i3;
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_cmplt_pi32 _mm_cmplt_epi32
-#elif defined SIMD_GRANODI_NEON
-#define sg_cmplt_pi32 vcltq_s32
-#endif
-
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-static inline sg_cmp_pi64 sg_vectorcall(sg_cmplt_pi64)(const sg_pi64 a,
-    const sg_pi64 b)
+static inline sg_generic_cmp2 sg_vectorcall(sg_cmplt_generic_pi64)(
+    const sg_generic_pi64 a, const sg_generic_pi64 b)
 {
-    const sg_generic_pi64 ag = sg_to_generic_pi64(a), bg = sg_to_generic_pi64(b);
     sg_generic_cmp2 result;
-    result.b0 = ag.l0 < bg.l0; result.b1 = ag.l1 < bg.l1;
-    return sg_from_generic_cmp_pi64(result);
+    result.b0 = a.l0 < b.l0; result.b1 = a.l1 < b.l1;
+    return result;
 }
-#elif defined SIMD_GRANODI_NEON
-#define sg_cmplt_pi64 vcltq_s64
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_cmp_ps sg_vectorcall(sg_cmplt_ps)(const sg_ps a, const sg_ps b)
+static inline sg_generic_cmp4 sg_vectorcall(sg_cmplt_generic_ps)(
+    const sg_generic_ps a, const sg_generic_ps b)
 {
-    sg_cmp_ps result;
+    sg_generic_cmp4 result;
     result.b0 = a.f0 < b.f0; result.b1 = a.f1 < b.f1;
     result.b2 = a.f2 < b.f2; result.b3 = a.f3 < b.f3;
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_cmplt_ps _mm_cmplt_ps
-#elif defined SIMD_GRANODI_NEON
-#define sg_cmplt_ps vcltq_f32
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_cmp_pd sg_vectorcall(sg_cmplt_pd)(const sg_pd a,
-    const sg_pd b)
+static inline sg_generic_cmp2 sg_vectorcall(sg_cmplt_generic_pd)(
+    const sg_generic_pd a, const sg_generic_pd b)
 {
-    sg_cmp_pd result;
+    sg_generic_cmp2 result;
     result.b0 = a.d0 < b.d0; result.b1 = a.d1 < b.d1;
     return result;
 }
+static inline sg_generic_cmp2 sg_vectorcall(sg_cmplt_generic_s32x2)(
+    const sg_generic_s32x2 a, const sg_generic_s32x2 b)
+{
+    sg_generic_cmp2 result;
+    result.b0 = a.i0 < b.i0; result.b1 = a.i1 < b.i1;
+    return result;
+}
+static inline sg_generic_cmp2 sg_vectorcall(sg_cmplt_generic_f32x2)(
+    const sg_generic_f32x2 a, const sg_generic_f32x2 b)
+{
+    sg_generic_cmp2 result;
+    result.b0 = a.f0 < b.f0; result.b1 = a.f1 < b.f1;
+    return result;
+}
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+#define sg_cmplt_pi32 sg_cmplt_generic_pi32
+#define sg_cmplt_ps sg_cmplt_generic_ps
+#define sg_cmplt_pd sg_cmplt_generic_pd
+
 #elif defined SIMD_GRANODI_SSE2
+#define sg_cmplt_pi32 _mm_cmplt_epi32
+#define sg_cmplt_ps _mm_cmplt_ps
 #define sg_cmplt_pd _mm_cmplt_pd
+
 #elif defined SIMD_GRANODI_NEON
+#define sg_cmplt_pi32 vcltq_s32
+#define sg_cmplt_pi64 vcltq_s64
+#define sg_cmplt_ps vcltq_f32
 #define sg_cmplt_pd vcltq_f64
+#define sg_cmplt_s32x2 vclt_s32
+#define sg_cmplt_f32x2 vclt_f32
 #endif
+
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
+#define sg_cmplt_pi64(a, b) sg_from_generic_cmp_pi64(sg_cmplt_generic_pi64( \
+    sg_to_generic_pi64(a), sg_to_generic_pi64(b)))
+#define sg_cmplt_s32x2 sg_cmplt_generic_s32x2
+#define sg_cmplt_f32x2 sg_cmplt_generic_f32x2
+#endif
+
+//
+//
+//
+//
+//
+//
+//
+// Compare less than or equal to section
 
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 static inline sg_cmp_pi32 sg_vectorcall(sg_cmplte_pi32)(const sg_pi32 a,
