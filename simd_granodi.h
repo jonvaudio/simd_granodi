@@ -5212,32 +5212,38 @@ static inline sg_generic_cmp2 sg_vectorcall(sg_cmpgte_generic_f32x2)(
 //
 // Compare greater than section
 
-static inline sg_cmp_pi32 sg_vectorcall(sg_cmpgt_pi32)(const sg_pi32 a,
-    const sg_pi32 b)
+static inline sg_generic_cmp4 sg_vectorcall(sg_cmpgt_generic_pi32)(
+    const sg_generic_pi32 a, const sg_generic_pi32 b)
 {
-    #ifdef SIMD_GRANODI_FORCE_GENERIC
-    sg_cmp_pi32 result;
+    sg_generic_cmp4 result;
     result.b0 = a.i0 > b.i0; result.b1 = a.i1 > b.i1;
     result.b2 = a.i2 > b.i2; result.b3 = a.i3 > b.i3;
     return result;
-    #elif defined SIMD_GRANODI_SSE2
-    return _mm_cmpgt_epi32(a, b);
-    #elif defined SIMD_GRANODI_NEON
-    return vcgtq_s32(a, b);
-    #endif
+}
+static inline sg_generic_cmp2 sg_vectorcall(sg_cmpgt_generic_pi64)(
+    const sg_generic_pi64 a, const sg_generic_pi64 b)
+{
+    sg_generic_cmp2 result;
+    result.b0 = a.l0 > b.l0; result.b1 = a.l1 > b.l1;
+    return result;
 }
 
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-static inline sg_cmp_pi64 sg_vectorcall(sg_cmpgt_pi64)(const sg_pi64 a,
-    const sg_pi64 b)
-{
-    const sg_generic_pi64 ag = sg_to_generic_pi64(a), bg = sg_to_generic_pi64(b);
-    sg_generic_cmp2 result;
-    result.b0 = ag.l0 > bg.l0; result.b1 = ag.l1 > bg.l1;
-    return sg_from_generic_cmp_pi64(result);
-}
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+#define sg_cmpgt_pi32 sg_cmpgt_generic_pi32
+
+#elif defined SIMD_GRANODI_SSE2
+#define sg_cmpgt_pi32 _mm_cmpgt_epi32
+
 #elif defined SIMD_GRANODI_NEON
+#define sg_cmpgt_pi32 vcgtq_s32
 #define sg_cmpgt_pi64 vcgtq_s64
+
+#endif
+
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
+
+#elif defined SIMD_GRANODI_NEON
+
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
