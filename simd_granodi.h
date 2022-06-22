@@ -5417,13 +5417,46 @@ static inline sg_cmp_s32x2 sg_vectorcall(sg_cvtcmp_pi32_s32x2)(
 //
 //
 //
-// Convert comparisons, from pi64
+// Convert comparisons, from pi64 section
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 #define sg_cvtcmp_pi64_pi32 sg_cvtcmp_generic_cmp2_cmp4
 #define sg_cvtcmp_pi64_ps sg_cvtcmp_generic_cmp2_cmp4
-#define sg_cvtcmp_pi64_pd(a) (a)
 
+#elif defined SIMD_GRANODI_SSE2
+#define sg_cvtcmp_pi64_pi32(cmp) \
+    _mm_and_si128(_mm_set_epi32(0, 0, sg_allset_s32, sg_allset_s32), \
+        _mm_shuffle_epi32(cmp, sg_sse2_shuffle32_imm(3, 2, 3, 0)))
+#define sg_cvtcmp_pi64_ps(cmp) _mm_castsi128_ps(sg_cvtcmp_pi64_pi32(cmp))
+#define sg_cvtcmp_pi64_pd sg_bitcast_pi64_pd
+
+#elif defined SIMD_GRANODI_NEON
+#define sg_cvtcmp_pi64_pi32(cmp) \
+    vuzp1q_u32(vreinterpretq_u32_u64(cmp), vdupq_n_u32(0))
+#define sg_cvtcmp_pi64_ps sg_cvtcmp_pi64_pi32
+#define sg_cvtcmp_pi64_s32x2(a) vget_low_s32(sg_cvtcmp_pi64_pi32(a))
+#define sg_cvtcmp_pi64_f32x2 sg_cvtcmp_pi64_s32x2
+#endif
+
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
+#define sg_cvtcmp_pi64_s32x2(a) sg_cvtcmp_generic_pi64_s32x2(sg_to_generic_cmp_pi64(a))
+#define sg_cvtcmp_pi64_f32x2 sg_cvtcmp_pi64_s32x2
+#endif
+
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_NEON
+#define sg_cvtcmp_pi64_pd(a) (a)
+#endif
+
+//
+//
+//
+//
+//
+//
+//
+// Convert comparisons, from ps section
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
 #define sg_cvtcmp_ps_pi32(a) (a)
 #define sg_cvtcmp_ps_pi64 sg_cvtcmp_generic_cmp4_cmp2
 #define sg_cvtcmp_ps_pd sg_cvtcmp_generic_cmp4_cmp2
@@ -5442,7 +5475,7 @@ static inline sg_cmp_s32x2 sg_vectorcall(sg_cvtcmp_pi32_s32x2)(
 #ifdef SIMD_GRANODI_SSE2
 #define sg_cvtcmp_pi32_ps sg_bitcast_pi32_ps
 #define sg_cvtcmp_ps_pi32 sg_bitcast_ps_pi32
-#define sg_cvtcmp_pi64_pd sg_bitcast_pi64_pd
+
 #define sg_cvtcmp_pd_pi64 sg_bitcast_pd_pi64
 
 
@@ -5511,9 +5544,9 @@ static inline sg_cmp_pd sg_vectorcall(sg_cvtcmp_pi64_pd)(const sg_cmp_pi64 cmp)
     return cmp;
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_cvtcmp_pi64_pd _mm_castsi128_pd
+
 #elif defined SIMD_GRANODI_NEON
-#define sg_cvtcmp_pi64_pd(cmp) (cmp)
+
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
@@ -5592,12 +5625,9 @@ static inline sg_cmp_pi32 sg_vectorcall(sg_cvtcmp_pi64_pi32)(
     return result;
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_cvtcmp_pi64_pi32(cmp) \
-    _mm_and_si128(_mm_set_epi32(0, 0, sg_allset_s32, sg_allset_s32), \
-        _mm_shuffle_epi32(cmp, sg_sse2_shuffle32_imm(3, 2, 3, 0)))
+
 #elif defined SIMD_GRANODI_NEON
-#define sg_cvtcmp_pi64_pi32(cmp) \
-    vuzp1q_u32(vreinterpretq_u32_u64(cmp), vdupq_n_u32(0))
+
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
@@ -5606,9 +5636,9 @@ static inline sg_cmp_ps sg_vectorcall(sg_cvtcmp_pi64_ps)(const sg_cmp_pi64 cmp)
     return sg_cvtcmp_pi64_pi32(cmp);
 }
 #elif defined SIMD_GRANODI_SSE2
-#define sg_cvtcmp_pi64_ps(cmp) _mm_castsi128_ps(sg_cvtcmp_pi64_pi32(cmp))
+
 #elif defined SIMD_GRANODI_NEON
-#define sg_cvtcmp_pi64_ps sg_cvtcmp_pi64_pi32
+
 #endif
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
