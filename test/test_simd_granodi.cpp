@@ -3,7 +3,7 @@
 #include <stdlib.h> // for exit()
 #include <inttypes.h> // For printf PRId64 format
 
-#define SIMD_GRANODI_FORCE_GENERIC
+//#define SIMD_GRANODI_FORCE_GENERIC
 
 #include "../simd_granodi.h"
 
