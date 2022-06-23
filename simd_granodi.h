@@ -5986,76 +5986,86 @@ static inline sg_pd sg_vectorcall(sg_choose_pd)(const sg_cmp_pd cmp,
 // Choose else zero section
 // (more efficient special case)
 
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pi32 sg_vectorcall(sg_choose_else_zero_pi32)(
-    const sg_cmp_pi32 cmp, const sg_pi32 if_true)
+static inline sg_generic_pi32 sg_vectorcall(sg_choose_else_zero_generic_pi32)(
+    const sg_generic_cmp4 cmp, const sg_generic_pi32 if_true)
 {
-    sg_pi32 result;
+    sg_generic_pi32 result;
     result.i0 = cmp.b0 ? if_true.i0 : 0; result.i1 = cmp.b1 ? if_true.i1 : 0;
     result.i2 = cmp.b2 ? if_true.i2 : 0; result.i3 = cmp.b3 ? if_true.i3 : 0;
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_choose_else_zero_pi32 _mm_and_si128
-#elif defined SIMD_GRANODI_NEON
-#define sg_choose_else_zero_pi32(cmp, if_true) \
-    vreinterpretq_s32_u32(vandq_u32(cmp, vreinterpretq_u32_s32(if_true)))
-#endif
-
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pi64 sg_vectorcall(sg_choose_else_zero_pi64)(
-    const sg_cmp_pi64 cmp, const sg_pi64 if_true)
+static inline sg_generic_pi64 sg_vectorcall(sg_choose_else_zero_generic_pi64)(
+    const sg_generic_cmp2 cmp, const sg_generic_pi64 if_true)
 {
-    sg_pi64 result;
+    sg_generic_pi64 result;
     result.l0 = cmp.b0 ? if_true.l0 : 0; result.l1 = cmp.b1 ? if_true.l1 : 0;
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_choose_else_zero_pi64 _mm_and_si128
-#elif defined SIMD_GRANODI_NEON
-#define sg_choose_else_zero_pi64(cmp, if_true) \
-    vreinterpretq_s64_u64(vandq_u64(cmp, vreinterpretq_u64_s64(if_true)))
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_ps sg_vectorcall(sg_choose_else_zero_ps)(const sg_cmp_ps cmp,
-    const sg_ps if_true)
+static inline sg_generic_ps sg_vectorcall(sg_choose_else_zero_generic_ps)(
+    const sg_generic_cmp4 cmp, const sg_generic_ps if_true)
 {
-    sg_ps result;
+    sg_generic_ps result;
     result.f0 = cmp.b0 ? if_true.f0 : 0.0f;
     result.f1 = cmp.b1 ? if_true.f1 : 0.0f;
     result.f2 = cmp.b2 ? if_true.f2 : 0.0f;
     result.f3 = cmp.b3 ? if_true.f3 : 0.0f;
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_choose_else_zero_ps _mm_and_ps
-#elif defined SIMD_GRANODI_NEON
-#define sg_choose_else_zero_ps(cmp, if_true) \
-    vreinterpretq_f32_u32(vandq_u32(cmp, vreinterpretq_u32_f32(if_true)))
-#endif
-
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-
-#elif defined SIMD_GRANODI_NEON
-
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pd sg_vectorcall(sg_choose_else_zero_pd)(const sg_cmp_pd cmp,
-    const sg_pd if_true)
+static inline sg_generic_pd sg_vectorcall(sg_choose_else_zero_generic_pd)(
+    const sg_generic_cmp2 cmp, const sg_generic_pd if_true)
 {
-    sg_pd result;
+    sg_generic_pd result;
     result.d0 = cmp.b0 ? if_true.d0 : 0.0;
     result.d1 = cmp.b1 ? if_true.d1 : 0.0;
     return result;
 }
+static inline sg_generic_s32x2 sg_vectorcall(sg_choose_else_zero_generic_s32x2)(
+    const sg_generic_cmp2 cmp, const sg_generic_s32x2 if_true)
+{
+    sg_generic_s32x2 result;
+    result.i0 = cmp.b0 ? if_true.i0 : 0;
+    result.i1 = cmp.b1 ? if_true.i1 : 0;
+    return result;
+}
+static inline sg_generic_f32x2 sg_vectorcall(sg_choose_else_zero_generic_f32x2)(
+    const sg_generic_cmp2 cmp, const sg_generic_f32x2 if_true)
+{
+    sg_generic_f32x2 result;
+    result.f0 = cmp.b0 ? if_true.f0 : 0.0f;
+    result.f1 = cmp.b1 ? if_true.f1 : 0.0f;
+    return result;
+}
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+#define sg_choose_else_zero_pi32 sg_choose_else_zero_generic_pi32
+#define sg_choose_else_zero_pi64 sg_choose_else_zero_generic_pi64
+#define sg_choose_else_zero_ps sg_choose_else_zero_generic_ps
+#define sg_choose_else_zero_pd sg_choose_else_zero_generic_pd
+
 #elif defined SIMD_GRANODI_SSE2
+#define sg_choose_else_zero_pi32 _mm_and_si128
+#define sg_choose_else_zero_pi64 _mm_and_si128
+#define sg_choose_else_zero_ps _mm_and_ps
 #define sg_choose_else_zero_pd _mm_and_pd
+
 #elif defined SIMD_GRANODI_NEON
+#define sg_choose_else_zero_pi32(cmp, if_true) \
+    vreinterpretq_s32_u32(vandq_u32(cmp, vreinterpretq_u32_s32(if_true)))
+#define sg_choose_else_zero_pi64(cmp, if_true) \
+    vreinterpretq_s64_u64(vandq_u64(cmp, vreinterpretq_u64_s64(if_true)))
+#define sg_choose_else_zero_ps(cmp, if_true) \
+    vreinterpretq_f32_u32(vandq_u32(cmp, vreinterpretq_u32_f32(if_true)))
 #define sg_choose_else_zero_pd(cmp, if_true) \
     vreinterpretq_f64_u64(vandq_u64(cmp, vreinterpretq_u64_f64(if_true)))
+#define sg_choose_else_zero_s32x2(cmp, if_true) \
+    vreinterpret_s32_u32(vand_u32(cmp, vreinterpret_u32_s32(if_true)))
+#define sg_choose_else_zero_f32x2(cmp, if_true) \
+    vreinterpret_f32_u32(vand_u32(cmp, vreinterpret_u32_f32(if_true)))
+#endif
+
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
+#define sg_choose_else_zero_s32x2 sg_choose_else_zero_generic_s32x2
+#define sg_choose_else_zero_f32x2 sg_choose_else_zero_generic_f32x2
 #endif
 
 /*
