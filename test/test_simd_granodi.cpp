@@ -3,6 +3,7 @@
 #include <stdlib.h> // for exit()
 #include <inttypes.h> // For printf PRId64 format
 
+// For testing on MSVC. Should be commented out
 //#define SIMD_GRANODI_FORCE_GENERIC
 
 #include "../simd_granodi.h"
@@ -248,7 +249,7 @@ void test_cast() {
     pd = sg_set_pd(1.0, 0.0);
     assert_eq_pd(sg_bitcast_ps_pd(sg_bitcast_pd_ps(pd)), 1.0, 0.0);
 
-    sg_s32x2 s32x2; sg_f32x2 f32x2;
+    //sg_s32x2 s32x2; sg_f32x2 f32x2;
 
     //
 
@@ -399,7 +400,7 @@ void test_convert() {
     // Test edge cases when converting pi32 <-> pi64
     assert_eq_pi64(sg_cvt_pi32_pi64(sg_set1_pi32(-5)), -5, -5);
     assert_eq_pi32(sg_cvt_pi64_pi32(sg_set1_pi64(-5)), 0, 0, -5, -5);
-    int64_t large = 1e11, large_neg = -large;
+    int64_t large = (int64_t) 1e11, large_neg = -large;
     //printf("large: %" PRId64 ", large_neg: %" PRId64 "\n", large, large_neg);
     //printf("large: %i, large_neg: %i\n", (int32_t) large, (int32_t) large_neg);
     assert_eq_pi32(sg_cvt_pi64_pi32(sg_set1_pi64(large)),
@@ -784,10 +785,11 @@ void test_cmp() {
         assert_eqg_cmp_ps(sg_and_cmp_ps(a_ps, b_ps), a_and_b);
         assert_eqg_cmp_pd(sg_and_cmp_pd(a_pd, b_pd), a_and_b_2);
 
-        assert_eqg_cmp_pi32(sg_andnot_cmp_pi32(a_pi32, b_pi32), a_andnot_b);
+        // andnot functionality removed for comparisons
+        /*assert_eqg_cmp_pi32(sg_andnot_cmp_pi32(a_pi32, b_pi32), a_andnot_b);
         assert_eqg_cmp_pi64(sg_andnot_cmp_pi64(a_pi64, b_pi64), a_andnot_b_2);
         assert_eqg_cmp_ps(sg_andnot_cmp_ps(a_ps, b_ps), a_andnot_b);
-        assert_eqg_cmp_pd(sg_andnot_cmp_pd(a_pd, b_pd), a_andnot_b_2);
+        assert_eqg_cmp_pd(sg_andnot_cmp_pd(a_pd, b_pd), a_andnot_b_2);*/
 
         assert_eqg_cmp_pi32(sg_not_cmp_pi32(a_pi32), a_not);
         assert_eqg_cmp_pi64(sg_not_cmp_pi64(a_pi64), a_not_2);
@@ -1743,7 +1745,7 @@ static void test_opover() {
     sg_assert(Vec_pi64{1}.to<Vec_pd>().debug_eq(1.0));
     sg_assert(Vec_s64x1{1}.to<Vec_s32x1>().debug_eq(1));
     sg_assert(Vec_s64x1{1}.to<Vec_f32x1>().debug_eq(1.0f));
-    sg_assert(Vec_s64x1{1}.to<Vec_s64x1>().debug_eq(1.0));
+    sg_assert(Vec_s64x1{1}.to<Vec_s64x1>().debug_eq(1));
 
     sg_assert(Vec_ps{1.7f}.nearest<Vec_pi32>().debug_eq(2));
     sg_assert(Vec_ps{1.7f}.truncate<Vec_pi32>().debug_eq(1));
