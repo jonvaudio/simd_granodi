@@ -252,16 +252,19 @@ void test_cast() {
     assert_eq_pi64(sg_bitcast_pd_pi64(sg_bitcast_pi64_pd(pi64)), -5, 0);
 
     ps = sg_set_ps(-3.0f, -2.0f, -1.0f, 0.0f);
-    assert_eq_ps(sg_bitcast_pd_ps(sg_bitcast_ps_pd(ps)), 3.0f, 2.0f, 1.0f, 0.0f);
+    assert_eq_ps(sg_bitcast_pd_ps(sg_bitcast_ps_pd(ps)), -3.0f, -2.0f, -1.0f, 0.0f);
 
     pd = sg_set_pd(-1.0, 0.0);
-    assert_eq_pd(sg_bitcast_ps_pd(sg_bitcast_pd_ps(pd)), 1.0, 0.0);
+    assert_eq_pd(sg_bitcast_ps_pd(sg_bitcast_pd_ps(pd)), -1.0, 0.0);
 
-    sg_s32x2 s32x2;
-    s32x2 = sg_set_s32x2(-5, 0);
+    sg_s32x2 s32x2 = sg_set_s32x2(-5, 0);
     assert_eq_s32x2(sg_bitcast_f32x2_s32x2(sg_bitcast_s32x2_f32x2(s32x2)), -5, 0);
     assert_eq_s32x2(sg_bitcast_s64x1_s32x2(sg_bitcast_s32x2_s64x1(s32x2)), -5, 0);
     assert_eq_s32x2(sg_bitcast_f64x1_s32x2(sg_bitcast_s32x2_f64x1(s32x2)), -5, 0);
+
+    sg_f32x2 f32x2 = sg_set_f32x2(-5.0f, 0.0f);
+    assert_eq_f32x2(sg_bitcast_s64x1_f32x2(sg_bitcast_f32x2_s64x1(f32x2)), -5.0f, 0.0f);
+    assert_eq_f32x2(sg_bitcast_f64x1_f32x2(sg_bitcast_f32x2_f64x1(f32x2)), -5.0f, 0.0f);
 
     //printf("Cast test succeeeded\n");
 }
@@ -282,6 +285,10 @@ void test_shuffle() {
         assert_eq_pi64(sg_shuffle_pi64(sg_set_pi64(1, 0), src1, src0),
             src1, src0);
         assert_eq_pd(sg_shuffle_pd(sg_set_pd(1.0, 0.0), src1, src0),
+            src1, src0);
+        assert_eq_s32x2(sg_shuffle_s32x2(sg_set_s32x2(1, 0), src1, src0),
+            src1, src0);
+        assert_eq_f32x2(sg_shuffle_f32x2(sg_set_f32x2(1.0f, 0.0f), src1, src0),
             src1, src0);
     } }
 
@@ -317,11 +324,22 @@ void test_set() {
     assert_eq_pd(sg_set1_from_u64_pd(sg_bitcast_f64x1_u64x1(3.0)), 3.0, 3.0);
     assert_eq_pd(sg_setzero_pd(), 0.0, 0.0);
 
+    assert_eq_s32x2(sg_set_s32x2(3, 2), 3, 2);
+    assert_eq_s32x2(sg_set_from_u32_s32x2(3, 0xffffffff), 3, -1);
+    assert_eq_s32x2(sg_set1_s32x2(3), 3, 3);
+    assert_eq_s32x2(sg_setzero_s32x2(), 0, 0);
+
+    assert_eq_f32x2(sg_set_f32x2(3.0f, 2.0f), 3.0f, 2.0f);
+    assert_eq_f32x2(sg_set_from_u32_f32x2(sg_bitcast_f32x1_u32x1(3.0f),
+        sg_bitcast_f32x1_u32x1(2.0f)), 3.0f, 2.0f);
+    assert_eq_f32x2(sg_set1_f32x2(3.0f), 3.0f, 3.0f);
+    assert_eq_f32x2(sg_setzero_f32x2(), 0.0f, 0.0f);
+
     //printf("Set test succeeeded\n");
 }
 
 void test_get() {
-    // The getg() (get generic) functions are covered by the assert_eq
+    // The from_generic() functions are covered by the assert_eq
     // functions
 
     sg_assert(sg_get0_pi32(sg_set_pi32(4,3,2,1)) == 1);
@@ -340,6 +358,11 @@ void test_get() {
     sg_assert(sg_get0_pd(sg_set_pd(2.0, 1.0)) == 1.0);
     sg_assert(sg_get1_pd(sg_set_pd(2.0, 1.0)) == 2.0);
 
+    sg_assert(sg_get0_s32x2(sg_set_s32x2(3, 2)) == 2);
+    sg_assert(sg_get1_s32x2(sg_set_s32x2(3, 2)) == 3);
+
+    sg_assert(sg_get0_f32x2(sg_set_f32x2(3.0f, 2.0f)) == 2.0f);
+    sg_assert(sg_get1_f32x2(sg_set_f32x2(3.0f, 2.0f)) == 3.0f);
 
     // Check SSE2 rounding
     #if defined SIMD_GRANODI_SSE2 && !defined _MSC_VER
@@ -353,24 +376,37 @@ void test_convert() {
     sg_pi32 si32 = sg_set_pi32(3, 2, 1, 0);
     assert_eq_pi64(sg_cvt_pi32_pi64(si32), 1, 0);
     assert_eq_ps(sg_cvt_pi32_ps(si32), 3.0f, 2.0f, 1.0f, 0.0f);
+    assert_eq_f32x2(sg_cvt_pi32_f32x2(si32), 1.0f, 0.0f);
     assert_eq_pd(sg_cvt_pi32_pd(si32), 1.0, 0.0);
+    assert_eq_s32x2(sg_cvt_pi32_s32x2(si32), 1, 0);
+    assert_eq_f32x2(sg_cvt_pi32_f32x2(si32), 1.0f, 0.0f);
 
-    sg_pi64 si64 = sg_set_pi64(2, 1);
-    assert_eq_pi32(sg_cvt_pi64_pi32(si64), 0, 0, 2, 1);
-    assert_eq_ps(sg_cvt_pi64_ps(si64), 0.0f, 0.0f, 2.0f, 1.0f);
-    assert_eq_pd(sg_cvt_pi64_pd(si64), 2.0, 1.0);
+    sg_pi64 si64 = sg_set_pi64(-2, -1);
+    assert_eq_pi32(sg_cvt_pi64_pi32(si64), 0, 0, -2, -1);
+    assert_eq_ps(sg_cvt_pi64_ps(si64), 0.0f, 0.0f, -2.0f, -1.0f);
+    assert_eq_pd(sg_cvt_pi64_pd(si64), -2.0, -1.0);
+    assert_eq_s32x2(sg_cvt_pi64_s32x2(si64), -2, -1);
+    assert_eq_f32x2(sg_cvt_pi64_f32x2(si64), -2.0f, -1.0f);
 
     sg_ps psp = sg_set_ps(4.0f, 3.0f, 2.0f, 1.0f);
     assert_eq_pd(sg_cvt_ps_pd(psp), 2.0, 1.0);
+    assert_eq_f32x2(sg_cvt_ps_f32x2(psp), 2.0f, 1.0f);
 
     psp = sg_set_ps(3.7f, 2.7f, 1.7f, 0.7f);
     sg_ps psn = sg_neg_ps(psp);
     assert_eq_pi32(sg_cvt_ps_pi32(psp), 4, 3, 2, 1);
+    assert_eq_s32x2(sg_cvt_ps_s32x2(psp), 2, 1);
     assert_eq_pi32(sg_cvtt_ps_pi32(psp), 3, 2, 1, 0);
+    assert_eq_s32x2(sg_cvtt_ps_s32x2(psp), 1, 0);
     assert_eq_pi32(sg_cvtf_ps_pi32(psp), 3, 2, 1, 0);
+    assert_eq_s32x2(sg_cvtf_ps_s32x2(psp), 1, 0);
     assert_eq_pi32(sg_cvt_ps_pi32(psn), -4, -3, -2, -1);
+    assert_eq_s32x2(sg_cvt_ps_s32x2(psn), -2, -1);
     assert_eq_pi32(sg_cvtt_ps_pi32(psn), -3, -2, -1, 0);
+    assert_eq_s32x2(sg_cvtt_ps_s32x2(psn), -1, 0);
     assert_eq_pi32(sg_cvtf_ps_pi32(psn), -4, -3, -2, -1);
+    assert_eq_s32x2(sg_cvtf_ps_s32x2(psn), -2 ,-1);
+    //
     assert_eq_pi64(sg_cvt_ps_pi64(psp), 2, 1);
     assert_eq_pi64(sg_cvtt_ps_pi64(psp), 1, 0);
     assert_eq_pi64(sg_cvtf_ps_pi64(psp), 1, 0);
@@ -384,39 +420,76 @@ void test_convert() {
     pdp = sg_set_pd(1.7, 0.7);
     sg_pd pdn = sg_neg_pd(pdp);
     assert_eq_pi32(sg_cvt_pd_pi32(pdp), 0, 0, 2, 1);
+    assert_eq_s32x2(sg_cvt_pd_s32x2(pdp), 2, 1);
     assert_eq_pi32(sg_cvtt_pd_pi32(pdp), 0, 0, 1, 0);
+    assert_eq_s32x2(sg_cvtt_pd_s32x2(pdp), 1, 0);
     assert_eq_pi32(sg_cvtf_pd_pi32(pdp), 0, 0, 1, 0);
+    assert_eq_s32x2(sg_cvtf_pd_s32x2(pdp), 1, 0);
     assert_eq_pi32(sg_cvt_pd_pi32(pdn), 0, 0, -2, -1);
+    assert_eq_s32x2(sg_cvt_pd_s32x2(pdn), -2, -1);
     assert_eq_pi32(sg_cvtt_pd_pi32(pdn), 0, 0, -1, 0);
+    assert_eq_s32x2(sg_cvtt_pd_s32x2(pdn), -1, 0);
     assert_eq_pi32(sg_cvtf_pd_pi32(pdn), 0, 0, -2, -1);
+    assert_eq_s32x2(sg_cvtf_pd_s32x2(pdn), -2, -1);
+    //
     assert_eq_pi64(sg_cvt_pd_pi64(pdp), 2, 1);
+    assert_eq_s32x2(sg_cvt_pd_s32x2(pdp), 2, 1);
     assert_eq_pi64(sg_cvtt_pd_pi64(pdp), 1, 0);
+    assert_eq_s32x2(sg_cvtt_pd_s32x2(pdp), 1, 0);
     assert_eq_pi64(sg_cvtf_pd_pi64(pdp), 1, 0);
+    assert_eq_s32x2(sg_cvtf_pd_s32x2(pdp), 1, 0);
     assert_eq_pi64(sg_cvt_pd_pi64(pdn), -2, -1);
+    assert_eq_s32x2(sg_cvt_pd_s32x2(pdn), -2, -1);
     assert_eq_pi64(sg_cvtt_pd_pi64(pdn), -1, 0);
+    assert_eq_s32x2(sg_cvtt_pd_s32x2(pdn), -1, 0);
     assert_eq_pi64(sg_cvtf_pd_pi64(pdn), -2, -1);
+    assert_eq_s32x2(sg_cvtf_pd_s32x2(pdn), -2, -1);
 
     // Test half way rounding
     assert_eq_pi32(sg_cvt_ps_pi32(sg_set1_ps(2.5f)), 2, 2, 2, 2);
+    assert_eq_s32x2(sg_cvt_f32x2_s32x2(sg_set1_f32x2(2.5f)), 2, 2);
     assert_eq_pi32(sg_cvt_ps_pi32(sg_set1_ps(-2.5f)), -2, -2, -2, -2);
+    assert_eq_s32x2(sg_cvt_f32x2_s32x2(sg_set1_f32x2(-2.5f)), -2, -2);
     assert_eq_pi64(sg_cvt_ps_pi64(sg_set1_ps(2.5f)), 2, 2);
     assert_eq_pi64(sg_cvt_ps_pi64(sg_set1_ps(-2.5f)), -2, -2);
 
     assert_eq_pi64(sg_cvt_pd_pi64(sg_set1_pd(2.5)), 2, 2);
     assert_eq_pi64(sg_cvt_pd_pi64(sg_set1_pd(-2.5)), -2, -2);
     assert_eq_pi32(sg_cvt_pd_pi32(sg_set1_pd(2.5)), 0, 0, 2, 2);
+    assert_eq_s32x2(sg_cvt_pd_s32x2(sg_set1_pd(2.5)), 2, 2);
     assert_eq_pi32(sg_cvt_pd_pi32(sg_set1_pd(-2.5)), 0, 0, -2, -2);
+    assert_eq_s32x2(sg_cvt_pd_s32x2(sg_set1_pd(-2.5)), -2, -2);
 
     // Test edge cases when converting pi32 <-> pi64
     assert_eq_pi64(sg_cvt_pi32_pi64(sg_set1_pi32(-5)), -5, -5);
+    assert_eq_pi64(sg_cvt_s32x2_pi64(sg_set1_s32x2(-5)), -5, -5);
     assert_eq_pi32(sg_cvt_pi64_pi32(sg_set1_pi64(-5)), 0, 0, -5, -5);
+    assert_eq_s32x2(sg_cvt_pi64_s32x2(sg_set1_pi64(-5)), -5, -5);
     int64_t large = (int64_t) 1e11, large_neg = -large;
     //printf("large: %" PRId64 ", large_neg: %" PRId64 "\n", large, large_neg);
     //printf("large: %i, large_neg: %i\n", (int32_t) large, (int32_t) large_neg);
     assert_eq_pi32(sg_cvt_pi64_pi32(sg_set1_pi64(large)),
         0, 0, (int32_t) large, (int32_t) large);
+    assert_eq_s32x2(sg_cvt_pi64_s32x2(sg_set1_pi64(large)),
+        (int32_t) large, (int32_t) large);
     assert_eq_pi32(sg_cvt_pi64_pi32(sg_set1_pi64(large_neg)),
         0, 0, (int32_t) large_neg, (int32_t) large_neg);
+    assert_eq_s32x2(sg_cvt_pi64_s32x2(sg_set1_pi64(large_neg)),
+        (int32_t) large_neg, (int32_t) large_neg);
+
+    sg_s32x2 s32x2 = sg_set_s32x2(5, 4);
+    assert_eq_pi32(sg_cvt_s32x2_pi32(s32x2), 0, 0, 5, 4);
+    assert_eq_pi64(sg_cvt_s32x2_pi64(s32x2), 5, 4);
+    assert_eq_ps(sg_cvt_s32x2_ps(s32x2), 0.0f, 0.0f, 5.0f, 4.0f);
+    assert_eq_pd(sg_cvt_s32x2_pd(s32x2), 5.0, 4.0);
+    assert_eq_f32x2(sg_cvt_s32x2_f32x2(s32x2), 5.0f, 4.0f);
+
+    sg_f32x2 f32x2 = sg_set_f32x2(5.0f, 4.0f);
+    assert_eq_pi32(sg_cvt_f32x2_pi32(f32x2), 0, 0, 5, 4);
+    assert_eq_pi64(sg_cvt_f32x2_pi64(f32x2), 5, 4);
+    assert_eq_ps(sg_cvt_f32x2_ps(f32x2), 0.0f, 0.0f, 5.0f, 4.0f);
+    assert_eq_pd(sg_cvt_f32x2_pd(f32x2), 5.0, 4.0);
+    assert_eq_s32x2(sg_cvt_f32x2_s32x2(f32x2), 5, 4);
 
     //printf("Convert test succeeeded\n");
 }
@@ -438,6 +511,14 @@ void test_add_sub() {
     sg_pd g = sg_set_pd(6.0, 1.0), h = sg_set_pd(12.0, 2.0);
     assert_eq_pd(sg_add_pd(g, h), 18.0, 3.0);
     assert_eq_pd(sg_sub_pd(g, h), -6.0, -1.0);
+
+    sg_s32x2 i = sg_set_s32x2(6, 1), j = sg_set_s32x2(12, 2);
+    assert_eq_s32x2(sg_add_s32x2(i, j), 18, 3);
+    assert_eq_s32x2(sg_sub_s32x2(i, j), -6, -1);
+
+    sg_f32x2 k = sg_set_f32x2(6, 1), l = sg_set_f32x2(12, 2);
+    assert_eq_f32x2(sg_add_f32x2(k, l), 18, 3);
+    assert_eq_f32x2(sg_sub_f32x2(k, l), -6, -1);
 
     //printf("Add subtract test succeeeded\n");
 }
@@ -478,6 +559,20 @@ void test_mul_div() {
     assert_eq_pd(sg_safediv_pd(sg_set_pd(18.0, 8.0), sg_set_pd(6.0, 4.0)),
         3.0, 2.0);
 
+    assert_eq_s32x2(sg_mul_s32x2(sg_set_s32x2(5, 1), sg_set_s32x2(3, 2)),
+        15, 2);
+    assert_eq_s32x2(sg_div_s32x2(sg_set_s32x2(18, 8), sg_set_s32x2(6, 4)),
+        3, 2);
+    assert_eq_s32x2(sg_safediv_s32x2(sg_set_s32x2(18, 8), sg_set_s32x2(6, 4)),
+        3, 2);
+
+    assert_eq_f32x2(sg_mul_f32x2(sg_set_f32x2(5, 1), sg_set_f32x2(3, 2)),
+        15, 2);
+    assert_eq_f32x2(sg_div_f32x2(sg_set_f32x2(18, 8), sg_set_f32x2(6, 4)),
+        3, 2);
+    assert_eq_f32x2(sg_safediv_f32x2(sg_set_f32x2(18, 8), sg_set_f32x2(6, 4)),
+        3, 2);
+
     // Test mul_add
     assert_eq_ps(sg_mul_add_ps(sg_set_ps(1.0f, 2.0f, 3.0f, 4.0f),
         sg_set_ps(5.0f, 6.0f, 7.0f, 8.0f),
@@ -485,6 +580,8 @@ void test_mul_div() {
         14.0f, 22.0f, 32.0f, 44.0f);
     assert_eq_pd(sg_mul_add_pd(sg_set_pd(1.0, 2.0), sg_set_pd(5.0, 6.0),
         sg_set_pd(9.0, 10.0)), 14.0, 22.0);
+    assert_eq_f32x2(sg_mul_add_f32x2(sg_set_f32x2(1, 2), sg_set_f32x2(5, 6),
+        sg_set_f32x2(9, 10)), 14, 22);
 
     // Test safediv
     assert_eq_pi32(sg_safediv_pi32(sg_set_pi32(8, 8, 8, 8),
@@ -501,6 +598,12 @@ void test_mul_div() {
     assert_eq_pi64(sg_safediv_pi64(sg_set_pi64(8, 8),
         sg_set_pi64(0, 4)), 8, 2);
 
+    assert_eq_s32x2(sg_safediv_s32x2(sg_set_s32x2(8, 8),
+        sg_set_s32x2(4, 0)), 2, 8);
+    assert_eq_s32x2(sg_safediv_s32x2(sg_set_s32x2(8, 8),
+        sg_set_s32x2(0, 4)), 8, 2);
+
+    // 0 and signed 0
     assert_eq_ps(sg_safediv_ps(sg_set_ps(8.0f, 8.0f, 8.0f, 8.0f),
         sg_set_ps(4.0f, 4.0f, 4.0f, 0.0f)), 2.0f, 2.0f, 2.0f, 8.0f);
     assert_eq_ps(sg_safediv_ps(sg_set_ps(8.0f, 8.0f, 8.0f, 8.0f),
@@ -531,6 +634,16 @@ void test_mul_div() {
     assert_eq_pd(sg_safediv_pd(sg_set_pd(8.0, 8.0),
         sg_set_pd(-0.0, 4.0)), 8.0, 2.0);
 
+    assert_eq_f32x2(sg_safediv_f32x2(sg_set_f32x2(8.0, 8.0),
+        sg_set_f32x2(4.0, 0.0)), 2.0, 8.0);
+    assert_eq_f32x2(sg_safediv_f32x2(sg_set_f32x2(8.0, 8.0),
+        sg_set_f32x2(4.0, -0.0)), 2.0, 8.0);
+
+    assert_eq_f32x2(sg_safediv_f32x2(sg_set_f32x2(8.0, 8.0),
+        sg_set_f32x2(0.0, 4.0)), 8.0, 2.0);
+    assert_eq_f32x2(sg_safediv_f32x2(sg_set_f32x2(8.0, 8.0),
+        sg_set_f32x2(-0.0, 4.0)), 8.0, 2.0);
+
     //printf("Multiply divide test succeeeded\n");
 }
 
@@ -546,10 +659,17 @@ void test_bitwise() {
     for (int b0 = 0; b0 < 2; ++b0) {
         sg_pi32 ai32 = sg_set_pi32(a3, a2, a1, a0),
             bi32 = sg_set_pi32(b3, b2, b1, b0);
+        sg_s32x2 as32x2 = sg_set_s32x2(a1, a0),
+            bs32x2 = sg_set_s32x2(b1, b0);
         sg_pi64 ai64 = sg_set_pi64(a1, a0),
             bi64 = sg_set_pi64(b1, b0);
         sg_ps aps = sg_bitcast_pi32_ps(ai32), bps = sg_bitcast_pi32_ps(bi32);
         sg_pd apd = sg_bitcast_pi64_pd(ai64), bpd = sg_bitcast_pi64_pd(bi64);
+
+        sg_f32x2 af32x2 = sg_set_f32x2(sg_bitcast_s32x1_f32x1(a1),
+            sg_bitcast_s32x1_f32x1(a0));
+        sg_f32x2 bf32x2 = sg_set_f32x2(sg_bitcast_s32x1_f32x1(b1),
+            sg_bitcast_s32x1_f32x1(b0));
 
         assert_eq_pi32(sg_and_pi32(ai32, bi32),
             a3 & b3, a2 & b2, a1 & b1, a0 & b0);
@@ -581,6 +701,21 @@ void test_bitwise() {
         assert_eq_pi64(sg_bitcast_pd_pi64(sg_or_pd(apd, bpd)), a1 | b1, a0 | b0);
         assert_eq_pi64(sg_xor_pi64(ai64, bi64), a1 ^ b1, a0 ^ b0);
         assert_eq_pi64(sg_bitcast_pd_pi64(sg_xor_pd(apd, bpd)), a1 ^ b1, a0 ^ b0);
+
+        assert_eq_s32x2(sg_and_s32x2(as32x2, bs32x2), a1 & b1, a0 & b0);
+        assert_eq_s32x2(sg_bitcast_f32x2_s32x2(sg_and_f32x2(af32x2, bf32x2)),
+            a1 & b1, a0 & b0);
+        assert_eq_s32x2(sg_andnot_s32x2(as32x2, bs32x2), ~a1 & b1, ~a0 & b0);
+        assert_eq_s32x2(sg_bitcast_f32x2_s32x2(sg_andnot_f32x2(af32x2, bf32x2)),
+            ~a1 & b1, ~a0 & b0);
+        assert_eq_s32x2(sg_not_s32x2(as32x2), ~a1, ~a0);
+        assert_eq_s32x2(sg_bitcast_f32x2_s32x2(sg_not_f32x2(af32x2)), ~a1, ~a0);
+        assert_eq_s32x2(sg_or_s32x2(as32x2, bs32x2), a1 | b1, a0 | b0);
+        assert_eq_s32x2(sg_bitcast_f32x2_s32x2(sg_or_f32x2(af32x2, bf32x2)),
+            a1 | b1, a0 | b0);
+        assert_eq_s32x2(sg_xor_s32x2(as32x2, bs32x2), a1 ^ b1, a0 ^ b0);
+        assert_eq_s32x2(sg_bitcast_f32x2_s32x2(sg_xor_f32x2(af32x2, bf32x2)),
+            a1 ^ b1, a0 ^ b0);
     } } } } } } } }
 
     //printf("Bitwise test succeeeded\n");
@@ -589,10 +724,14 @@ void test_bitwise() {
 void test_shift() {
     // Test immediate
     assert_eq_pi32(sg_sl_imm_pi32(sg_set_pi32(64, 16, 4, 1), 1), 128, 32, 8, 2);
+    assert_eq_s32x2(sg_sl_imm_s32x2(sg_set_s32x2(4, 1), 1), 8, 2);
     assert_eq_pi32(sg_sra_imm_pi32(sg_set_pi32(-64, -16, -4, -2), 1),
         -32, -8, -2, -1);
+    assert_eq_s32x2(sg_sra_imm_s32x2(sg_set_s32x2(-4, -2), 1), -2, -1);
     assert_eq_pi32(sg_srl_imm_pi32(sg_set_pi32(-64, -16, -4, -2), 1),
         2147483616, 2147483640, 2147483646, 2147483647);
+    assert_eq_s32x2(sg_srl_imm_s32x2(sg_set_s32x2(-4, -2), 1),
+        2147483646, 2147483647);
 
     assert_eq_pi64(sg_sl_imm_pi64(sg_set_pi64(4, 1), 1), 8, 2);
     assert_eq_pi64(sg_sra_imm_pi64(sg_set_pi64(-4, -2), 1), -2, -1);
@@ -602,11 +741,17 @@ void test_shift() {
     // Test in-register
     assert_eq_pi32(sg_sl_pi32(sg_set_pi32(8, 4, 2, 1), sg_set_pi32(4, 3, 2, 1)),
         128, 32, 8, 2);
+    assert_eq_s32x2(sg_sl_s32x2(sg_set_s32x2(2, 1), sg_set_s32x2(2, 1)),
+        8, 2);
     assert_eq_pi32(sg_sra_pi32(sg_set_pi32(-64, -16, -4, -2),
         sg_set_pi32(4, 3, 2, 1)), -4, -2, -1, -1);
+    assert_eq_s32x2(sg_sra_s32x2(sg_set_s32x2(-4, -2),
+        sg_set_s32x2(2, 1)), -1, -1);
     assert_eq_pi32(sg_srl_pi32(sg_set_pi32(-64, -16, -4, -2),
         sg_set_pi32(4, 3, 2, 1)),
         268435452, 536870910, 1073741823, 2147483647);
+    assert_eq_s32x2(sg_srl_s32x2(sg_set_s32x2(-4, -2),
+        sg_set_s32x2(2, 1)), 1073741823, 2147483647);
 
     assert_eq_pi64(sg_sl_pi64(sg_set_pi64(2, 1), sg_set_pi64(2, 1)), 8, 2);
     assert_eq_pi64(sg_sra_pi64(sg_set_pi64(-4, -2), sg_set_pi64(2, 1)), -1, -1);
