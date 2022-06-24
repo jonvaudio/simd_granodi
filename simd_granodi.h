@@ -6080,118 +6080,201 @@ Note that
   not be "safe".
 - with integers, this does NOT check for dividing INT_MIN by -1
 */
-static inline sg_pi32 sg_vectorcall(sg_safediv_pi32)(const sg_pi32 a,
-    const sg_pi32 b)
+
+static inline sg_generic_pi32 sg_vectorcall(sg_safediv_generic_pi32)(
+    const sg_generic_pi32 a, const sg_generic_pi32 b)
 {
-    const sg_generic_pi32 ag = sg_to_generic_pi32(a), bg = sg_to_generic_pi32(b);
     sg_generic_pi32 result;
-    result.i0 = bg.i0 == 0 ? ag.i0 : ag.i0 / bg.i0;
-    result.i1 = bg.i1 == 0 ? ag.i1 : ag.i1 / bg.i1;
-    result.i2 = bg.i2 == 0 ? ag.i2 : ag.i2 / bg.i2;
-    result.i3 = bg.i3 == 0 ? ag.i3 : ag.i3 / bg.i3;
-    return sg_from_generic_pi32(result);
+    result.i0 = b.i0 == 0 ? a.i0 : a.i0 / b.i0;
+    result.i1 = b.i1 == 0 ? a.i1 : a.i1 / b.i1;
+    result.i2 = b.i2 == 0 ? a.i2 : a.i2 / b.i2;
+    result.i3 = b.i3 == 0 ? a.i3 : a.i3 / b.i3;
+    return result;
 }
-
-static inline sg_pi64 sg_vectorcall(sg_safediv_pi64)(const sg_pi64 a,
-    const sg_pi64 b)
+static inline sg_generic_pi64 sg_vectorcall(sg_safediv_generic_pi64)(
+    const sg_generic_pi64 a, const sg_generic_pi64 b)
 {
-    const sg_generic_pi64 ag = sg_to_generic_pi64(a), bg = sg_to_generic_pi64(b);
     sg_generic_pi64 result;
-    result.l0 = bg.l0 == 0 ? ag.l0 : ag.l0 / bg.l0;
-    result.l1 = bg.l1 == 0 ? ag.l1 : ag.l1 / bg.l1;
-    return sg_from_generic_pi64(result);
+    result.l0 = b.l0 == 0 ? a.l0 : a.l0 / b.l0;
+    result.l1 = b.l1 == 0 ? a.l1 : a.l1 / b.l1;
+    return result;
 }
-
-static inline sg_ps sg_vectorcall(sg_safediv_ps)(const sg_ps a, const sg_ps b) {
-    #ifdef SIMD_GRANODI_FORCE_GENERIC
-    sg_ps result;
+static inline sg_generic_ps sg_vectorcall(sg_safediv_generic_ps)(
+    const sg_generic_ps a, const sg_generic_ps b)
+{
+    sg_generic_ps result;
     result.f0 = b.f0 == 0.0f ? a.f0 : a.f0 / b.f0;
     result.f1 = b.f1 == 0.0f ? a.f1 : a.f1 / b.f1;
     result.f2 = b.f2 == 0.0f ? a.f2 : a.f2 / b.f2;
     result.f3 = b.f3 == 0.0f ? a.f3 : a.f3 / b.f3;
     return result;
-    #elif defined SIMD_GRANODI_SSE2
-    const __m128 safe_mask = _mm_cmpneq_ps(_mm_setzero_ps(), b);
-    const __m128 safe_b = sg_choose_ps(safe_mask, b, _mm_set1_ps(1.0f));
-    return _mm_div_ps(a, safe_b);
-    #elif defined SIMD_GRANODI_NEON
-    const uint32x4_t unsafe_mask = vceqzq_f32(b);
-    const float32x4_t safe_b = sg_choose_ps(unsafe_mask, vdupq_n_f32(1.0f), b);
-    return vdivq_f32(a, safe_b);
-    #endif
 }
-
-static inline sg_pd sg_vectorcall(sg_safediv_pd)(const sg_pd a, const sg_pd b) {
-    #ifdef SIMD_GRANODI_FORCE_GENERIC
-    sg_pd result;
+static inline sg_generic_pd sg_vectorcall(sg_safediv_generic_pd)(
+    const sg_generic_pd a, const sg_generic_pd b)
+{
+    sg_generic_pd result;
     result.d0 = b.d0 == 0.0 ? a.d0 : a.d0 / b.d0;
     result.d1 = b.d1 == 0.0 ? a.d1 : a.d1 / b.d1;
     return result;
-    #elif defined SIMD_GRANODI_SSE2
+}
+static inline sg_generic_s32x2 sg_vectorcall(sg_safediv_generic_s32x2)(
+    const sg_generic_s32x2 a, const sg_generic_s32x2 b)
+{
+    sg_generic_s32x2 result;
+    result.i0 = b.i0 == 0 ? a.i0 : a.i0 / b.i0;
+    result.i1 = b.i1 == 0 ? a.i1 : a.i1 / b.i1;
+    return result;
+}
+static inline sg_generic_f32x2 sg_vectorcall(sg_safediv_generic_f32x2)(
+    const sg_generic_f32x2 a, const sg_generic_f32x2 b)
+{
+    sg_generic_f32x2 result;
+    result.f0 = b.f0 == 0.0f ? a.f0 : a.f0 / b.f0;
+    result.f1 = b.f1 == 0.0f ? a.f1 : a.f1 / b.f1;
+    return result;
+}
+
+#define sg_safediv_pi32(a, b) sg_from_generic_pi32(sg_safediv_generic_pi32( \
+    sg_to_generic_pi32(a), sg_to_generic_pi32(b)))
+#define sg_safediv_pi64(a, b) sg_from_generic_pi64(sg_safediv_generic_pi64( \
+    sg_to_generic_pi64(a), sg_to_generic_pi64(b)))
+#define sg_safediv_s32x2(a, b) sg_from_generic_s32x2(sg_safediv_generic_s32x2( \
+    sg_to_generic_s32x2(a), sg_to_generic_s32x2(b)))
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+#define sg_safediv_ps sg_safediv_generic_ps
+#define sg_safediv_pd sg_safediv_generic_pd
+
+#elif defined SIMD_GRANODI_SSE2
+static inline sg_ps sg_vectorcall(sg_safediv_ps)(const sg_ps a, const sg_ps b) {
+    const __m128 safe_mask = _mm_cmpneq_ps(_mm_setzero_ps(), b);
+    const __m128 safe_b = sg_choose_ps(safe_mask, b, _mm_set1_ps(1.0f));
+    return _mm_div_ps(a, safe_b);
+}
+static inline sg_pd sg_vectorcall(sg_safediv_pd)(const sg_pd a, const sg_pd b) {
     const __m128d safe_mask = _mm_cmpneq_pd(_mm_setzero_pd(), b);
     const __m128d safe_b = sg_choose_pd(safe_mask, b, _mm_set1_pd(1.0));
     return _mm_div_pd(a, safe_b);
-    #elif defined SIMD_GRANODI_NEON
+}
+
+#elif defined SIMD_GRANODI_NEON
+static inline sg_ps sg_vectorcall(sg_safediv_ps)(const sg_ps a, const sg_ps b) {
+    const uint32x4_t unsafe_mask = vceqzq_f32(b);
+    const float32x4_t safe_b = sg_choose_ps(unsafe_mask, vdupq_n_f32(1.0f), b);
+    return vdivq_f32(a, safe_b);
+}
+static inline sg_pd sg_vectorcall(sg_safediv_pd)(const sg_pd a, const sg_pd b) {
     const uint64x2_t unsafe_mask = vceqzq_f64(b);
     const float64x2_t safe_b = sg_choose_pd(unsafe_mask, vdupq_n_f64(1.0), b);
     return vdivq_f64(a, safe_b);
-    #endif
+}
+static inline sg_f32x2 sg_vectorcall(sg_safediv_f32x2)(const sg_f32x2 a,
+    const sg_f32x2 b)
+{
+    const uint32x2_t unsafe_mask = vceqz_f32(b);
+    const float32x2_t safe_b = sg_choose_f32x2(unsafe_mask, vdup_n_f32(1.0f), b);
+    return vdiv_f32(a, safe_b);
 }
 
-// Basic maths (abs, min, max)
+#endif
 
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-static inline sg_pi32 sg_vectorcall(sg_abs_pi32)(const sg_pi32 a) {
-    #ifdef SIMD_GRANODI_FORCE_GENERIC
-    sg_pi32 result;
+#define sg_safediv_f32x2 sg_safediv_generic_f32x2
+#endif
+
+//
+//
+//
+//
+//
+//
+//
+// Abs section
+
+static inline sg_generic_pi32 sg_vectorcall(sg_abs_generic_pi32)(
+    const sg_generic_pi32 a)
+{
+    sg_generic_pi32 result;
     result.i0 = abs(a.i0); result.i1 = abs(a.i1);
     result.i2 = abs(a.i2); result.i3 = abs(a.i3);
     return result;
-    #elif defined SIMD_GRANODI_SSE2
-    return sg_choose_pi32(_mm_cmplt_epi32(a, _mm_setzero_si128()),
-        _mm_sub_epi32(_mm_setzero_si128(), a), a);
-    #endif
 }
-#elif defined SIMD_GRANODI_NEON
-#define sg_abs_pi32 vabsq_s32
-#endif
-
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-static inline sg_pi64 sg_vectorcall(sg_abs_pi64)(const sg_pi64 a) {
-    const sg_generic_pi64 ag = sg_to_generic_pi64(a);
+static inline sg_generic_pi64 sg_vectorcall(sg_abs_generic_pi64)(
+    const sg_generic_pi64 a)
+{
     sg_generic_pi64 result;
-    result.l0 = ag.l0 < 0 ? -ag.l0 : ag.l0;
-    result.l1 = ag.l1 < 0 ? -ag.l1 : ag.l1;
-    return sg_from_generic_pi64(result);
+    result.l0 = a.l0 < 0 ? -a.l0 : a.l0;
+    result.l1 = a.l1 < 0 ? -a.l1 : a.l1;
+    return result;
 }
-#elif defined SIMD_GRANODI_NEON
-#define sg_abs_pi64 vabsq_s64
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_ps sg_vectorcall(sg_abs_ps)(const sg_ps a) {
-    sg_ps result;
+static inline sg_generic_ps sg_vectorcall(sg_abs_generic_ps)(
+    const sg_generic_ps a)
+{
+    sg_generic_ps result;
     result.f0 = fabsf(a.f0); result.f1 = fabsf(a.f1);
     result.f2 = fabsf(a.f2); result.f3 = fabsf(a.f3);
     return result;
 }
-#elif defined SIMD_GRANODI_SSE2
-#define sg_abs_ps(a) _mm_and_ps(a, sg_sse2_signmask_ps)
-#elif defined SIMD_GRANODI_NEON
-#define sg_abs_ps vabsq_f32
-#endif
-
-#ifdef SIMD_GRANODI_FORCE_GENERIC
-static inline sg_pd sg_vectorcall(sg_abs_pd)(const sg_pd a) {
-    sg_pd result;
+static inline sg_generic_pd sg_vectorcall(sg_abs_generic_pd)(
+    const sg_generic_pd a)
+{
+    sg_generic_pd result;
     result.d0 = fabs(a.d0); result.d1 = fabs(a.d1);
     return result;
 }
+static inline sg_generic_s32x2 sg_vectorcall(sg_abs_generic_s32x2)(
+    const sg_generic_s32x2 a)
+{
+    sg_generic_s32x2 result;
+    result.i0 = abs(a.i0); result.i1 = abs(a.i1);
+    return result;
+}
+static inline sg_generic_f32x2 sg_vectorcall(sg_abs_generic_f32x2)(
+    const sg_generic_f32x2 a)
+{
+    sg_generic_f32x2 result;
+    result.f0 = fabsf(a.f0); result.f1 = fabsf(a.f1);
+    return result;
+}
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+#define sg_abs_pi32 sg_abs_generic_pi32
+#define sg_abs_ps sg_abs_generic_ps
+#define sg_abs_pd sg_abs_generic_pd
+
 #elif defined SIMD_GRANODI_SSE2
+static inline sg_pi32 sg_vectorcall(sg_abs_pi32)(const sg_pi32 a) {
+    return sg_choose_pi32(_mm_cmplt_epi32(a, _mm_setzero_si128()),
+        _mm_sub_epi32(_mm_setzero_si128(), a), a);
+}
+#define sg_abs_ps(a) _mm_and_ps(a, sg_sse2_signmask_ps)
 #define sg_abs_pd(a) _mm_and_pd(a, sg_sse2_signmask_pd)
+
 #elif defined SIMD_GRANODI_NEON
+#define sg_abs_pi32 vabsq_s32
+#define sg_abs_pi64 vabsq_s64
+#define sg_abs_ps vabsq_f32
 #define sg_abs_pd vabsq_f64
+#define sg_abs_s32x2 vabs_s32
+#define sg_abs_f32x2 vabs_f32
+
 #endif
+
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
+#define sg_abs_pi64(a) sg_from_generic_pi64(sg_abs_generic_pi64( \
+    sg_to_generic_pi64(a)))
+#define sg_abs_s32x2 sg_abs_generic_s32x2
+#define sg_abs_f32x2 sg_abs_generic_f32x2
+#endif
+
+//
+//
+//
+//
+//
+//
+//
+// Negate section
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 static inline sg_pi32 sg_vectorcall(sg_neg_pi32)(const sg_pi32 a) {
