@@ -314,7 +314,7 @@ static inline sg_pi32 sg_vectorcall(sg_choose_pi32)(const sg_cmp_pi32,
 //
 //
 //
-// Bitcast section
+// Bitcast scalar section
 
 // On all compilers, these scalar memcpy bitcasts get optimized out
 // for constants, or compiled to a single move / load
@@ -358,6 +358,18 @@ static inline int64_t sg_vectorcall(sg_bitcast_f64x1_s64x1)(const double a) {
     int64_t result; memcpy(&result, &a, sizeof(int64_t)); return result;
 }
 
+//
+//
+//
+//
+//
+//
+//
+// Bitcast vector section
+
+//
+//
+// From pi32
 static inline sg_generic_pi64 sg_vectorcall(sg_bitcast_generic_pi32_pi64)(
     const sg_generic_pi32 a)
 {
@@ -370,6 +382,20 @@ static inline sg_generic_pi64 sg_vectorcall(sg_bitcast_generic_pi32_pi64)(
             ((uint64_t) sg_bitcast_s32x1_u32x1(a.i2)));
     return result;
 }
+static inline sg_generic_ps sg_vectorcall(sg_bitcast_generic_pi32_ps)(
+    const sg_generic_pi32 a)
+{
+    sg_generic_ps result;
+    result.f0 = sg_bitcast_s32x1_f32x1(a.i0);
+    result.f1 = sg_bitcast_s32x1_f32x1(a.i1);
+    result.f2 = sg_bitcast_s32x1_f32x1(a.i2);
+    result.f3 = sg_bitcast_s32x1_f32x1(a.i3);
+    return result;
+}
+
+//
+//
+// From pi64
 
 static inline sg_generic_pi32 sg_vectorcall(sg_bitcast_generic_pi64_pi32)(
     const sg_generic_pi64 a)
@@ -383,17 +409,8 @@ static inline sg_generic_pi32 sg_vectorcall(sg_bitcast_generic_pi64_pi32)(
     result.i3 = sg_bitcast_u32x1_s32x1((uint32_t) ((u1 >> 32) & 0xffffffff));
     return result;
 }
-
-static inline sg_generic_ps sg_vectorcall(sg_bitcast_generic_pi32_ps)(
-    const sg_generic_pi32 a)
-{
-    sg_generic_ps result;
-    result.f0 = sg_bitcast_s32x1_f32x1(a.i0);
-    result.f1 = sg_bitcast_s32x1_f32x1(a.i1);
-    result.f2 = sg_bitcast_s32x1_f32x1(a.i2);
-    result.f3 = sg_bitcast_s32x1_f32x1(a.i3);
-    return result;
-}
+#define sg_bitcast_generic_pi32_pd(a) sg_bitcast_generic_pi64_pd( \
+    sg_bitcast_generic_pi32_pi64(a))
 
 static inline sg_generic_pi32 sg_vectorcall(sg_bitcast_generic_ps_pi32)(
     const sg_generic_ps a)
@@ -424,43 +441,17 @@ static inline sg_generic_pi64 sg_vectorcall(sg_bitcast_generic_pd_pi64)(
     return result;
 }
 
-static inline sg_generic_pd sg_vectorcall(sg_bitcast_generic_pi32_pd)(
-    const sg_generic_pi32 a)
-{
-    return sg_bitcast_generic_pi64_pd(sg_bitcast_generic_pi32_pi64(a));
-}
 
-static inline sg_generic_ps sg_vectorcall(sg_bitcast_generic_pi64_ps)(
-    const sg_generic_pi64 a)
-{
-    return sg_bitcast_generic_pi32_ps(sg_bitcast_generic_pi64_pi32(a));
-}
-
-static inline sg_generic_pi64 sg_vectorcall(sg_bitcast_generic_ps_pi64)(
-    const sg_generic_ps a)
-{
-    return sg_bitcast_generic_pi32_pi64(sg_bitcast_generic_ps_pi32(a));
-}
-
-static inline sg_generic_pd sg_vectorcall(sg_bitcast_generic_ps_pd)(
-    const sg_generic_ps a)
-{
-    return sg_bitcast_generic_pi64_pd(sg_bitcast_generic_pi32_pi64(
-        sg_bitcast_generic_ps_pi32(a)));
-}
-
-static inline sg_generic_pi32 sg_vectorcall(sg_bitcast_generic_pd_pi32)(
-    const sg_generic_pd a)
-{
-    return sg_bitcast_generic_pi64_pi32(sg_bitcast_generic_pd_pi64(a));
-}
-
-static inline sg_generic_ps sg_vectorcall(sg_bitcast_generic_pd_ps)(
-    const sg_generic_pd a)
-{
-    return sg_bitcast_generic_pi32_ps(sg_bitcast_generic_pi64_pi32(
-        sg_bitcast_generic_pd_pi64(a)));
-}
+#define sg_bitcast_generic_pi64_ps(a) sg_bitcast_generic_pi32_ps( \
+    sg_bitcast_generic_pi64_pi32(a))
+#define sg_bitcast_generic_ps_pi64(a) sg_bitcast_generic_pi32_pi64( \
+    sg_bitcast_generic_ps_pi32(a))
+#define sg_bitcast_generic_ps_pd(a) sg_bitcast_generic_pi64_pd( \
+    sg_bitcast_generic_pi32_pi64(sg_bitcast_generic_ps_pi32(a)))
+#define sg_bitcast_generic_pd_pi32(a) sg_bitcast_generic_pi64_pi32( \
+    sg_bitcast_generic_pd_pi64(a))
+#define sg_bitcast_generic_pd_ps sg_bitcast_generic_pi32_ps( \
+    sg_bitcast_generic_pi64_pi32(sg_bitcast_generic_pd_pi64(a)))
 
 static inline int64_t sg_vectorcall(sg_bitcast_generic_s32x2_s64x1)(
     const sg_generic_s32x2 a)
@@ -479,11 +470,8 @@ static inline sg_generic_f32x2 sg_vectorcall(sg_bitcast_generic_s32x2_f32x2)(
     return result;
 }
 
-static inline double sg_vectorcall(sg_bitcast_generic_s32x2_f64x1)(
-    const sg_generic_s32x2 a)
-{
-    return sg_bitcast_s64x1_f64x1(sg_bitcast_generic_s32x2_s64x1(a));
-}
+#define sg_bitcast_generic_s32x2_f64x1(a) sg_bitcast_s64x1_f64x1( \
+    sg_bitcast_generic_s32x2_s64x1(a))
 
 static inline sg_generic_s32x2 sg_vectorcall(sg_bitcast_generic_s64x1_s32x2)(
     const int64_t a)
@@ -536,73 +524,96 @@ static inline double sg_vectorcall(sg_bitcast_generic_f32x2_f64x1)(
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 #define sg_bitcast_pi32_pi64 sg_bitcast_generic_pi32_pi64
-#define sg_bitcast_pi64_pi32 sg_bitcast_generic_pi64_pi32
 #define sg_bitcast_pi32_ps sg_bitcast_generic_pi32_ps
-#define sg_bitcast_ps_pi32 sg_bitcast_generic_ps_pi32
-#define sg_bitcast_pi64_pd sg_bitcast_generic_pi64_pd
-#define sg_bitcast_pd_pi64 sg_bitcast_generic_pd_pi64
 #define sg_bitcast_pi32_pd sg_bitcast_generic_pi32_pd
+
+#define sg_bitcast_pi64_pi32 sg_bitcast_generic_pi64_pi32
 #define sg_bitcast_pi64_ps sg_bitcast_generic_pi64_ps
+#define sg_bitcast_pi64_pd sg_bitcast_generic_pi64_pd
+
+#define sg_bitcast_ps_pi32 sg_bitcast_generic_ps_pi32
 #define sg_bitcast_ps_pi64 sg_bitcast_generic_ps_pi64
 #define sg_bitcast_ps_pd sg_bitcast_generic_ps_pd
+
 #define sg_bitcast_pd_pi32 sg_bitcast_generic_pd_pi32
+#define sg_bitcast_pd_pi64 sg_bitcast_generic_pd_pi64
 #define sg_bitcast_pd_ps sg_bitcast_generic_pd_ps
+
+
+
+
 #define sg_bitcast_s32x2_s64x1 sg_bitcast_generic_s32x2_s64x1
 #define sg_bitcast_s32x2_f32x2 sg_bitcast_generic_s32x2_f32x2
 #define sg_bitcast_s32x2_f64x1 sg_bitcast_generic_s32x2_f64x1
 #define sg_bitcast_s64x1_s32x2 sg_bitcast_generic_s64x1_s32x2
 #define sg_bitcast_s64x1_f32x2 sg_bitcast_generic_s64x1_f32x2
 #define sg_bitcast_f64x1_f32x2 sg_bitcast_generic_f64x1_f32x2
+
 #define sg_bitcast_f32x2_s32x2 sg_bitcast_generic_f32x2_s32x2
 #define sg_bitcast_f32x2_s64x1 sg_bitcast_generic_f32x2_s64x1
 #define sg_bitcast_f32x2_f64x1 sg_bitcast_generic_f32x2_f64x1
 
 #elif defined SIMD_GRANODI_SSE2
 #define sg_bitcast_pi32_pi64(a) (a)
-#define sg_bitcast_pi64_pi32(a) (a)
 #define sg_bitcast_pi32_ps _mm_castsi128_ps
-#define sg_bitcast_ps_pi32 _mm_castps_si128
-#define sg_bitcast_pi64_pd _mm_castsi128_pd
-#define sg_bitcast_pd_pi64 _mm_castpd_si128
 #define sg_bitcast_pi32_pd _mm_castsi128_pd
+
+#define sg_bitcast_pi64_pi32(a) (a)
 #define sg_bitcast_pi64_ps _mm_castsi128_ps
+#define sg_bitcast_pi64_pd _mm_castsi128_pd
+
+#define sg_bitcast_ps_pi32 _mm_castps_si128
 #define sg_bitcast_ps_pi64 _mm_castps_si128
 #define sg_bitcast_ps_pd _mm_castps_pd
+
 #define sg_bitcast_pd_pi32 _mm_castpd_si128
 #define sg_bitcast_pd_ps _mm_castpd_ps
-#define sg_bitcast_s32x2_s64x1 sg_bitcast_generic_s32x2_s64x1
-#define sg_bitcast_s32x2_f32x2 sg_bitcast_generic_s32x2_f32x2
-#define sg_bitcast_s32x2_f64x1 sg_bitcast_generic_s32x2_f64x1
+#define sg_bitcast_pd_pi64 _mm_castpd_si128
+
 #define sg_bitcast_s64x1_s32x2 sg_bitcast_generic_s64x1_s32x2
 #define sg_bitcast_s64x1_f32x2 sg_bitcast_generic_s64x1_f32x2
+
+#define sg_bitcast_f64x1_s32x2 sg_bitcast_generic_f64x1_s32x2
 #define sg_bitcast_f64x1_f32x2 sg_bitcast_generic_f64x1_f32x2
-#define sg_bitcast_f32x2_s32x2 sg_bitcast_generic_f32x2_s32x2
+
+#define sg_bitcast_s32x2_s64x1 sg_bitcast_generic_s32x2_s64x1
+#define sg_bitcast_s32x2_f64x1 sg_bitcast_generic_s32x2_f64x1
+#define sg_bitcast_s32x2_f32x2 sg_bitcast_generic_s32x2_f32x2
+
 #define sg_bitcast_f32x2_s64x1 sg_bitcast_generic_f32x2_s64x1
 #define sg_bitcast_f32x2_f64x1 sg_bitcast_generic_f32x2_f64x1
+#define sg_bitcast_f32x2_s32x2 sg_bitcast_generic_f32x2_s32x2
 
 #elif defined SIMD_GRANODI_NEON
 #define sg_bitcast_pi32_pi64 vreinterpretq_s64_s32
-#define sg_bitcast_pi64_pi32 vreinterpretq_s32_s64
 #define sg_bitcast_pi32_ps vreinterpretq_f32_s32
-#define sg_bitcast_ps_pi32 vreinterpretq_s32_f32
-#define sg_bitcast_pi64_pd vreinterpretq_f64_s64
-#define sg_bitcast_pd_pi64 vreinterpretq_s64_f64
 #define sg_bitcast_pi32_pd vreinterpretq_f64_s32
+
+#define sg_bitcast_pi64_pi32 vreinterpretq_s32_s64
 #define sg_bitcast_pi64_ps vreinterpretq_f32_s64
+#define sg_bitcast_pi64_pd vreinterpretq_f64_s64
+
+#define sg_bitcast_ps_pi32 vreinterpretq_s32_f32
 #define sg_bitcast_ps_pi64 vreinterpretq_s64_f32
 #define sg_bitcast_ps_pd vreinterpretq_f64_f32
+
 #define sg_bitcast_pd_pi32 vreinterpretq_s32_f64
+#define sg_bitcast_pd_pi64 vreinterpretq_s64_f64
 #define sg_bitcast_pd_ps vreinterpretq_f32_f64
-#define sg_bitcast_s32x2_s64x1(a) vget_lane_s64(vreinterpret_s64_s32(a), 0)
-#define sg_bitcast_s32x1_f32x1 vreinterpret_f32_s32
-#define sg_bitcast_s32x2_f64x1(a) vget_lane_f64(vreinterpret_f64_s32(a), 0)
+
 #define sg_bitcast_s64x1_s32x2(a) vreinterpret_s32_s64(vdup_n_s64(a))
 #define sg_bitcast_s64x1_f32x2(a) vreinterpret_f32_s64(vdup_n_s64(a))
+
 #define sg_bitcast_f64x1_s32x2 vreinterpret_s32_f64(vdup_n_f64(a))
 #define sg_bitcast_f64x1_f32x2 vreinterpret_f32_f64(vdup_n_f64(a))
-#define sg_bitcast_f32x2_s32x2 vreinterpret_s32_f32
+
+#define sg_bitcast_s32x2_s64x1(a) vget_lane_s64(vreinterpret_s64_s32(a), 0)
+#define sg_bitcast_s32x2_f64x1(a) vget_lane_f64(vreinterpret_f64_s32(a), 0)
+#define sg_bitcast_s32x2_f32x2 vreinterpret_f32_s32
+
 #define sg_bitcast_f32x2_s64x1(a) vget_lane_s64(vreinterpret_s64_f32(a), 0)
 #define sg_bitcast_f32x2_f64x1(a) vget_lane_f64(vreinterpret_f64_f32(a), 0)
+#define sg_bitcast_f32x2_s32x2 vreinterpret_s32_f32
 
 #endif
 
@@ -6943,6 +6954,14 @@ inline Compare_pd sg_vectorcall(operator!=)(const Compare_pd lhs,
 
 typedef Compare_pd Compare_f64x2;
 
+class Compare_s32x2 {
+    //
+};
+
+class Compare_f32x2 {
+    //
+};
+
 // Macros for consistency inside templated methods
 
 // For get<i>()
@@ -8059,30 +8078,6 @@ typedef Compare_scalar<Vec_f32x1> Compare_f32x1;
 typedef Compare_f32x1 Compare_ss;
 typedef Compare_scalar<Vec_f64x1> Compare_f64x1;
 typedef Compare_f64x1 Compare_sd;
-
-template <typename ElemType>
-class Compare_tx2 {
-    bool b0_, b1_;
-public:
-    sg_vectorcall(Compare_tx2)() : b0_{false}, b1_{false} {}
-    sg_vectorcall(Compare_tx2)(const bool b) :
-        b0_{b}, b1_{b} {}
-    sg_vectorcall(Compare_tx2)(const bool b1, const bool b0) :
-        b0_{b0}, b1_{b1} {}
-    
-    bool sg_vectorcall(debug_valid_eq)(const bool b) {
-        return b0_ == b && b1_ == b;
-    }
-    bool sg_vectorcall(debug_valid_eq)(const bool b1, const bool b0) const {
-        return b0_ == b0 && b1_ == b1;
-    }
-
-    Compare_tx2<ElemType> sg_vectorcall(operator&&) (
-        const Compare_tx2<ElemType> rhs) const
-    {
-        return Compare_tx2<ElemType>{b1_ && rhs.b1(), b0_ && rhs.b0()};
-    }
-};
 
 class Vec_s32x1 {
     int32_t data_;

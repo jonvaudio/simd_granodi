@@ -168,6 +168,10 @@ void print_pd(const sg_pd a) {
     sg_assert(sg_debug_eq_ps(a, f3, f2, f1, f0))
 #define assert_eq_pd(a, d1, d0) \
     sg_assert(sg_debug_eq_pd(a, d1, d0))
+#define assert_eq_s32x2(a, i1, i0) \
+    sg_assert(sg_debug_eq_s32x2(a, i1, i0))
+#define assert_eq_f32x2(a, f1, f0) \
+    sg_assert(sg_debug_eq_f32x2(a, f1, f0))
 
 #define assert_eq_cmp_pi32(a, b3, b2, b1, b0) \
     sg_assert(sg_debug_cmp_valid_eq_pi32(a, b3, b2, b1, b0))
@@ -177,6 +181,10 @@ void print_pd(const sg_pd a) {
     sg_assert(sg_debug_cmp_valid_eq_ps(a, b3, b2, b1, b0))
 #define assert_eq_cmp_pd(a, b1, b0) \
     sg_assert(sg_debug_cmp_valid_eq_pd(a, b1, b0))
+#define assert_eq_cmp_s32x2(a, b1, b0) \
+    sg_assert(sg_debug_cmp_valid_eq_s32x2(a, b1, b0))
+#define assert_eq_cmp_f32x2(a, b1, b0) \
+    sg_assert(sg_debug_cmp_valid_eq_f32x2(a, b1, b0))
 
 // WARNING: these macros evaluate g twice, only for testing
 #define assert_eqg_cmp_pi32(a, g) \
@@ -243,15 +251,17 @@ void test_cast() {
     assert_eq_pi64(sg_bitcast_ps_pi64(sg_bitcast_pi64_ps(pi64)), -5, 0);
     assert_eq_pi64(sg_bitcast_pd_pi64(sg_bitcast_pi64_pd(pi64)), -5, 0);
 
-    ps = sg_set_ps(3.0f, 2.0f, 1.0f, 0.0f);
+    ps = sg_set_ps(-3.0f, -2.0f, -1.0f, 0.0f);
     assert_eq_ps(sg_bitcast_pd_ps(sg_bitcast_ps_pd(ps)), 3.0f, 2.0f, 1.0f, 0.0f);
 
-    pd = sg_set_pd(1.0, 0.0);
+    pd = sg_set_pd(-1.0, 0.0);
     assert_eq_pd(sg_bitcast_ps_pd(sg_bitcast_pd_ps(pd)), 1.0, 0.0);
 
-    //sg_s32x2 s32x2; sg_f32x2 f32x2;
-
-    //
+    sg_s32x2 s32x2;
+    s32x2 = sg_set_s32x2(-5, 0);
+    assert_eq_s32x2(sg_bitcast_f32x2_s32x2(sg_bitcast_s32x2_f32x2(s32x2)), -5, 0);
+    assert_eq_s32x2(sg_bitcast_s64x1_s32x2(sg_bitcast_s32x2_s64x1(s32x2)), -5, 0);
+    assert_eq_s32x2(sg_bitcast_f64x1_s32x2(sg_bitcast_s32x2_f64x1(s32x2)), -5, 0);
 
     //printf("Cast test succeeeded\n");
 }
