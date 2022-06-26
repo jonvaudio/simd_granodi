@@ -281,7 +281,8 @@ void test_shuffle() {
         assert_eq_pi32(sg_shuffle_pi32(sg_set_pi32(3, 2, 1, 0),
         src3, src2, src1, src0), src3, src2, src1, src0);
         assert_eq_ps(sg_shuffle_ps(sg_set_ps(3.0f, 2.0f, 1.0f, 0.0f),
-        src3, src2, src1, src0), src3, src2, src1, src0);
+        src3, src2, src1, src0),
+            (float) src3, (float) src2, (float) src1, (float) src0);
     } } } }
 
     for (int src1 = 0; src1 < 2; ++src1) {
@@ -293,7 +294,7 @@ void test_shuffle() {
         assert_eq_s32x2(sg_shuffle_s32x2(sg_set_s32x2(1, 0), src1, src0),
             src1, src0);
         assert_eq_f32x2(sg_shuffle_f32x2(sg_set_f32x2(1.0f, 0.0f), src1, src0),
-            src1, src0);
+            (float) src1, (float) src0);
     } }
 
     //printf("Shuffle test succeeeded\n");

@@ -6732,14 +6732,14 @@ inline To sg_vectorcall(sg_bitcast)(const From x) = delete;
 class Compare_pi32 {
     sg_cmp_pi32 data_;
 public:
-    sg_vectorcall(Compare_pi32)() : data_{sg_setzero_cmp_pi32()} {}
-    sg_vectorcall(Compare_pi32)(const bool b) : data_{sg_set1cmp_pi32(b)} {}
-    sg_vectorcall(Compare_pi32)(const bool b3, const bool b2, const bool b1,
+    Compare_pi32() : data_{sg_setzero_cmp_pi32()} {}
+    Compare_pi32(const bool b) : data_{sg_set1cmp_pi32(b)} {}
+    Compare_pi32(const bool b3, const bool b2, const bool b1,
         const bool b0)
         : data_{sg_setcmp_pi32(b3, b2, b1, b0)} {}
-    sg_vectorcall(Compare_pi32)(const sg_cmp_pi32 cmp) : data_{cmp} {}
+    Compare_pi32(const sg_cmp_pi32 cmp) : data_{cmp} {}
     #ifndef SIMD_GRANODI_FORCE_GENERIC
-    sg_vectorcall(Compare_pi32)(const sg_generic_cmp4 cmp)
+    Compare_pi32(const sg_generic_cmp4 cmp)
         : data_{sg_from_generic_cmp_pi32(cmp)} {}
     #endif
 
@@ -6796,13 +6796,13 @@ typedef Compare_pi32 Compare_s32x4;
 class Compare_pi64 {
     sg_cmp_pi64 data_;
 public:
-    sg_vectorcall(Compare_pi64)() : data_{sg_setzero_cmp_pi64()} {}
-    sg_vectorcall(Compare_pi64)(const bool b) : data_{sg_set1cmp_pi64(b)} {}
-    sg_vectorcall(Compare_pi64)(const bool b1, const bool b0)
+    Compare_pi64() : data_{sg_setzero_cmp_pi64()} {}
+    Compare_pi64(const bool b) : data_{sg_set1cmp_pi64(b)} {}
+    Compare_pi64(const bool b1, const bool b0)
         : data_{sg_setcmp_pi64(b1, b0)} {}
-    sg_vectorcall(Compare_pi64)(const sg_cmp_pi64 cmp) : data_{cmp} {}
+    Compare_pi64(const sg_cmp_pi64 cmp) : data_{cmp} {}
     #ifndef SIMD_GRANODI_FORCE_GENERIC
-    sg_vectorcall(Compare_pi64)(const sg_generic_cmp2 cmp)
+    Compare_pi64(const sg_generic_cmp2 cmp)
         : data_{sg_from_generic_cmp_pi64(cmp)} {}
     #endif
 
@@ -6859,13 +6859,13 @@ typedef Compare_pi64 Compare_s64x2;
 class Compare_ps {
     sg_cmp_ps data_;
 public:
-    sg_vectorcall(Compare_ps)() : data_{sg_setzero_cmp_ps()} {}
-    sg_vectorcall(Compare_ps)(const bool b) : data_{sg_set1cmp_ps(b)} {}
-    sg_vectorcall(Compare_ps)(const bool b3, const bool b2, const bool b1, const bool b0)
+    Compare_ps() : data_{sg_setzero_cmp_ps()} {}
+    Compare_ps(const bool b) : data_{sg_set1cmp_ps(b)} {}
+    Compare_ps(const bool b3, const bool b2, const bool b1, const bool b0)
         : data_{sg_setcmp_ps(b3, b2, b1, b0)} {}
-    sg_vectorcall(Compare_ps)(const sg_cmp_ps cmp) : data_{cmp} {}
+    Compare_ps(const sg_cmp_ps cmp) : data_{cmp} {}
     #ifndef SIMD_GRANODI_FORCE_GENERIC
-    sg_vectorcall(Compare_ps)(const sg_generic_cmp4 cmp)
+    Compare_ps(const sg_generic_cmp4 cmp)
         : data_{sg_from_generic_cmp_ps(cmp)} {}
     #endif
 
@@ -6919,13 +6919,13 @@ typedef Compare_ps Compare_f32x4;
 class Compare_pd {
     sg_cmp_pd data_;
 public:
-    sg_vectorcall(Compare_pd)() : data_{sg_setzero_cmp_pd()} {}
-    sg_vectorcall(Compare_pd)(const bool b) : data_{sg_set1cmp_pd(b)} {}
-    sg_vectorcall(Compare_pd)(const bool b1, const bool b0)
+    Compare_pd() : data_{sg_setzero_cmp_pd()} {}
+    Compare_pd(const bool b) : data_{sg_set1cmp_pd(b)} {}
+    Compare_pd(const bool b1, const bool b0)
         : data_{sg_setcmp_pd(b1, b0)} {}
-    sg_vectorcall(Compare_pd)(const sg_cmp_pd cmp) : data_(cmp) {}
+    Compare_pd(const sg_cmp_pd cmp) : data_(cmp) {}
     #ifndef SIMD_GRANODI_FORCE_GENERIC
-    sg_vectorcall(Compare_pd)(const sg_generic_cmp2 cmp) :
+    Compare_pd(const sg_generic_cmp2 cmp) :
         data_{sg_from_generic_cmp_pd(cmp)} {}
     #endif
 
@@ -7012,14 +7012,14 @@ class Compare_f32x2 {
 class Vec_pi32 {
     sg_pi32 data_;
 public:
-    sg_vectorcall(Vec_pi32)() : data_{sg_setzero_pi32()} {}
-    sg_vectorcall(Vec_pi32)(const int32_t i) : data_{sg_set1_pi32(i)} {}
-    sg_vectorcall(Vec_pi32)(const int32_t i3, const int32_t i2, const int32_t i1,
+    Vec_pi32() : data_{sg_setzero_pi32()} {}
+    Vec_pi32(const int32_t i) : data_{sg_set1_pi32(i)} {}
+    Vec_pi32(const int32_t i3, const int32_t i2, const int32_t i1,
         const int32_t i0) : data_{sg_set_pi32(i3, i2, i1, i0)} {}
-    sg_vectorcall(Vec_pi32)(const sg_pi32 pi32) : data_{pi32} {}
+    Vec_pi32(const sg_pi32 pi32) : data_{pi32} {}
     #ifndef SIMD_GRANODI_FORCE_GENERIC
     // Otherwise, we are defining two identical ctors & won't compile...
-    sg_vectorcall(Vec_pi32)(const sg_generic_pi32 g_pi32)
+    Vec_pi32(const sg_generic_pi32 g_pi32)
         : data_{sg_from_generic_pi32(g_pi32)} {}
     #endif
 
@@ -7255,12 +7255,12 @@ typedef Vec_pi32 Vec_s32x4;
 class Vec_pi64 {
     sg_pi64 data_;
 public:
-    sg_vectorcall(Vec_pi64)() : data_{sg_setzero_pi64()} {}
-    sg_vectorcall(Vec_pi64)(const int64_t l) : data_{sg_set1_pi64(l)} {}
-    sg_vectorcall(Vec_pi64)(const int64_t l1, const int64_t l0) : data_{sg_set_pi64(l1, l0)} {}
-    sg_vectorcall(Vec_pi64)(const sg_pi64 pi64) : data_{pi64} {}
+    Vec_pi64() : data_{sg_setzero_pi64()} {}
+    Vec_pi64(const int64_t l) : data_{sg_set1_pi64(l)} {}
+    Vec_pi64(const int64_t l1, const int64_t l0) : data_{sg_set_pi64(l1, l0)} {}
+    Vec_pi64(const sg_pi64 pi64) : data_{pi64} {}
     #ifndef SIMD_GRANODI_FORCE_GENERIC
-    sg_vectorcall(Vec_pi64)(const sg_generic_pi64 g_pi64)
+    Vec_pi64(const sg_generic_pi64 g_pi64)
         : data_{sg_from_generic_pi64(g_pi64)} {}
     #endif
 
@@ -7496,14 +7496,14 @@ typedef Vec_pi64 Vec_s64x2;
 class Vec_ps {
     sg_ps data_;
 public:
-    sg_vectorcall(Vec_ps)() : data_{sg_setzero_ps()} {}
-    sg_vectorcall(Vec_ps)(const float f) : data_{sg_set1_ps(f)} {}
-    sg_vectorcall(Vec_ps)(const float f3, const float f2, const float f1,
+    Vec_ps() : data_{sg_setzero_ps()} {}
+    Vec_ps(const float f) : data_{sg_set1_ps(f)} {}
+    Vec_ps(const float f3, const float f2, const float f1,
         const float f0)
         : data_{sg_set_ps(f3, f2, f1, f0)} {}
-    sg_vectorcall(Vec_ps)(const sg_ps ps) : data_{ps} {}
+    Vec_ps(const sg_ps ps) : data_{ps} {}
     #ifndef SIMD_GRANODI_FORCE_GENERIC
-    sg_vectorcall(Vec_ps)(const sg_generic_ps g_ps) :
+    Vec_ps(const sg_generic_ps g_ps) :
         data_{sg_from_generic_ps(g_ps)} {}
     #endif
 
@@ -7747,13 +7747,13 @@ typedef Vec_ps Vec_f32x4;
 class Vec_pd {
     sg_pd data_;
 public:
-    sg_vectorcall(Vec_pd)() : data_{sg_setzero_pd()} {}
-    sg_vectorcall(Vec_pd)(const double d) : data_{sg_set1_pd(d)} {}
-    sg_vectorcall(Vec_pd)(const double d1, const double d0) :
+    Vec_pd() : data_{sg_setzero_pd()} {}
+    Vec_pd(const double d) : data_{sg_set1_pd(d)} {}
+    Vec_pd(const double d1, const double d0) :
         data_{sg_set_pd(d1, d0)} {}
-    sg_vectorcall(Vec_pd)(const sg_pd pd) : data_{pd} {}
+    Vec_pd(const sg_pd pd) : data_{pd} {}
     #ifndef SIMD_GRANODI_FORCE_GENERIC
-    sg_vectorcall(Vec_pd)(const sg_generic_pd g_pd) :
+    Vec_pd(const sg_generic_pd g_pd) :
         data_{sg_from_generic_pd(g_pd)} {}
     #endif
 
@@ -8037,8 +8037,8 @@ template <typename ScalarType>
 class Compare_scalar {
     bool data_;
 public:
-    sg_vectorcall(Compare_scalar)() : data_{false} {}
-    sg_vectorcall(Compare_scalar)(const bool b) : data_{b} {}
+    Compare_scalar() : data_{false} {}
+    Compare_scalar(const bool b) : data_{b} {}
 
     bool sg_vectorcall(data)() const { return data_; }
     bool sg_vectorcall(debug_valid_eq)(const bool b) const {
@@ -8102,8 +8102,8 @@ typedef Compare_f64x1 Compare_sd;
 class Vec_s32x1 {
     int32_t data_;
 public:
-    sg_vectorcall(Vec_s32x1)() : data_{0} {}
-    sg_vectorcall(Vec_s32x1)(const int32_t s32) : data_{s32} {}
+    Vec_s32x1() : data_{0} {}
+    Vec_s32x1(const int32_t s32) : data_{s32} {}
 
     using elem_t = int32_t;
     using scalar_t = Vec_s32x1;
@@ -8320,8 +8320,8 @@ public:
 class Vec_s64x1 {
     int64_t data_;
 public:
-    sg_vectorcall(Vec_s64x1)() : data_{0} {}
-    sg_vectorcall(Vec_s64x1)(const int64_t s64) : data_{s64} {}
+    Vec_s64x1() : data_{0} {}
+    Vec_s64x1(const int64_t s64) : data_{s64} {}
 
     using elem_t = int64_t;
     using scalar_t = Vec_s64x1;
@@ -8536,8 +8536,8 @@ public:
 class Vec_f32x1 {
     float data_;
 public:
-    sg_vectorcall(Vec_f32x1)() : data_{0.0f} {}
-    sg_vectorcall(Vec_f32x1)(const float f32) : data_{f32} {}
+    Vec_f32x1() : data_{0.0f} {}
+    Vec_f32x1(const float f32) : data_{f32} {}
 
     static Vec_f32x1 sg_vectorcall(minus_infinity)() {
         return sg_minus_infinity_f32x1;
@@ -8750,8 +8750,8 @@ public:
 class Vec_f64x1 {
     double data_;
 public:
-    sg_vectorcall(Vec_f64x1)() : data_{0.0} {}
-    sg_vectorcall(Vec_f64x1)(const double f64) : data_{f64} {}
+    Vec_f64x1() : data_{0.0} {}
+    Vec_f64x1(const double f64) : data_{f64} {}
 
     static Vec_f64x1 sg_vectorcall(minus_infinity)() {
         return sg_minus_infinity_f64x1;
@@ -8970,9 +8970,9 @@ typedef Vec_f64x1 Vec_sd;
 class Vec_f32x2 {
     float f0_, f1_;
 public:
-    sg_vectorcall(Vec_f32x2)() : f0_{0.0f}, f1_{0.0f} {}
-    sg_vectorcall(Vec_f32x2)(const float f32) : f0_{f32}, f1_{f32} {}
-    sg_vectorcall(Vec_f32x2)(const float f1, const float f0) :
+    Vec_f32x2() : f0_{0.0f}, f1_{0.0f} {}
+    Vec_f32x2(const float f32) : f0_{f32}, f1_{f32} {}
+    Vec_f32x2(const float f1, const float f0) :
         f0_{f0}, f1_{f1} {}
     
     static Vec_f32x2 sg_vectorcall(minus_infinity)() {
