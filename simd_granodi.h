@@ -8130,8 +8130,6 @@ public:
         return data_;
     }
 
-    Vec_pi32 sg_vectorcall(set1)() const { return sg_set1_pi32(data_); }
-
     Vec_s32x1& sg_vectorcall(operator++)() {
         ++data_;
         return *this;
@@ -8347,8 +8345,6 @@ public:
         sassert_index_x1(i);
         return data_;
     }
-
-    Vec_pi64 sg_vectorcall(set1)() const { return sg_set1_pi64(data_); }
 
     Vec_s64x1& sg_vectorcall(operator++)() {
         ++data_;
@@ -8569,8 +8565,6 @@ public:
         return data_;
     }
 
-    Vec_ps sg_vectorcall(set1)() const { return sg_set1_ps(data_); }
-
     Vec_f32x1& sg_vectorcall(operator+=)(const Vec_f32x1 rhs) {
         data_ += rhs.data();
         return *this;
@@ -8782,8 +8776,6 @@ public:
         sassert_index_x1(i);
         return data_;
     }
-
-    Vec_pd sg_vectorcall(set1)() const { return sg_set1_pd(data_); }
 
     Vec_f64x1& sg_vectorcall(operator+=)(const Vec_f64x1 rhs) {
         data_ += rhs.data();
