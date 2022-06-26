@@ -195,6 +195,10 @@ void print_pd(const sg_pd a) {
     sg_assert(sg_debug_cmp_valid_eq_ps(a, g.b3, g.b2, g.b1, g.b0))
 #define assert_eqg_cmp_pd(a, g) \
     sg_assert(sg_debug_cmp_valid_eq_pd(a, g.b1, g.b0))
+#define assert_eqg_cmp_s32x2(a, g) \
+    sg_assert(sg_debug_cmp_valid_eq_s32x2(a, g.b1, g.b0))
+#define assert_eqg_cmp_f32x2(a, g) \
+    sg_assert(sg_debug_cmp_valid_eq_f32x2(a, g.b1, g.b0))
 
 #ifdef __cplusplus
 #define assert_eq_cpp_pi32(a, i) sg_assert(a.debug_eq(i))
@@ -767,8 +771,10 @@ void test_cmp() {
     // Test that 0.0 and -0.0 are equal
     const sg_ps z_ps = sg_setzero_ps(), nz_ps = sg_set1_ps(-0.0f);
     const sg_pd z_pd = sg_setzero_pd(), nz_pd = sg_set1_pd(-0.0);
+    const sg_f32x2 z_f32x2 = sg_setzero_f32x2(), nz_f32x2 = sg_set1_f32x2(-0.0f);
     assert_eq_cmp_ps(sg_cmpeq_ps(z_ps, nz_ps), true, true, true, true);
     assert_eq_cmp_pd(sg_cmpeq_pd(z_pd, nz_pd), true, true);
+    assert_eq_cmp_f32x2(sg_cmpeq_f32x2(z_f32x2, nz_f32x2), true, true);
 
     // Test comparisons happen in the correct lanes
     for (int a0 = 1; a0 < 4; ++a0) {
@@ -787,6 +793,10 @@ void test_cmp() {
             b_ps = sg_cvt_pi32_ps(b_pi32);
         const sg_pd a_pd = sg_cvt_pi32_pd(a_pi32),
             b_pd = sg_cvt_pi32_pd(b_pi32);
+        const sg_s32x2 a_s32x2 = sg_cvt_pi32_s32x2(a_pi32),
+            b_s32x2 = sg_cvt_pi32_s32x2(b_pi32);
+        const sg_f32x2 a_f32x2 = sg_cvt_ps_f32x2(a_ps),
+            b_f32x2 = sg_cvt_ps_f32x2(b_ps);
 
         sg_generic_cmp4 cmp4_lt = { a0 < b0, a1 < b1, a2 < b2, a3 < b3 },
             cmp4_lte = { a0 <= b0, a1 <= b1, a2 <= b2, a3 <= b3 },
@@ -806,31 +816,43 @@ void test_cmp() {
         assert_eqg_cmp_ps(sg_cmplt_ps(a_ps, b_ps), cmp4_lt);
         assert_eqg_cmp_pi64(sg_cmplt_pi64(a_pi64, b_pi64), cmp2_lt);
         assert_eqg_cmp_pd(sg_cmplt_pd(a_pd, b_pd), cmp2_lt);
+        assert_eqg_cmp_s32x2(sg_cmplt_s32x2(a_s32x2, b_s32x2), cmp2_lt);
+        assert_eqg_cmp_f32x2(sg_cmplt_f32x2(a_f32x2, b_f32x2), cmp2_lt);
 
         assert_eqg_cmp_pi32(sg_cmplte_pi32(a_pi32, b_pi32), cmp4_lte);
         assert_eqg_cmp_ps(sg_cmplte_ps(a_ps, b_ps), cmp4_lte);
         assert_eqg_cmp_pi64(sg_cmplte_pi64(a_pi64, b_pi64), cmp2_lte);
         assert_eqg_cmp_pd(sg_cmplte_pd(a_pd, b_pd), cmp2_lte);
+        assert_eqg_cmp_s32x2(sg_cmplte_s32x2(a_s32x2, b_s32x2), cmp2_lte);
+        assert_eqg_cmp_f32x2(sg_cmplte_f32x2(a_f32x2, b_f32x2), cmp2_lte);
 
         assert_eqg_cmp_pi32(sg_cmpeq_pi32(a_pi32, b_pi32), cmp4_eq);
         assert_eqg_cmp_ps(sg_cmpeq_ps(a_ps, b_ps), cmp4_eq);
         assert_eqg_cmp_pi64(sg_cmpeq_pi64(a_pi64, b_pi64), cmp2_eq);
         assert_eqg_cmp_pd(sg_cmpeq_pd(a_pd, b_pd), cmp2_eq);
+        assert_eqg_cmp_s32x2(sg_cmpeq_s32x2(a_s32x2, b_s32x2), cmp2_eq);
+        assert_eqg_cmp_f32x2(sg_cmpeq_f32x2(a_f32x2, b_f32x2), cmp2_eq);
 
         assert_eqg_cmp_pi32(sg_cmpneq_pi32(a_pi32, b_pi32), cmp4_neq);
         assert_eqg_cmp_ps(sg_cmpneq_ps(a_ps, b_ps), cmp4_neq);
         assert_eqg_cmp_pi64(sg_cmpneq_pi64(a_pi64, b_pi64), cmp2_neq);
         assert_eqg_cmp_pd(sg_cmpneq_pd(a_pd, b_pd), cmp2_neq);
+        assert_eqg_cmp_s32x2(sg_cmpneq_s32x2(a_s32x2, b_s32x2), cmp2_neq);
+        assert_eqg_cmp_f32x2(sg_cmpneq_f32x2(a_f32x2, b_f32x2), cmp2_neq);
 
         assert_eqg_cmp_pi32(sg_cmpgte_pi32(a_pi32, b_pi32), cmp4_gte);
         assert_eqg_cmp_ps(sg_cmpgte_ps(a_ps, b_ps), cmp4_gte);
         assert_eqg_cmp_pi64(sg_cmpgte_pi64(a_pi64, b_pi64), cmp2_gte);
         assert_eqg_cmp_pd(sg_cmpgte_pd(a_pd, b_pd), cmp2_gte);
+        assert_eqg_cmp_s32x2(sg_cmpgte_s32x2(a_s32x2, b_s32x2), cmp2_gte);
+        assert_eqg_cmp_f32x2(sg_cmpgte_f32x2(a_f32x2, b_f32x2), cmp2_gte);
 
         assert_eqg_cmp_pi32(sg_cmpgt_pi32(a_pi32, b_pi32), cmp4_gt);
         assert_eqg_cmp_ps(sg_cmpgt_ps(a_ps, b_ps), cmp4_gt);
         assert_eqg_cmp_pi64(sg_cmpgt_pi64(a_pi64, b_pi64), cmp2_gt);
         assert_eqg_cmp_pd(sg_cmpgt_pd(a_pd, b_pd), cmp2_gt);
+        assert_eqg_cmp_s32x2(sg_cmpgt_s32x2(a_s32x2, b_s32x2), cmp2_gt);
+        assert_eqg_cmp_f32x2(sg_cmpgt_f32x2(a_f32x2, b_f32x2), cmp2_gt);
     } } } } } } } }
 
     // Some extra test cases for our own implementation of sg_cmpeq_pi64
@@ -848,7 +870,7 @@ void test_cmp() {
         sg_bitcast_pi32_pi64(sg_set_pi32(8, 8, 7, 7))),
         true, true);
 
-    // Test cast & convert
+    // Test conversion between comparison types
     for (int a0 = 0; a0 < 2; ++a0) {
     for (int a1 = 0; a1 < 2; ++a1) {
     for (int a2 = 0; a2 < 2; ++a2) {
@@ -859,24 +881,56 @@ void test_cmp() {
         sg_generic_cmp2 gcmp2 = { (bool) a0, (bool) a1 };
         sg_cmp_pi32 cmp_pi32 = sg_from_generic_cmp_pi32(gcmp4);
         sg_cmp_pi64 cmp_pi64 = sg_from_generic_cmp_pi64(gcmp2);
-        sg_cmp_ps cmp_ps = sg_cvtcmp_pi32_ps(cmp_pi32);
-        sg_cmp_pd cmp_pd = sg_cvtcmp_pi64_pd(cmp_pi64);
+        sg_cmp_ps cmp_ps = sg_from_generic_cmp_ps(gcmp4);
+        sg_cmp_pd cmp_pd = sg_from_generic_cmp_pd(gcmp2);
+        sg_cmp_s32x2 cmp_s32x2 = sg_from_generic_cmp_s32x2(gcmp2);
+        sg_cmp_f32x2 cmp_f32x2 = sg_from_generic_cmp_f32x2(gcmp2);
 
         // Cast
+        assert_eqg_cmp_pi32(cmp_pi32, gcmp4);
+        assert_eqg_cmp_pi64(cmp_pi64, gcmp2);
         assert_eqg_cmp_ps(cmp_ps, gcmp4);
         assert_eqg_cmp_pd(cmp_pd, gcmp2);
+        assert_eqg_cmp_s32x2(cmp_s32x2, gcmp2);
+        assert_eqg_cmp_f32x2(cmp_f32x2, gcmp2);
+        assert_eqg_cmp_ps(sg_cvtcmp_pi32_ps(cmp_pi32), gcmp4);
         assert_eqg_cmp_pi32(sg_cvtcmp_ps_pi32(cmp_ps), gcmp4);
+        assert_eqg_cmp_pd(sg_cvtcmp_pi64_pd(cmp_pi64), gcmp2);
         assert_eqg_cmp_pi64(sg_cvtcmp_pd_pi64(cmp_pd), gcmp2);
+        assert_eqg_cmp_f32x2(sg_cvtcmp_s32x2_f32x2(cmp_s32x2), gcmp2);
+        assert_eqg_cmp_s32x2(sg_cvtcmp_f32x2_s32x2(cmp_f32x2), gcmp2);
 
         // Convert
         assert_eqg_cmp_pi64(sg_cvtcmp_pi32_pi64(cmp_pi32), gcmp2);
-        assert_eqg_cmp_pi32(sg_cvtcmp_pi64_pi32(cmp_pi64), gcmp4_lower);
         assert_eqg_cmp_pd(sg_cvtcmp_pi32_pd(cmp_pi32), gcmp2);
+        assert_eqg_cmp_s32x2(sg_cvtcmp_pi32_s32x2(cmp_pi32), gcmp2);
+        assert_eqg_cmp_f32x2(sg_cvtcmp_pi32_f32x2(cmp_pi32), gcmp2);
+
+        assert_eqg_cmp_pi32(sg_cvtcmp_pi64_pi32(cmp_pi64), gcmp4_lower);
+        assert_eqg_cmp_ps(sg_cvtcmp_pi64_ps(cmp_pi64), gcmp4_lower);
+        assert_eqg_cmp_s32x2(sg_cvtcmp_pi64_s32x2(cmp_pi64), gcmp2);
+        assert_eqg_cmp_f32x2(sg_cvtcmp_pi64_f32x2(cmp_pi64), gcmp2);
+        
+        assert_eqg_cmp_pi64(sg_cvtcmp_ps_pi64(cmp_ps), gcmp2);
+        assert_eqg_cmp_pd(sg_cvtcmp_ps_pd(cmp_ps), gcmp2);
+        assert_eqg_cmp_s32x2(sg_cvtcmp_ps_s32x2(cmp_ps), gcmp2);
+        assert_eqg_cmp_f32x2(sg_cvtcmp_ps_f32x2(cmp_ps), gcmp2);
+
         assert_eqg_cmp_pi32(sg_cvtcmp_pd_pi32(cmp_pd), gcmp4_lower);
         assert_eqg_cmp_ps(sg_cvtcmp_pd_ps(cmp_pd), gcmp4_lower);
-        assert_eqg_cmp_pd(sg_cvtcmp_ps_pd(cmp_ps), gcmp2);
-        assert_eqg_cmp_pi64(sg_cvtcmp_ps_pi64(cmp_ps), gcmp2);
-        assert_eqg_cmp_ps(sg_cvtcmp_pi64_ps(cmp_pi64), gcmp4_lower);
+        assert_eqg_cmp_s32x2(sg_cvtcmp_pd_s32x2(cmp_pd), gcmp2);
+        assert_eqg_cmp_f32x2(sg_cvtcmp_pd_f32x2(cmp_pd), gcmp2);
+
+        assert_eqg_cmp_pi32(sg_cvtcmp_s32x2_pi32(cmp_s32x2), gcmp4_lower);
+        assert_eqg_cmp_pi64(sg_cvtcmp_s32x2_pi64(cmp_s32x2), gcmp2);
+        assert_eqg_cmp_ps(sg_cvtcmp_s32x2_ps(cmp_s32x2), gcmp4_lower);
+        assert_eqg_cmp_pd(sg_cvtcmp_s32x2_pd(cmp_s32x2), gcmp2);
+
+        assert_eqg_cmp_pi32(sg_cvtcmp_f32x2_pi32(cmp_f32x2), gcmp4_lower);
+        assert_eqg_cmp_pi64(sg_cvtcmp_f32x2_pi64(cmp_f32x2), gcmp2);
+        assert_eqg_cmp_ps(sg_cvtcmp_f32x2_ps(cmp_f32x2), gcmp4_lower);
+        assert_eqg_cmp_pd(sg_cvtcmp_f32x2_pd(cmp_f32x2), gcmp2);
+
     } } } }
 
     // Test logic operations on comparison functions
@@ -930,15 +984,21 @@ void test_cmp() {
             b_pi32 = sg_from_generic_cmp_pi32(b_gcmp4);
         sg_cmp_pi64 a_pi64 = sg_from_generic_cmp_pi64(a_gcmp2),
             b_pi64 = sg_from_generic_cmp_pi64(b_gcmp2);
-        sg_cmp_ps a_ps = sg_cvtcmp_pi32_ps(a_pi32),
-            b_ps = sg_cvtcmp_pi32_ps(b_pi32);
-        sg_cmp_pd a_pd = sg_cvtcmp_pi64_pd(a_pi64),
-            b_pd = sg_cvtcmp_pi64_pd(b_pi64);
+        sg_cmp_ps a_ps = sg_from_generic_cmp_ps(a_gcmp4),
+            b_ps = sg_from_generic_cmp_ps(b_gcmp4);
+        sg_cmp_pd a_pd = sg_from_generic_cmp_pd(a_gcmp2),
+            b_pd = sg_from_generic_cmp_pd(b_gcmp2);
+        sg_cmp_s32x2 a_s32x2 = sg_from_generic_cmp_s32x2(a_gcmp2),
+            b_s32x2 = sg_from_generic_cmp_s32x2(b_gcmp2);
+        sg_cmp_f32x2 a_f32x2 = sg_from_generic_cmp_f32x2(a_gcmp2),
+            b_f32x2 = sg_from_generic_cmp_f32x2(b_gcmp2);
 
         assert_eqg_cmp_pi32(sg_and_cmp_pi32(a_pi32, b_pi32), a_and_b);
         assert_eqg_cmp_pi64(sg_and_cmp_pi64(a_pi64, b_pi64), a_and_b_2);
         assert_eqg_cmp_ps(sg_and_cmp_ps(a_ps, b_ps), a_and_b);
         assert_eqg_cmp_pd(sg_and_cmp_pd(a_pd, b_pd), a_and_b_2);
+        assert_eqg_cmp_s32x2(sg_and_cmp_s32x2(a_s32x2, b_s32x2), a_and_b_2);
+        assert_eqg_cmp_f32x2(sg_and_cmp_f32x2(a_f32x2, b_f32x2), a_and_b_2);
 
         // andnot functionality removed for comparisons
         /*assert_eqg_cmp_pi32(sg_andnot_cmp_pi32(a_pi32, b_pi32), a_andnot_b);
@@ -950,11 +1010,15 @@ void test_cmp() {
         assert_eqg_cmp_pi64(sg_not_cmp_pi64(a_pi64), a_not_2);
         assert_eqg_cmp_ps(sg_not_cmp_ps(a_ps), a_not);
         assert_eqg_cmp_pd(sg_not_cmp_pd(a_pd), a_not_2);
+        assert_eqg_cmp_s32x2(sg_not_cmp_s32x2(a_s32x2), a_not_2);
+        assert_eqg_cmp_f32x2(sg_not_cmp_f32x2(a_f32x2), a_not_2);
 
         assert_eqg_cmp_pi32(sg_or_cmp_pi32(a_pi32, b_pi32), a_or_b);
         assert_eqg_cmp_pi64(sg_or_cmp_pi64(a_pi64, b_pi64), a_or_b_2);
         assert_eqg_cmp_ps(sg_or_cmp_ps(a_ps, b_ps), a_or_b);
         assert_eqg_cmp_pd(sg_or_cmp_pd(a_pd, b_pd), a_or_b_2);
+        assert_eqg_cmp_s32x2(sg_or_cmp_s32x2(a_s32x2, b_s32x2), a_or_b_2);
+        assert_eqg_cmp_f32x2(sg_or_cmp_f32x2(a_f32x2, b_f32x2), a_or_b_2);
 
         assert_eqg_cmp_pi32(sg_xor_cmp_pi32(a_pi32, b_pi32), a_xor_b);
         assert_eqg_cmp_pi32(sg_cmpneq_cmp_pi32(a_pi32, b_pi32), a_xor_b);
@@ -964,11 +1028,17 @@ void test_cmp() {
         assert_eqg_cmp_ps(sg_cmpneq_cmp_ps(a_ps, b_ps), a_xor_b);
         assert_eqg_cmp_pd(sg_xor_cmp_pd(a_pd, b_pd), a_xor_b_2);
         assert_eqg_cmp_pd(sg_cmpneq_cmp_pd(a_pd, b_pd), a_xor_b_2);
+        assert_eqg_cmp_s32x2(sg_xor_cmp_s32x2(a_s32x2, b_s32x2), a_xor_b_2);
+        assert_eqg_cmp_s32x2(sg_cmpneq_cmp_s32x2(a_s32x2, b_s32x2), a_xor_b_2);
+        assert_eqg_cmp_f32x2(sg_xor_cmp_f32x2(a_f32x2, b_f32x2), a_xor_b_2);
+        assert_eqg_cmp_f32x2(sg_cmpneq_cmp_f32x2(a_f32x2, b_f32x2), a_xor_b_2);
 
         assert_eqg_cmp_pi32(sg_cmpeq_cmp_pi32(a_pi32, b_pi32), a_eq_b);
         assert_eqg_cmp_pi64(sg_cmpeq_cmp_pi64(a_pi64, b_pi64), a_eq_b_2);
         assert_eqg_cmp_ps(sg_cmpeq_cmp_ps(a_ps, b_ps), a_eq_b);
         assert_eqg_cmp_pd(sg_cmpeq_cmp_pd(a_pd, b_pd), a_eq_b_2);
+        assert_eqg_cmp_s32x2(sg_cmpeq_cmp_s32x2(a_s32x2, b_s32x2), a_eq_b_2);
+        assert_eqg_cmp_f32x2(sg_cmpeq_cmp_f32x2(a_f32x2, b_f32x2), a_eq_b_2);
     } } } } } } } }
 
     // Test choosers
@@ -981,6 +1051,10 @@ void test_cmp() {
         if_false_ps = sg_set1_ps(false_val);
     const sg_pd if_true_pd = sg_set1_pd(true_val),
         if_false_pd = sg_set1_pd(false_val);
+    const sg_s32x2 if_true_s32x2 = sg_set1_s32x2(true_val),
+        if_false_s32x2 = sg_set1_s32x2(false_val);
+    const sg_f32x2 if_true_f32x2 = sg_set1_f32x2(true_val),
+        if_false_f32x2 = sg_set1_f32x2(false_val);
 
     for (int c0 = 0; c0 < 2; ++c0) {
     for (int c1 = 0; c1 < 2; ++c1) {
@@ -1020,11 +1094,25 @@ void test_cmp() {
         sg_generic_pd exp_oz_pd;
         exp_oz_pd.d0 = (double) exp_oz_pi32.i0;
         exp_oz_pd.d1 = (double) exp_oz_pi32.i1;
+        sg_generic_s32x2 exp_s32x2;
+        exp_s32x2.i0 = exp_pi32.i0;
+        exp_s32x2.i1 = exp_pi32.i1;
+        sg_generic_s32x2 exp_oz_s32x2;
+        exp_oz_s32x2.i0 = exp_oz_pi32.i0;
+        exp_oz_s32x2.i1 = exp_oz_pi32.i1;
+        sg_generic_f32x2 exp_f32x2;
+        exp_f32x2.f0 = exp_ps.f0;
+        exp_f32x2.f1 = exp_ps.f1;
+        sg_generic_f32x2 exp_oz_f32x2;
+        exp_oz_f32x2.f0 = exp_oz_ps.f0;
+        exp_oz_f32x2.f1 = exp_oz_ps.f1;
 
         const sg_cmp_pi32 cmp_pi32 = sg_from_generic_cmp_pi32(cmp4);
         const sg_cmp_pi64 cmp_pi64 = sg_from_generic_cmp_pi64(cmp2);
         const sg_cmp_ps cmp_ps = sg_from_generic_cmp_ps(cmp4);
         const sg_cmp_pd cmp_pd = sg_from_generic_cmp_pd(cmp2);
+        const sg_cmp_s32x2 cmp_s32x2 = sg_from_generic_cmp_s32x2(cmp2);
+        const sg_cmp_f32x2 cmp_f32x2 = sg_from_generic_cmp_f32x2(cmp2);
 
         assert_eq_pi32(sg_choose_pi32(cmp_pi32, if_true_pi32, if_false_pi32),
             exp_pi32.i3, exp_pi32.i2, exp_pi32.i1, exp_pi32.i0);
@@ -1045,6 +1133,16 @@ void test_cmp() {
             exp_pd.d1, exp_pd.d0);
         assert_eq_pd(sg_choose_else_zero_pd(cmp_pd, if_true_pd),
             exp_oz_pd.d1, exp_oz_pd.d0);
+
+        assert_eq_s32x2(sg_choose_s32x2(cmp_s32x2, if_true_s32x2, if_false_s32x2),
+            exp_s32x2.i1, exp_s32x2.i0);
+        assert_eq_s32x2(sg_choose_else_zero_s32x2(cmp_s32x2, if_true_s32x2),
+            exp_oz_s32x2.i1, exp_oz_s32x2.i0);
+
+        assert_eq_f32x2(sg_choose_f32x2(cmp_f32x2, if_true_f32x2, if_false_f32x2),
+            exp_f32x2.f1, exp_f32x2.f0);
+        assert_eq_f32x2(sg_choose_else_zero_f32x2(cmp_f32x2, if_true_f32x2),
+            exp_oz_f32x2.f1, exp_oz_f32x2.f0);
     }}}}
 
     //printf("Comparison test succeeeded\n");
@@ -1075,6 +1173,16 @@ void test_abs_neg() {
     assert_eq_pd(sg_neg_pd(sg_set_pd(1.0, 0.0)), -1.0, -0.0);
     assert_eq_pd(sg_neg_pd(sg_set_pd(-1.0, -0.0)), 1.0, 0.0);
 
+    assert_eq_s32x2(sg_abs_s32x2(sg_set_s32x2(1, 0)), 1, 0);
+    assert_eq_s32x2(sg_abs_s32x2(sg_set_s32x2(-3, -2)), 3, 2);
+    assert_eq_s32x2(sg_neg_s32x2(sg_set_s32x2(1, 0)), -1, 0);
+    assert_eq_s32x2(sg_neg_s32x2(sg_set_s32x2(-3, -2)), 3, 2);
+
+    assert_eq_f32x2(sg_abs_f32x2(sg_set_f32x2(1.0f, 0.0f)), 1.0f, 0.0f);
+    assert_eq_f32x2(sg_abs_f32x2(sg_set_f32x2(-1.0f, -0.0f)), 1.0f, 0.0f);
+    assert_eq_f32x2(sg_neg_f32x2(sg_set_f32x2(1.0f, 0.0f)), -1.0f, -0.0f);
+    assert_eq_f32x2(sg_neg_f32x2(sg_set_f32x2(-1.0f, -0.0f)), 1.0f, 0.0f);
+
     // Test remove signed zero
     assert_eq_ps(sg_remove_signed_zero_ps(sg_set_ps(3.0f, 2.0f, 1.0f, 0.0f)),
         3.0f, 2.0f, 1.0f, 0.0f);
@@ -1086,6 +1194,22 @@ void test_abs_neg() {
     assert_eq_pi32(sg_bitcast_ps_pi32(
         sg_remove_signed_zero_ps(sg_set_ps(-0.0f, -0.0f, -0.0f, -0.0f))),
         0, 0, 0, 0);
+
+    assert_eq_pd(sg_remove_signed_zero_pd(sg_set_pd(1.0, 0.0)), 1.0, 0.0);
+    assert_eq_pd(sg_remove_signed_zero_pd(sg_set_pd(-1.0, -0.0)), -1.0, 0.0);
+    assert_eq_pi64(sg_bitcast_pd_pi64(
+        sg_remove_signed_zero_pd(sg_set_pd(0.0, 0.0))), 0, 0);
+    assert_eq_pi64(sg_bitcast_pd_pi64(
+        sg_remove_signed_zero_pd(sg_set_pd(-0.0, -0.0))), 0, 0);
+
+    assert_eq_f32x2(sg_remove_signed_zero_f32x2(sg_set_f32x2(1.0f, 0.0f)),
+        1.0f, 0.0f);
+    assert_eq_f32x2(sg_remove_signed_zero_f32x2(
+        sg_set_f32x2(-1.0f, -0.0f)), -1.0f, 0.0f);
+    assert_eq_s32x2(sg_bitcast_f32x2_s32x2(
+        sg_remove_signed_zero_f32x2(sg_set_f32x2(0.0f, 0.0f))), 0, 0);
+    assert_eq_s32x2(sg_bitcast_f32x2_s32x2(
+        sg_remove_signed_zero_f32x2(sg_set_f32x2(-0.0f, -0.0f))), 0, 0);
 
     //printf("Abs and neg test succeeeded\n");
 }
@@ -1164,6 +1288,35 @@ void test_min_max() {
     assert_eq_pd(sg_min_pd(
         sg_set_pd(3.0, 1.0), sg_set_pd(4.0, 2.0)),
         3.0, 1.0);
+
+    assert_eq_s32x2(sg_max_s32x2(
+        sg_set_s32x2(1, 0), sg_set_s32x2(1, 0)), 1, 0);
+    assert_eq_s32x2(sg_max_s32x2(
+        sg_set_s32x2(4, 2), sg_set_s32x2(3, 1)), 4, 2);
+    assert_eq_s32x2(sg_max_s32x2(
+        sg_set_s32x2(3, 1), sg_set_s32x2(4, 2)), 4, 2);
+
+    assert_eq_s32x2(sg_min_s32x2(
+        sg_set_s32x2(1, 0), sg_set_s32x2(1, 0)), 1, 0);
+    assert_eq_s32x2(sg_min_s32x2(
+        sg_set_s32x2(4, 2), sg_set_s32x2(3, 1)), 3, 1);
+    assert_eq_s32x2(sg_min_s32x2(
+        sg_set_s32x2(3, 1), sg_set_s32x2(4, 2)), 3, 1);
+
+    assert_eq_f32x2(sg_max_f32x2(
+        sg_set_f32x2(1, 0), sg_set_f32x2(1, 0)), 1, 0);
+    assert_eq_f32x2(sg_max_f32x2(
+        sg_set_f32x2(4, 2), sg_set_f32x2(3, 1)), 4, 2);
+    assert_eq_f32x2(sg_max_f32x2(
+        sg_set_f32x2(3, 1), sg_set_f32x2(4, 2)), 4, 2);
+
+    assert_eq_f32x2(sg_min_f32x2(
+        sg_set_f32x2(1, 0), sg_set_f32x2(1, 0)), 1, 0);
+    assert_eq_f32x2(sg_min_f32x2(
+        sg_set_f32x2(4, 2), sg_set_f32x2(3, 1)), 3, 1);
+    assert_eq_f32x2(sg_min_f32x2(
+        sg_set_f32x2(3, 1), sg_set_f32x2(4, 2)), 3, 1);
+
     //printf("Min max test succeeded\n");
 }
 
@@ -1195,6 +1348,20 @@ void test_constrain() {
         sg_set1_pd(2.0)), 2.0, 2.0);
     assert_eq_pd(sg_constrain_pd(sg_set1_pd(1.0), sg_set1_pd(3.0),
         sg_set1_pd(4.0)), 3.0, 3.0);
+
+    assert_eq_s32x2(sg_constrain_s32x2(sg_set1_s32x2(1), sg_set1_s32x2(3),
+        sg_set1_s32x2(0)), 1, 1);
+    assert_eq_s32x2(sg_constrain_s32x2(sg_set1_s32x2(1), sg_set1_s32x2(3),
+        sg_set1_s32x2(2)), 2, 2);
+    assert_eq_s32x2(sg_constrain_s32x2(sg_set1_s32x2(1), sg_set1_s32x2(3),
+        sg_set1_s32x2(4)), 3, 3);
+
+    assert_eq_f32x2(sg_constrain_f32x2(sg_set1_f32x2(1), sg_set1_f32x2(3),
+        sg_set1_f32x2(0)), 1, 1);
+    assert_eq_f32x2(sg_constrain_f32x2(sg_set1_f32x2(1), sg_set1_f32x2(3),
+        sg_set1_f32x2(2)), 2, 2);
+    assert_eq_f32x2(sg_constrain_f32x2(sg_set1_f32x2(1), sg_set1_f32x2(3),
+        sg_set1_f32x2(4)), 3, 3);
 
     //printf("Constrain test succeeded\n");
 }

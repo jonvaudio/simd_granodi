@@ -4835,12 +4835,12 @@ static inline bool sg_vectorcall(sg_debug_generic_cmp2_eq)(
 static inline bool sg_vectorcall(sg_debug_mask_valid_eq_u32)(
     const uint32_t mask, const bool b)
 {
-    return (mask == sg_allset_u32 && b) || (mask == 0 && !b);
+    return ((mask == sg_allset_u32) && b) || ((mask == 0) && !b);
 }
 static inline bool sg_vectorcall(sg_debug_mask_valid_eq_u64)(
     const uint64_t mask, const bool b)
 {
-    return (mask == sg_allset_u64 && b) || (mask == 0 && !b);
+    return ((mask == sg_allset_u64) && b) || ((mask == 0) && !b);
 }
 #endif
 
@@ -4865,16 +4865,21 @@ static inline bool sg_vectorcall(sg_debug_cmp_valid_eq_pi64)(
 static inline bool sg_vectorcall(sg_debug_cmp_valid_eq_ps)(const sg_cmp_ps cmp,
     const bool b3, const bool b2, const bool b1, const bool b0)
 {
-    return sg_debug_mask_valid_eq_u32(sg_bitcast_f32x1_u32x1(sg_get3_ps(cmp)), b3) &&
+    return sg_debug_cmp_valid_eq_pi32(sg_bitcast_ps_pi32(cmp), b3, b2, b1, b0);
+    // We can't use the below code, as compiler might optimize out NaNs
+    // (see sg_debug_cmp_valid_eq_pd())
+    /*return sg_debug_mask_valid_eq_u32(sg_bitcast_f32x1_u32x1(sg_get3_ps(cmp)), b3) &&
         sg_debug_mask_valid_eq_u32(sg_bitcast_f32x1_u32x1(sg_get2_ps(cmp)), b2) &&
         sg_debug_mask_valid_eq_u32(sg_bitcast_f32x1_u32x1(sg_get1_ps(cmp)), b1) &&
-        sg_debug_mask_valid_eq_u32(sg_bitcast_f32x1_u32x1(sg_get0_ps(cmp)), b0);
+        sg_debug_mask_valid_eq_u32(sg_bitcast_f32x1_u32x1(sg_get0_ps(cmp)), b0);*/
 }
 static inline bool sg_vectorcall(sg_debug_cmp_valid_eq_pd)(const sg_cmp_pd cmp,
     const bool b1, const bool b0)
 {
-    return sg_debug_mask_valid_eq_u64(sg_bitcast_f64x1_u64x1(sg_get1_pd(cmp)), b1) &&
-        sg_debug_mask_valid_eq_u64(sg_bitcast_f64x1_u64x1(sg_get0_pd(cmp)), b0);
+    return sg_debug_cmp_valid_eq_pi64(sg_bitcast_pd_pi64(cmp), b1, b0);
+    // MSVC++ was optimizing out the following code as it doesn't like NaNs
+    /*return sg_debug_mask_valid_eq_u64(sg_bitcast_f64x1_u64x1(sg_get1_pd(cmp)), b1) &&
+        sg_debug_mask_valid_eq_u64(sg_bitcast_f64x1_u64x1(sg_get0_pd(cmp)), b0);*/
 }
 
 #elif defined SIMD_GRANODI_NEON
@@ -5472,7 +5477,7 @@ static inline sg_cmp_s32x2 sg_vectorcall(sg_cvtcmp_pi32_s32x2)(
     _mm_and_si128(_mm_set_epi32(0, 0, sg_allset_s32, sg_allset_s32), \
         _mm_shuffle_epi32(cmp, sg_sse2_shuffle32_imm(3, 2, 3, 0)))
 #define sg_cvtcmp_pi64_ps(cmp) _mm_castsi128_ps(sg_cvtcmp_pi64_pi32(cmp))
-#define sg_cvtcmp_pi64_pd sg_bitcast_pi64_pd
+#define sg_cvtcmp_pi64_pd _mm_castsi128_pd
 
 #elif defined SIMD_GRANODI_NEON
 #define sg_cvtcmp_pi64_pi32(cmp) \
@@ -5483,8 +5488,8 @@ static inline sg_cmp_s32x2 sg_vectorcall(sg_cvtcmp_pi32_s32x2)(
 #endif
 
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-#define sg_cvtcmp_pi64_s32x2(a) sg_cvtcmp_generic_pi64_s32x2(sg_to_generic_cmp_pi64(a))
-#define sg_cvtcmp_pi64_f32x2 sg_cvtcmp_pi64_s32x2
+#define sg_cvtcmp_pi64_s32x2 sg_to_generic_cmp_pi64
+#define sg_cvtcmp_pi64_f32x2 sg_to_generic_cmp_pi64
 #endif
 
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_NEON
@@ -5593,7 +5598,7 @@ static inline sg_cmp_pi32 sg_vectorcall(sg_cvtcmp_s32x2_pi32)(
 }
 #define sg_cvtcmp_s32x2_pi64 sg_from_generic_cmp_pi64
 #define sg_cvtcmp_s32x2_ps(a) sg_bitcast_pi32_ps(sg_cvtcmp_s32x2_pi32(a))
-#define sg_cvtcmp_s32x2_pd(a) sg_from_generic_cmp_pd
+#define sg_cvtcmp_s32x2_pd sg_from_generic_cmp_pd
 
 #elif defined SIMD_GRANODI_NEON
 #define sg_cvtcmp_s32x2_pi32(a) vcombine_s32(a, vdup_n_s32(0))
@@ -5615,7 +5620,7 @@ static inline sg_cmp_pi32 sg_vectorcall(sg_cvtcmp_s32x2_pi32)(
 
 #if defined SIMD_GRANODI_FORCE_GENERIC
 #define sg_cvtcmp_f32x2_pi32 sg_cvtcmp_generic_cmp2_cmp4
-#define sg_cvtcmp_f32x2_pi64 sg_cvtcmp_generic_cmp2_cmp4
+#define sg_cvtcmp_f32x2_pi64(a) (a)
 #define sg_cvtcmp_f32x2_ps sg_cvtcmp_generic_cmp2_cmp4
 #define sg_cvtcmp_f32x2_pd(a) (a)
 
@@ -5626,7 +5631,7 @@ static inline sg_cmp_pi32 sg_vectorcall(sg_cvtcmp_f32x2_pi32)(
     return sg_setcmp_pi32(false, false, a.b1, a.b0);
 }
 #define sg_cvtcmp_f32x2_pi64 sg_from_generic_cmp_pi64
-#define sg_cvtcmp_f32x2_ps(a) sg_bitcast_cmp_pi32_ps(sg_cvtcmp_f32x2_pi32)
+#define sg_cvtcmp_f32x2_ps(a) sg_cvtcmp_pi32_ps(sg_cvtcmp_f32x2_pi32(a))
 #define sg_cvtcmp_f32x2_pd sg_from_generic_cmp_pd
 
 #elif defined SIMD_GRANODI_NEON
@@ -5742,7 +5747,7 @@ static inline sg_generic_cmp2 sg_vectorcall(sg_not_generic_cmp2)(
 
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
 #define sg_not_cmp_s32x2 sg_not_generic_cmp2
-#define sg_not_cmp_f32x2 sg_not_generic_mp2
+#define sg_not_cmp_f32x2 sg_not_generic_cmp2
 #endif
 
 //
@@ -6437,7 +6442,7 @@ static inline sg_generic_pd sg_vectorcall(sg_remove_signed_zero_generic_pd)(
     result.d1 = a.d1 != 0.0 ? a.d1 : 0.0;
     return result;
 }
-static inline sg_generic_f32x2 sg_vectorcall(sg_remove_signed_zero_f32x2)(
+static inline sg_generic_f32x2 sg_vectorcall(sg_remove_signed_zero_generic_f32x2)(
     const sg_generic_f32x2 a)
 {
     sg_generic_f32x2 result;
@@ -6523,6 +6528,22 @@ static inline sg_generic_pd sg_vectorcall(sg_min_generic_pd)(
     sg_generic_pd result;
     result.d0 = a.d0 < b.d0 ? a.d0 : b.d0;
     result.d1 = a.d1 < b.d1 ? a.d1 : b.d1;
+    return result;
+}
+static inline sg_generic_s32x2 sg_vectorcall(sg_min_generic_s32x2)(
+    const sg_generic_s32x2 a, const sg_generic_s32x2 b)
+{
+    sg_generic_s32x2 result;
+    result.i0 = a.i0 < b.i0 ? a.i0 : b.i0;
+    result.i1 = a.i1 < b.i1 ? a.i1 : b.i1;
+    return result;
+}
+static inline sg_generic_f32x2 sg_vectorcall(sg_min_generic_f32x2)(
+    const sg_generic_f32x2 a, const sg_generic_f32x2 b)
+{
+    sg_generic_f32x2 result;
+    result.f0 = a.f0 < b.f0 ? a.f0 : b.f0;
+    result.f1 = a.f1 < b.f1 ? a.f1 : b.f1;
     return result;
 }
 
@@ -6667,29 +6688,12 @@ static inline sg_pi64 sg_vectorcall(sg_max_pi64)(const sg_pi64 a,
 //
 // Constrain section
 
-static inline sg_pi32 sg_vectorcall(sg_constrain_pi32)(const sg_pi32 lowerb,
-    const sg_pi32 upperb, const sg_pi32 a)
-{
-    return sg_min_pi32(sg_max_pi32(lowerb, a), upperb);
-}
-
-static inline sg_pi64 sg_vectorcall(sg_constrain_pi64)(const sg_pi64 lowerb,
-    const sg_pi64 upperb, const sg_pi64 a)
-{
-    return sg_min_pi64(sg_max_pi64(lowerb, a), upperb);
-}
-
-static inline sg_ps sg_vectorcall(sg_constrain_ps)(const sg_ps lowerb,
-    const sg_ps upperb, const sg_ps a)
-{
-    return sg_min_ps(sg_max_ps(a, lowerb), upperb);
-}
-
-static inline sg_pd sg_vectorcall(sg_constrain_pd)(const sg_pd lowerb,
-    const sg_pd upperb, const sg_pd a)
-{
-    return sg_min_pd(sg_max_pd(a, lowerb), upperb);
-}
+#define sg_constrain_pi32(lowerb, upperb, a) sg_min_pi32(sg_max_pi32(lowerb, a), upperb)
+#define sg_constrain_pi64(lowerb, upperb, a) sg_min_pi64(sg_max_pi64(lowerb, a), upperb)
+#define sg_constrain_ps(lowerb, upperb, a) sg_min_ps(sg_max_ps(lowerb, a), upperb)
+#define sg_constrain_pd(lowerb, upperb, a) sg_min_pd(sg_max_pd(lowerb, a), upperb)
+#define sg_constrain_s32x2(lowerb, upperb, a) sg_min_s32x2(sg_max_s32x2(lowerb, a), upperb)
+#define sg_constrain_f32x2(lowerb, upperb, a) sg_min_f32x2(sg_max_f32x2(lowerb, a), upperb)
 
 #ifdef __cplusplus
 
