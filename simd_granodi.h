@@ -2406,6 +2406,79 @@ static inline bool sg_vectorcall(sg_debug_eq_pd)(const sg_pd a, const double d1,
 // For non-rounding conversions (we consider float -> double to be non-rounding
 // too, even though it does banker's rounding)
 
+//
+//
+//
+//
+//
+//
+//
+// Generic scalar conversions, as functions for type checking
+
+static inline int64_t sg_vectorcall(sg_cvt_s32x1_s64x1)(int32_t a) {
+    return (int64_t) a;
+}
+static inline float sg_vectorcall(sg_cvt_s32x1_f32x1)(int32_t a) {
+    return (float) a;
+}
+static inline double sg_vectorcall(sg_cvt_s32x1_f64x1)(int32_t a) {
+    return (double) a;
+}
+
+static inline int32_t sg_vectorcall(sg_cvt_s64x1_s32x1)(int64_t a) {
+    return (int32_t) a;
+}
+static inline float sg_vectorcall(sg_cvt_s64x1_f32x1)(int64_t a) {
+    return (float) a;
+}
+static inline double sg_vectorcall(sg_cvt_s64x1_f64x1)(int64_t a) {
+    return (double) a;
+}
+
+static inline int32_t sg_vectorcall(sg_cvt_f32x1_s32x1)(float a) {
+    return (int32_t) rintf(a);
+}
+static inline int32_t sg_vectorcall(sg_cvtt_f32x1_s32x1(float a) {
+    return (int32_t) a;
+}
+static inline int32_t sg_vectorcall(sg_cvtf_f32x1_s32x1)(float a) {
+    return (int32_t) floorf(a);
+}
+static inline int64_t sg_vectorcall(sg_cvt_f32x1_s64x1)(float a) {
+    return (int64_t) rintf(a);
+}
+static inline int64_t sg_vectorcall(sg_cvtt_f32x1_s64x1)(float a) {
+    return (int64_t) a;
+}
+static inline int64_t sg_vectorcall(sg_cvtf_f32x1_s64x1)(float a) {
+    return (int64_t) floorf(a);
+}
+static inline double sg_vectorcall(sg_cvt_f32x1_f64x1)(float a) {
+    return (double) a;
+}
+
+static inline int32_t sg_vectorcall(sg_cvt_f64x1_s32x1)(double a) {
+    return (int32_t) rint(a);
+}
+static inline int32_t sg_vectorcall(sg_cvtt_f64x1_s32x1)(double a) {
+    return (int32_t) a;
+}
+static inline int32_t sg_vectorcall(sg_cvtf_f64x1_s32x1)(double a) {
+    return (int32_t) floor(a);
+}
+static inline int64_t sg_vectorcall(sg_cvt_f64x1_s64x1)(double a) {
+    return (int64_t) rint(a);
+}
+static inline int64_t sg_vectorcall(sg_cvtt_f64x1_s64x1)(double a) {
+    return (int64_t) a;
+}
+static inline int64_t sg_vectorcall(sg_cvtf_f64x1_s64x1)(double a) {
+    return (int64_t) floor(a);
+}
+static inline float sg_vectorcall(sg_cvt_f64x1_f32x1)(double a) {
+    return (float) a;
+}
+
 // Convert from pi32 section:
 // pi32 pi64
 // pi32 ps
@@ -2417,22 +2490,26 @@ static inline sg_generic_pi64 sg_vectorcall(sg_cvt_generic_pi32_pi64)(
     const sg_generic_pi32 a)
 {
     sg_generic_pi64 result;
-    result.l0 = (int64_t) a.i0; result.l1 = (int64_t) a.i1;
+    result.l0 = sg_cvt_s32x1_s64x1(a.i0);
+    result.l1 = sg_cvt_s32x1_s64x1(a.i1);
     return result;
 }
 static inline sg_generic_ps sg_vectorcall(sg_cvt_generic_pi32_ps)(
     const sg_generic_pi32 a)
 {
     sg_generic_ps result;
-    result.f0 = (float) a.i0; result.f1 = (float) a.i1;
-    result.f2 = (float) a.i2; result.f3 = (float) a.i3;
+    result.f0 = sg_cvt_s32x1_f32x1(a.i0);
+    result.f1 = sg_cvt_s32x1_f32x1(a.i1);
+    result.f2 = sg_cvt_s32x1_f32x1(a.i2);
+    result.f3 = sg_cvt_s32x1_f32x1(a.i3);
     return result;
 }
 static inline sg_generic_pd sg_vectorcall(sg_cvt_generic_pi32_pd)(
     const sg_generic_pi32 a)
 {
     sg_generic_pd result;
-    result.d0 = (double) a.i0; result.d1 = (double) a.i1;
+    result.d0 = sg_cvt_s32x1_f64x1(a.i0);
+    result.d1 = sg_cvt_s32x1_f64x1(a.i1);
     return result;
 }
 static inline sg_generic_s32x2 sg_vectorcall(sg_cvt_generic_pi32_s32x2)(
@@ -2446,7 +2523,8 @@ static inline sg_generic_f32x2 sg_vectorcall(sg_cvt_generic_pi32_f32x2)(
     const sg_generic_pi32 a)
 {
     sg_generic_f32x2 result;
-    result.f0 = (float) a.i0; result.f1 = (float) a.i1;
+    result.f0 = sg_cvt_s32x1_f32x1(a.i0);
+    result.f1 = sg_cvt_s32x1_f32x1(a.i1);
     return result;
 }
 
@@ -2505,8 +2583,8 @@ static inline sg_generic_pi32 sg_vectorcall(sg_cvt_generic_pi64_pi32)(
     const sg_generic_pi64 a)
 {
     sg_generic_pi32 result;
-    result.i0 = (int32_t) (a.l0 & 0xffffffff);
-    result.i1 = (int32_t) (a.l1 & 0xffffffff);
+    result.i0 = sg_cvt_s64x1_s32x1(a.l0);
+    result.i1 = sg_cvt_s64x1_s32x1(a.l1);
     result.i2 = 0; result.i3 = 0;
     return result;
 }
@@ -2514,7 +2592,8 @@ static inline sg_generic_ps sg_vectorcall(sg_cvt_generic_pi64_ps)(
     const sg_generic_pi64 a)
 {
     sg_generic_ps result;
-    result.f0 = (float) a.l0; result.f1 = (float) a.l1;
+    result.f0 = sg_cvt_s64x1_f32x1(a.l0);
+    result.f1 = sg_cvt_s64x1_f32x1(a.l1);
     result.f2 = 0.0f; result.f3 = 0.0f;
     return result;
 }
@@ -2522,21 +2601,24 @@ static inline sg_generic_pd sg_vectorcall(sg_cvt_generic_pi64_pd)(
     const sg_generic_pi64 a)
 {
     sg_generic_pd result;
-    result.d0 = (double) a.l0; result.d1 = (double) a.l1;
+    result.d0 = sg_cvt_s64x1_f64x1(a.l0);
+    result.d1 = sg_cvt_s64x1_f64x1(a.l1);
     return result;
 }
 static inline sg_generic_s32x2 sg_vectorcall(sg_cvt_generic_pi64_s32x2)(
     const sg_generic_pi64 a)
 {
     sg_generic_s32x2 result;
-    result.i0 = (int32_t) a.l0; result.i1 = (int32_t) a.l1;
+    result.i0 = sg_cvt_s64x1_s32x1(a.l0);
+    result.i1 = sg_cvt_s64x1_s32x1(a.l1);
     return result;
 }
 static inline sg_generic_f32x2 sg_vectorcall(sg_cvt_generic_pi64_f32x2)(
     const sg_generic_pi64 a)
 {
     sg_generic_f32x2 result;
-    result.f0 = (float) a.l0; result.f1 = (float) a.l1;
+    result.f0 = sg_cvt_s64x1_f32x1(a.l0);
+    result.f1 = sg_cvt_s64x1_f32x1(a.l1);
     return result;
 }
 
@@ -2594,7 +2676,8 @@ static inline sg_generic_pd sg_vectorcall(sg_cvt_generic_ps_pd)(
     const sg_generic_ps a)
 {
     sg_generic_pd result;
-    result.d0 = a.f0; result.d1 = a.f1;
+    result.d0 = sg_cvt_f32x1_f64x1(a.f0);
+    result.d1 = sg_cvt_f32x1_f64x1(a.f1);
     return result;
 }
 static inline sg_generic_f32x2 sg_vectorcall(sg_cvt_generic_ps_f32x2)(
@@ -2637,7 +2720,8 @@ static inline sg_generic_ps sg_vectorcall(sg_cvt_generic_pd_ps)(
     const sg_generic_pd a)
 {
     sg_generic_ps result;
-    result.f0 = (float) a.d0; result.f1 = (float) a.d1;
+    result.f0 = sg_cvt_f64x1_f32x1(a.d0);
+    result.f1 = sg_cvt_f64x1_f32x1(a.d1);
     result.f2 = 0.0f; result.f3 = 0.0f;
     return result;
 }
@@ -2645,7 +2729,8 @@ static inline sg_generic_f32x2 sg_vectorcall(sg_cvt_generic_pd_f32x2)(
     const sg_generic_pd a)
 {
     sg_f32x2 result;
-    result.f0 = (float) a.d0; result.f1 = (float) a.d1;
+    result.f0 = sg_cvt_f64x1_f32x1(a.d0);
+    result.f1 = sg_cvt_f64x1_f32x1(a.d1);
     return result;
 }
 
@@ -2687,14 +2772,16 @@ static inline sg_generic_pi64 sg_vectorcall(sg_cvt_generic_s32x2_pi64)(
     const sg_generic_s32x2 a)
 {
     sg_generic_pi64 result;
-    result.l0 = a.i0; result.l1 = a.i1;
+    result.l0 = sg_cvt_s32x1_s64x1(a.i0);
+    result.l1 = sg_cvt_s32x1_s64x1(a.i1);
     return result;
 }
 static inline sg_generic_ps sg_vectorcall(sg_cvt_generic_s32x2_ps)(
     const sg_generic_s32x2 a)
 {
     sg_generic_ps result;
-    result.f0 = (float) a.i0; result.f1 = (float) a.i1;
+    result.f0 = sg_cvt_s32x1_f32x1(a.i0);
+    result.f1 = sg_cvt_s32x1_f32x1(a.i1);
     result.f2 = 0.0f; result.f3 = 0.0f;
     return result;
 }
@@ -2702,14 +2789,16 @@ static inline sg_generic_pd sg_vectorcall(sg_cvt_generic_s32x2_pd)(
     const sg_generic_s32x2 a)
 {
     sg_generic_pd result;
-    result.d0 = (double) a.i0; result.d1 = (double) (a.i1);
+    result.d0 = sg_cvt_s32x1_f64x1(a.i0);
+    result.d1 = sg_cvt_s32x1_f64x1(a.i1);
     return result;
 }
 static inline sg_generic_f32x2 sg_vectorcall(sg_cvt_generic_s32x2_f32x2)(
     const sg_generic_s32x2 a)
 {
     sg_generic_f32x2 result;
-    result.f0 = (float) a.i0; result.f1 = (float) a.i1;
+    result.f0 = sg_cvt_s32x1_f32x1(a.i0);
+    result.f1 = sg_cvt_s32x1_f32x1(a.i1);
     return result;
 }
 
@@ -2761,7 +2850,8 @@ static inline sg_generic_pd sg_vectorcall(sg_cvt_generic_f32x2_pd)(
     const sg_generic_f32x2 a)
 {
     sg_generic_pd result;
-    result.d0 = a.f0; result.d1 = a.f1;
+    result.d0 = sg_cvt_f32x1_f64x1(a.f0);
+    result.d1 = sg_cvt_f32x1_f64x1(a.f1);
     return result;
 }
 
@@ -2794,22 +2884,26 @@ static inline sg_generic_pi32 sg_vectorcall(sg_cvt_generic_ps_pi32)(
     const sg_generic_ps a)
 {
     sg_generic_pi32 result;
-    result.i0 = (int32_t) rintf(a.f0); result.i1 = (int32_t) rintf(a.f1);
-    result.i2 = (int32_t) rintf(a.f2); result.i3 = (int32_t) rintf(a.f3);
+    result.i0 = sg_cvt_f32x1_s32x1(a.f0);
+    result.i1 = sg_cvt_f32x1_s32x1(a.f1);
+    result.i2 = sg_cvt_f32x1_s32x1(a.f2);
+    result.i3 = sg_cvt_f32x1_s32x1(a.f3);
     return result;
 }
 static inline sg_generic_pi64 sg_vectorcall(sg_cvt_generic_ps_pi64)(
     const sg_generic_ps a)
 {
     sg_generic_pi64 result;
-    result.l0 = (int64_t) rintf(a.f0); result.l1 = (int64_t) rintf(a.f1);
+    result.l0 = sg_cvt_f32x1_s64x1(a.f0);
+    result.l1 = sg_cvt_f32x1_s64x1(a.f1);
     return result;
 }
 static inline sg_generic_s32x2 sg_vectorcall(sg_cvt_generic_ps_s32x2)(
     const sg_generic_ps a)
 {
     sg_generic_s32x2 result;
-    result.i0 = (int32_t) rintf(a.f0); result.i1 = (int32_t) rintf(a.f1);
+    result.i0 = sg_cvt_f32x1_s32x1(a.f0);
+    result.i1 = sg_cvt_f32x1_s32x1(a.f1);
     return result;
 }
 
@@ -2821,8 +2915,8 @@ static inline sg_generic_s32x2 sg_vectorcall(sg_cvt_generic_ps_s32x2)(
 #elif defined SIMD_GRANODI_SSE2
 #define sg_cvt_ps_pi32 _mm_cvtps_epi32
 static inline sg_pi64 sg_vectorcall(sg_cvt_ps_pi64)(const sg_ps a) {
-    int64_t si0 = (int64_t) rintf(_mm_cvtss_f32(a)),
-        si1 = (int64_t) rintf(_mm_cvtss_f32(
+    int64_t si0 = sg_cvt_f32x1_s64x1(_mm_cvtss_f32(a)),
+        si1 = sg_cvt_f32x1_s64x1(_mm_cvtss_f32(
             _mm_shuffle_ps(a, a, sg_sse2_shuffle32_imm(3, 2, 1, 1))));
     return _mm_set_epi64x(si1, si0);
 }
@@ -2848,7 +2942,8 @@ static inline sg_generic_pi32 sg_vectorcall(sg_cvt_generic_pd_pi32)(
     const sg_generic_pd a)
 {
     sg_generic_pi32 result;
-    result.i0 = (int32_t) rint(a.d0); result.i1 = (int32_t) rint(a.d1);
+    result.i0 = sg_cvt_f64x1_s32x1(a.d0);
+    result.i1 = sg_cvt_f64x1_s32x1(a.d1);
     result.i2 = 0; result.i3 = 0;
     return result;
 }
@@ -2856,14 +2951,16 @@ static inline sg_generic_pi64 sg_vectorcall(sg_cvt_generic_pd_pi64)(
     const sg_generic_pd a)
 {
     sg_generic_pi64 result;
-    result.l0 = (int64_t) rint(a.d0); result.l1 = (int64_t) rint(a.d1);
+    result.l0 = sg_cvt_f64x1_s64x1(a.d0);
+    result.l1 = sg_cvt_f64x1_s64x1(a.d1);
     return result;
 }
 static inline sg_generic_s32x2 sg_vectorcall(sg_cvt_generic_pd_s32x2)(
     const sg_generic_pd a)
 {
     sg_generic_s32x2 result;
-    result.i0 = (int32_t) rint(a.d0); result.i1 = (int32_t) rint(a.d1);
+    result.i0 = sg_cvt_f64x1_s32x1(a.d0);
+    result.i1 = sg_cvt_f64x1_s32x1(a.d1);
     return result;
 }
 
@@ -2900,7 +2997,8 @@ static inline sg_generic_pi32 sg_vectorcall(sg_cvt_generic_f32x2_pi32)(
     const sg_generic_f32x2 a)
 {
     sg_generic_pi32 result;
-    result.i0 = (int32_t) rintf(a.f0); result.i1 = (int32_t) rintf(a.f1);
+    result.i0 = sg_cvt_f32x1_s32x1(a.f0);
+    result.i1 = sg_cvt_f32x1_s32x1(a.f1);
     result.i2 = 0; result.i3 = 0;
     return result;
 }
@@ -2908,14 +3006,16 @@ static inline sg_generic_pi64 sg_vectorcall(sg_cvt_generic_f32x2_pi64)(
     const sg_generic_f32x2 a)
 {
     sg_generic_pi64 result;
-    result.l0 = (int64_t) rintf(a.f0); result.l1 = (int32_t) rintf(a.f1);
+    result.l0 = sg_cvt_f32x1_s64x1(a.f0);
+    result.l1 = sg_cvt_f32x1_s64x1(a.f1);
     return result;
 }
 static inline sg_generic_s32x2 sg_vectorcall(sg_cvt_generic_f32x2_s32x2)(
     const sg_generic_f32x2 a)
 {
     sg_generic_s32x2 result;
-    result.i0 = (int32_t) rintf(a.f0); result.i1 = (int32_t) rintf(a.f1);
+    result.i0 = sg_cvt_f32x1_s32x1(a.f0);
+    result.i1 = sg_cvt_f32x1_s32x1(a.f1);
     return result;
 }
 
@@ -2950,22 +3050,26 @@ static inline sg_generic_pi32 sg_vectorcall(sg_cvtt_generic_ps_pi32)(
     const sg_generic_ps a)
 {
     sg_generic_pi32 result;
-    result.i0 = (int32_t) a.f0; result.i1 = (int32_t) a.f1;
-    result.i2 = (int32_t) a.f2; result.i3 = (int32_t) a.f3;
+    result.i0 = sg_cvtt_f32x1_s32x1(a.f0);
+    result.i1 = sg_cvtt_f32x1_s32x1(a.f1);
+    result.i2 = sg_cvtt_f32x1_s32x1(a.f2);
+    result.i3 = sg_cvtt_f32x1_s32x1(a.f3);
     return result;
 }
 static inline sg_generic_pi64 sg_vectorcall(sg_cvtt_generic_ps_pi64)(
     const sg_generic_ps a)
 {
     sg_generic_pi64 result;
-    result.l0 = (int64_t) a.f0; result.l1 = (int64_t) a.f1;
+    result.l0 = sg_cvtt_f32x1_s64x1(a.f0);
+    result.l1 = sg_cvtt_f32x1_s64x1(a.f1);
     return result;
 }
 static inline sg_generic_s32x2 sg_vectorcall(sg_cvtt_generic_ps_s32x2)(
     const sg_generic_ps a)
 {
     sg_generic_s32x2 result;
-    result.i0 = (int32_t) a.f0; result.i1 = (int32_t) a.f1;
+    result.i0 = sg_cvtt_f32x1_s32x1(a.f0);
+    result.i1 = sg_cvtt_f32x1_s32x1(a.f1);
     return result;
 }
 
@@ -3000,7 +3104,8 @@ static inline sg_generic_pi32 sg_vectorcall(sg_cvtt_generic_pd_pi32)(
     sg_generic_pd a)
 {
     sg_generic_pi32 result;
-    result.i0 = (int32_t) a.d0; result.i1 = (int32_t) a.d1;
+    result.i0 = sg_cvtt_f64x1_s32x1(a.d0);
+    result.i1 = sg_cvtt_f64x1_s32x1(a.d1);
     result.i2 = 0; result.i3 = 0;
     return result;
 }
@@ -3008,14 +3113,16 @@ static inline sg_generic_pi64 sg_vectorcall(sg_cvtt_generic_pd_pi64)(
     sg_generic_pd a)
 {
     sg_generic_pi64 result;
-    result.l0 = (int64_t) a.d0; result.l1 = (int64_t) a.d1;
+    result.l0 = sg_cvtt_f64x1_s64x1(a.d0);
+    result.l1 = sg_cvtt_f64x1_s64x1(a.d1);
     return result;
 }
 static inline sg_generic_s32x2 sg_vectorcall(sg_cvtt_generic_pd_s32x2)(
     sg_generic_pd a)
 {
     sg_generic_s32x2 result;
-    result.i0 = (int32_t) a.d0; result.i1 = (int32_t) a.d1;
+    result.i0 = sg_cvtt_f64x1_s32x1(a.d0);
+    result.i1 = sg_cvtt_f64x1_s32x1(a.d1);
     return result;
 }
 
@@ -3051,7 +3158,8 @@ static inline sg_generic_pi32 sg_vectorcall(sg_cvtt_generic_f32x2_pi32)(
     sg_generic_f32x2 a)
 {
     sg_generic_pi32 result;
-    result.i0 = (int32_t) a.f0; result.i1 = (int32_t) a.f1;
+    result.i0 = sg_cvtt_f32x1_s32x1(a.f0);
+    result.i1 = sg_cvtt_f32x1_s32x1(a.f1);
     result.i2 = 0; result.i3 = 0;
     return result;
 }
@@ -3059,14 +3167,16 @@ static inline sg_generic_pi64 sg_vectorcall(sg_cvtt_generic_f32x2_pi64)(
     sg_generic_f32x2 a)
 {
     sg_generic_pi64 result;
-    result.l0 = (int64_t) a.f0; result.l1 = (int64_t) a.f1;
+    result.l0 = sg_cvtt_f32x1_s64x1(a.f0);
+    result.l1 = sg_cvtt_f32x1_s64x1(a.f1);
     return result;
 }
 static inline sg_generic_s32x2 sg_vectorcall(sg_cvtt_generic_f32x2_s32x2)(
     sg_generic_f32x2 a)
 {
     sg_generic_s32x2 result;
-    result.i0 = (int32_t) a.f0; result.i1 = (int32_t) a.f1;
+    result.i0 = sg_cvtt_f32x1_s32x1(a.f0);
+    result.i1 = sg_cvtt_f32x1_s32x1(a.f1);
     return result;
 }
 
@@ -3103,26 +3213,26 @@ static inline sg_generic_pi32 sg_vectorcall(sg_cvtf_generic_ps_pi32)(
     const sg_generic_ps a)
 {
     sg_generic_pi32 result;
-    result.i0 = (int32_t) floorf(a.f0);
-    result.i1 = (int32_t) floorf(a.f1);
-    result.i2 = (int32_t) floorf(a.f2);
-    result.i3 = (int32_t) floorf(a.f3);
+    result.i0 = sg_cvtf_f32x1_s32x1(a.f0);
+    result.i1 = sg_cvtf_f32x1_s32x1(a.f1);
+    result.i2 = sg_cvtf_f32x1_s32x1(a.f2);
+    result.i3 = sg_cvtf_f32x1_s32x1(a.f3);
     return result;
 }
 static inline sg_generic_pi64 sg_vectorcall(sg_cvtf_generic_ps_pi64)(
     const sg_generic_ps a)
 {
     sg_generic_pi64 result;
-    result.l0 = (int64_t) floorf(a.f0);
-    result.l1 = (int64_t) floorf(a.f1);
+    result.l0 = sg_cvtf_f32x1_s64x1(a.f0);
+    result.l1 = sg_cvtf_f32x1_s64x1(a.f1);
     return result;
 }
 static inline sg_s32x2 sg_vectorcall(sg_cvtf_generic_ps_s32x2)(
     const sg_generic_ps a)
 {
     sg_generic_s32x2 result;
-    result.i0 = (int32_t) floorf(a.f0);
-    result.i1 = (int32_t) floorf(a.f1);
+    result.i0 = sg_cvtf_f32x1_s32x1(a.f0);
+    result.i1 = sg_cvtf_f32x1_s32x1(a.f1);
     return result;
 }
 
@@ -3139,8 +3249,8 @@ static inline sg_pi32 sg_vectorcall(sg_cvtf_ps_pi32)(const sg_ps a) {
         _mm_castps_si128(_mm_cmpgt_ps(trunc_ps, a)), _mm_set1_epi32(1)));
 }
 static inline sg_pi64 sg_vectorcall(sg_cvtf_ps_pi64)(const sg_ps a) {
-    return sg_set_pi64((int64_t) floorf(sg_get1_ps(a)),
-        (int64_t) floorf(sg_get0_ps(a)));
+    return sg_set_pi64(sg_cvtf_f32x1_s64x1(sg_get1_ps(a))),
+        sg_cvtf_f32x1_s64x1(sg_get0_ps(a)));
 }
 #define sg_cvtf_ps_s32x2(a) sg_cvt_pi32_s32x2(sg_cvtf_ps_pi32(a))
 
@@ -3163,8 +3273,8 @@ static inline sg_generic_pi32 sg_vectorcall(sg_cvtf_generic_pd_pi32)(
     const sg_generic_pd a)
 {
     sg_generic_pi32 result;
-    result.i0 = (int32_t) floor(a.d0);
-    result.i1 = (int32_t) floor(a.d1);
+    result.i0 = sg_cvtf_f64x1_s32x1(a.d0);
+    result.i1 = sg_cvtf_f64x1_s32x1(a.d1);
     result.i2 = 0; result.i3 = 0;
     return result;
 }
@@ -3172,16 +3282,16 @@ static inline sg_generic_pi64 sg_vectorcall(sg_cvtf_generic_pd_pi64)(
     const sg_generic_pd a)
 {
     sg_generic_pi64 result;
-    result.l0 = (int64_t) floor(a.d0);
-    result.l1 = (int64_t) floor(a.d1);
+    result.l0 = sg_cvtf_f64x1_s64x1(a.d0);
+    result.l1 = sg_cvtf_f64x1_s64x1(a.d1);
     return result;
 }
 static inline sg_generic_s32x2 sg_vectorcall(sg_cvtf_generic_pd_s32x2)(
     const sg_generic_pd a)
 {
     sg_generic_s32x2 result;
-    result.i0 = (int32_t) floor(a.d0);
-    result.i1 = (int32_t) floor(a.d1);
+    result.i0 = sg_cvtf_f64x1_s32x1(a.d0);
+    result.i1 = sg_cvtf_f64x1_s32x1(a.d1);
     return result;
 }
 
@@ -3224,8 +3334,8 @@ static inline sg_generic_pi32 sg_vectorcall(sg_cvtf_generic_f32x2_pi32)(
     const sg_generic_f32x2 a)
 {
     sg_generic_pi32 result;
-    result.i0 = (int32_t) floorf(a.f0);
-    result.i1 = (int32_t) floorf(a.f1);
+    result.i0 = sg_cvtf_f32x1_s32x1(a.f0);
+    result.i1 = sg_cvtf_f32x1_s32x1(a.f1);
     result.i2 = 0; result.i3 = 0;
     return result;
 }
@@ -3233,16 +3343,16 @@ static inline sg_generic_pi64 sg_vectorcall(sg_cvtf_generic_f32x2_pi64)(
     const sg_generic_f32x2 a)
 {
     sg_generic_pi64 result;
-    result.l0 = (int64_t) floorf(a.f0);
-    result.l1 = (int64_t) floorf(a.f1);
+    result.l0 = sg_cvtf_f32x1_s64x1(a.f0);
+    result.l1 = sg_cvtf_f32x1_s64x1(a.f1);
     return result;
 }
 static inline sg_generic_s32x2 sg_vectorcall(sg_cvtf_generic_f32x2_s32x2)(
     const sg_generic_f32x2 a)
 {
     sg_generic_s32x2 result;
-    result.i0 = (int32_t) floorf(a.f0);
-    result.i1 = (int32_t) floorf(a.f1);
+    result.i0 = sg_cvtf_f32x1_s32x1(a.f0);
+    result.i1 = sg_cvtf_f32x1_s32x1(a.f1);
     return result;
 }
 
@@ -4671,8 +4781,11 @@ static inline sg_generic_cmp4 sg_vectorcall(sg_set_generic_cmp4)(const bool b3,
 #define sg_setzero_cmp_s32x2() sg_setzero_generic_cmp2()
 #define sg_setzero_cmp_f32x2() sg_setzero_generic_cmp2()
 
-#define sg_set1_cmp_s32x2 sg_set1_generic_cmp2
-#define sg_set1_cmp_f32x2 sg_set1_generic_cmp2
+#define sg_set1cmp_s32x2 sg_set1_generic_cmp2
+#define sg_set1cmp_f32x2 sg_set1_generic_cmp2
+
+#define sg_setcmp_s32x2 sg_set_generic_cmp2
+#define sg_setcmp_f32x2 sg_set_generic_cmp2
 #endif
 
 //
@@ -6975,7 +7088,17 @@ inline Compare_pd sg_vectorcall(operator!=)(const Compare_pd lhs,
 typedef Compare_pd Compare_f64x2;
 
 class Compare_s32x2 {
-    //
+    sg_cmp_s32x2 data_;
+public:
+    Compare_s32x2() : data_{sg_setzero_cmp_s32x2()} {}
+    Compare_s32x2(const bool b) : data_{sg_set1cmp_s32x2(b)} {}
+    Compare_s32x2(const bool b1, const bool b0) :
+        data_{sg_setcmp_s32x2(b1, b0)} {}
+    Compare_s32x2(const sg_cmp_s32x2 cmp) : data_{cmp} {}
+    #if !defined SIMD_GRANODI_FORCE_GENERIC || ! defined SIMD_GRANODI_SSE2
+    Compare_s32x2(const sg_generic_cmp2 cmp) :
+        data_{sg_from_generic_cmp_s32x2(cmp)} {}
+    #endif
 };
 
 class Compare_f32x2 {
@@ -9047,6 +9170,12 @@ template <> inline Vec_ps sg_vectorcall(sg_convert)(const Vec_pi32 x) {
 template <> inline Vec_pd sg_vectorcall(sg_convert)(const Vec_pi32 x) {
     return sg_cvt_pi32_pd(x.data());
 }
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert)(const Vec_pi32 x) {
+    return sg_cvt_pi32_s32x2(x.data());
+}
+template <> inline Vec_f32x2 sg_vectorcall(sg_convert)(const Vec_pi32 x) {
+    return sg_cvt_pi32_f32x2(x.data());
+}
 
 template <> inline Vec_pi32 sg_vectorcall(sg_convert)(const Vec_pi64 x) {
     return sg_cvt_pi64_pi32(x.data());
@@ -9059,6 +9188,12 @@ template <> inline Vec_ps sg_vectorcall(sg_convert)(const Vec_pi64 x) {
 }
 template <> inline Vec_pd sg_vectorcall(sg_convert)(const Vec_pi64 x) {
     return sg_cvt_pi64_pd(x.data());
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert)(const Vec_pi64 x) {
+    return sg_cvt_pi64_s32x2(x.data());
+}
+template <> inline Vec_f32x2 sg_vectorcall(sg_convert)(const Vec_pi64 x) {
+    return sg_cvt_pi64_f32x2(x.data());
 }
 
 template <> inline Vec_pi32 sg_vectorcall(sg_convert_nearest)(const Vec_ps x) {
@@ -9085,6 +9220,18 @@ template <> inline Vec_ps sg_vectorcall(sg_convert)(const Vec_ps x) {
 template <> inline Vec_pd sg_vectorcall(sg_convert)(const Vec_ps x) {
     return sg_cvt_ps_pd(x.data());
 }
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert_nearest)(const Vec_ps x) {
+    return sg_cvt_ps_s32x2(x.data());
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert_truncate)(const Vec_ps x) {
+    return sg_cvtt_ps_s32x2(x.data());
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert_floor)(const Vec_ps x) {
+    return sg_cvtf_ps_s32x2(x.data());
+}
+template <> inline Vec_f32x2 sg_vectorcall(sg_convert)(const Vec_ps x) {
+    return sg_cvt_ps_f32x2(x.data());
+}
 
 template <> inline Vec_pi32 sg_vectorcall(sg_convert_nearest)(const Vec_pd x) {
     return sg_cvt_pd_pi32(x.data());
@@ -9110,6 +9257,78 @@ template <> inline Vec_ps sg_vectorcall(sg_convert)(const Vec_pd x) {
 template <> inline Vec_pd sg_vectorcall(sg_convert)(const Vec_pd x) {
     return x;
 }
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert_nearest)(const Vec_pd x) {
+    return sg_cvt_pd_s32x2(x.data());
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert_truncate)(const Vec_pd x) {
+    return sg_cvtt_pd_s32x2(x.data());
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert_floor)(const Vec_pd x) {
+    return sg_cvtf_pd_s32x2(x.data());
+}
+template <> inline Vec_f32x2 sg_vectorcall(sg_convert)(const Vec_pd x) {
+    return sg_cvt_pd_f32x2(x.data());
+}
+
+template <> inline Vec_pi32 sg_vectorcall(sg_convert)(const Vec_s32x2 x) {
+    return sg_cvt_s32x2_pi32(x.data());
+}
+template <> inline Vec_pi64 sg_vectorcall(sg_convert)(const Vec_s32x2 x) {
+    return sg_cvt_s32x2_pi64(x.data());
+}
+template <> inline Vec_ps sg_vectorcall(sg_convert)(const Vec_s32x2 x) {
+    return sg_cvt_s32x2_ps(x.data());
+}
+template <> inline Vec_pd sg_vectorcall(sg_convert)(const Vec_s32x2 x) {
+    return sg_cvt_s32x2_pd(x.data());
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert)(const Vec_s32x2 x) {
+    return x;
+}
+template <> inline Vec_f32x2 sg_vectorcall(sg_convert)(const Vec_s32x2 x) {
+    return sg_cvt_s32x2_f32x2(x.data());
+}
+
+template <> inline Vec_pi32 sg_vectorcall(sg_convert_nearest)(const Vec_f32x2 x) {
+    return sg_cvt_f32x2_pi32(x.data());
+}
+template <> inline Vec_pi32 sg_vectorcall(sg_convert_truncate)(const Vec_f32x2 x) {
+    return sg_cvtt_f32x2_pi32(x.data());
+}
+template <> inline Vec_pi32 sg_vectorcall(sg_convert_floor)(const Vec_f32x2 x) {
+    return sg_cvtf_f32x2_pi32(x.data());
+}
+template <> inline Vec_pi64 sg_vectorcall(sg_convert_nearest)(const Vec_f32x2 x) {
+    return sg_cvt_f32x2_pi64(x.data());
+}
+template <> inline Vec_pi64 sg_vectorcall(sg_convert_truncate)(const Vec_f32x2 x) {
+    return sg_cvtt_f32x2_pi64(x.data());
+}
+template <> inline Vec_pi64 sg_vectorcall(sg_convert_floor)(const Vec_f32x2 x) {
+    return sg_cvtf_f32x2_pi64(x.data());
+}
+template <> inline Vec_ps sg_vectorcall(sg_convert)(const Vec_f32x2 x) {
+    return sg_cvt_f32x2_ps(x.data());
+}
+template <> inline Vec_pd sg_vectorcall(sg_convert)(const Vec_f32x2 x) {
+    return sg_cvt_f32x2_pd(x.data());
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert_nearest)(const Vec_f32x2 x) {
+    return sg_cvt_f32x2_s32x2(x.data());
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert_truncate)(const Vec_f32x2 x) {
+    return sg_cvtt_f32x2_s32x2(x.data());
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert_floor)(const Vec_f32x2 x) {
+    return sg_cvtf_f32x2_s32x2(x.data());
+}
+template <> inline Vec_f32x2 sg_vectorcall(sg_convert)(const Vec_f32x2 x) {
+    return x;
+}
+
+//
+//
+// Conversion from scalar wrapper types
 
 template <> inline Vec_s32x1 sg_vectorcall(sg_convert)(const Vec_s32x1 x) {
     return x;
@@ -9118,29 +9337,35 @@ template <> inline Vec_pi32 sg_vectorcall(sg_convert)(const Vec_s32x1 x) {
     return x.data();
 }
 template <> inline Vec_s64x1 sg_vectorcall(sg_convert)(const Vec_s32x1 x) {
-    return static_cast<int64_t>(x.data());
+    return sg_cvt_s32x1_s64x1(x.data());
 }
 template <> inline Vec_pi64 sg_vectorcall(sg_convert)(const Vec_s32x1 x) {
-    return sg_convert<Vec_s32x1, Vec_s64x1>(x).data();
+    return sg_cvt_s32x1_s64x1(x.data());
 }
 template <> inline Vec_f32x1 sg_vectorcall(sg_convert)(const Vec_s32x1 x) {
-    return static_cast<float>(x.data());
+    return sg_cvt_s32x1_f32x1(x.data());
 }
 template <> inline Vec_ps sg_vectorcall(sg_convert)(const Vec_s32x1 x) {
-    return sg_convert<Vec_s32x1, Vec_f32x1>(x).data();
+    return sg_cvt_s32x1_f32x1(x.data());
 }
 template <> inline Vec_f64x1 sg_vectorcall(sg_convert)(const Vec_s32x1 x) {
-    return static_cast<double>(x.data());
+    return sg_cvt_s32x1_s64x1(x.data());
 }
 template <> inline Vec_pd sg_vectorcall(sg_convert)(const Vec_s32x1 x) {
-    return sg_convert<Vec_s32x1, Vec_f64x1>(x).data();
+    return sg_cvt_s32x1_f64x1(x.data());
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert)(const Vec_s32x1 x) {
+    return x.data();
+}
+template <> inline Vec_f32x2 sg_vectorcall(sg_convert)(const Vec_s32x1 x) {
+    return sg_cvt_s32x1_f32x1(x.data());
 }
 
 template <> inline Vec_s32x1 sg_vectorcall(sg_convert)(const Vec_s64x1 x) {
-    return static_cast<int32_t>(x.data() & 0xffffffff);
+    return sg_cvt_s64x1_s32x1(x.data());
 }
 template <> inline Vec_pi32 sg_vectorcall(sg_convert)(const Vec_s64x1 x) {
-    return sg_convert<Vec_s64x1, Vec_s32x1>(x).data();
+    return sg_cvt_s64x1_s32x1(x.data());
 }
 template <> inline Vec_s64x1 sg_vectorcall(sg_convert)(const Vec_s64x1 x) {
     return x;
@@ -9149,72 +9374,77 @@ template <> inline Vec_pi64 sg_vectorcall(sg_convert)(const Vec_s64x1 x) {
     return x.data();
 }
 template <> inline Vec_f32x1 sg_vectorcall(sg_convert)(const Vec_s64x1 x) {
-    return static_cast<float>(x.data());
+    return sg_cvt_s64x1_f32x1(x.data());
 }
 template <> inline Vec_ps sg_vectorcall(sg_convert)(const Vec_s64x1 x) {
-    return sg_convert<Vec_s64x1, Vec_f32x1>(x).data();
+    return sg_cvt_s64x1_f32x1(x.data());
 }
 template <> inline Vec_f64x1 sg_vectorcall(sg_convert)(const Vec_s64x1 x) {
-    return static_cast<double>(x.data());
+    return sg_cvt_s64x1_f64x1(x.data());
 }
 template <> inline Vec_pd sg_vectorcall(sg_convert)(const Vec_s64x1 x) {
-    return sg_convert<Vec_s64x1, Vec_f64x1>(x).data();
+    return sg_cvt_s64x1_f64x1(x.data());
 }
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert)(const Vec_s64x1 x) {
+    return sg_cvt_s64x1_s32x1(x.data());
+}
+template <> inline Vec_f32x2 sg_vectorcall(sg_convert)(const Vec_s64x1 x) {
+    return sg_cvt_s64x1_f32x1(x.data());
 
 template <> inline Vec_s32x1 sg_vectorcall(sg_convert_nearest)(
     const Vec_f32x1 x)
 {
-    return static_cast<int32_t>(std::rint(x.data()));
+    return sg_cvt_f32x1_s32x1(x.data());
 }
 template <> inline Vec_pi32 sg_vectorcall(sg_convert_nearest)(
     const Vec_f32x1 x)
 {
-    return sg_convert_nearest<Vec_f32x1, Vec_s32x1>(x).data();
+    return sg_cvt_f32x1_s32x1(x.data());
 }
 template <> inline Vec_s32x1 sg_vectorcall(sg_convert_truncate)(
     const Vec_f32x1 x)
 {
-    return static_cast<int32_t>(x.data());
+    return sg_cvtt_f32x1_s32x1(x.data());
 }
 template <> inline Vec_pi32 sg_vectorcall(sg_convert_truncate)(
     const Vec_f32x1 x)
 {
-    return sg_convert_truncate<Vec_f32x1, Vec_s32x1>(x).data();
+    return sg_cvtt_f32x1_s32x1(x.data());
 }
 template <> inline Vec_s32x1 sg_vectorcall(sg_convert_floor)(
     const Vec_f32x1 x)
 {
-    return static_cast<int32_t>(std::floor(x.data()));
+    return sg_cvtf_f32x1_s32x1(x.data());
 }
 template <> inline Vec_pi32 sg_vectorcall(sg_convert_floor)(const Vec_f32x1 x) {
-    return sg_convert_floor<Vec_f32x1, Vec_s32x1>(x).data();
+    return sg_cvtf_f32x1_s32x1(x.data());
 }
 template <> inline Vec_s64x1 sg_vectorcall(sg_convert_nearest)(
     const Vec_f32x1 x)
 {
-    return static_cast<int64_t>(std::rint(x.data()));
+    return sg_cvt_f32x1_s64x1(x.data());
 }
 template <> inline Vec_pi64 sg_vectorcall(sg_convert_nearest)(
     const Vec_f32x1 x)
 {
-    return sg_convert_nearest<Vec_f32x1, Vec_s64x1>(x).data();
+    return sg_cvt_f32x1_s64x1(x.data());
 }
 template <> inline Vec_s64x1 sg_vectorcall(sg_convert_truncate)(
     const Vec_f32x1 x)
 {
-    return static_cast<int64_t>(x.data());
+    return sg_cvtt_f32x1_s64x1(x.data());
 }
 template <> inline Vec_pi64 sg_vectorcall(sg_convert_truncate)(
     const Vec_f32x1 x)
 {
-    return sg_convert_truncate<Vec_f32x1, Vec_s64x1>(x).data();
+    return sg_cvtt_f32x1_s64x1(x.data());
 }
 template <> inline Vec_s64x1 sg_vectorcall(sg_convert_floor)(const Vec_f32x1 x)
 {
-    return static_cast<int64_t>(std::floor(x.data()));
+    return sg_cvtf_f32x1_s64x1(x.data());
 }
 template <> inline Vec_pi64 sg_vectorcall(sg_convert_floor)(const Vec_f32x1 x) {
-    return sg_convert_floor<Vec_f32x1, Vec_s64x1>(x).data();
+    return sg_cvtf_f32x1_s64x1(x.data());
 }
 template <> inline Vec_f32x1 sg_vectorcall(sg_convert)(const Vec_f32x1 x) {
     return x;
@@ -9223,76 +9453,100 @@ template <> inline Vec_ps sg_vectorcall(sg_convert)(const Vec_f32x1 x) {
     return x.data();
 }
 template <> inline Vec_f64x1 sg_vectorcall(sg_convert)(const Vec_f32x1 x) {
-    return static_cast<double>(x.data());
+    return sg_cvt_f32x1_f64x1(x.data());
 }
 template <> inline Vec_pd sg_vectorcall(sg_convert)(const Vec_f32x1 x) {
-    return sg_convert<Vec_f32x1, Vec_f64x1>(x).data();
+    return sg_cvt_f32x1_f64x1(x.data());
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert_nearest)(const Vec_f32x1 x) {
+    return sg_cvt_f32x1_s32x1(x.data());
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert_truncate)(const Vec_f32x1 x) {
+    return sg_cvtt_f32x1_s32x1(x.data());
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert_floor)(const Vec_f32x1 x) {
+    return sg_cvtf_f32x1_s32x1(x.data());
+}
+template <> inline Vec_f32x2 sg_vectorcall(sg_convert)(const Vec_f32x1 x) {
+    return x.data();
 }
 
 template <> inline Vec_s32x1 sg_vectorcall(sg_convert_nearest)(
     const Vec_f64x1 x)
 {
-    return static_cast<int32_t>(std::rint(x.data()));
+    return sg_cvt_f64x1_s32x1(x.data());
 }
 template <> inline Vec_pi32 sg_vectorcall(sg_convert_nearest)(const Vec_f64x1 x)
 {
-    return sg_convert_nearest<Vec_f64x1, Vec_s32x1>(x).data();
+    return sg_cvt_f64x1_s32x1(x.data());
 }
 template <> inline Vec_s32x1 sg_vectorcall(sg_convert_truncate)(
     const Vec_f64x1 x)
 {
-    return static_cast<int32_t>(x.data());
+    return sg_cvtt_f64x1_s32x1(x.data());
 }
 template <> inline Vec_pi32 sg_vectorcall(sg_convert_truncate)(
     const Vec_f64x1 x)
 {
-    return sg_convert_truncate<Vec_f64x1, Vec_s32x1>(x).data();
+    return sg_cvtt_f64x1_s32x1(x.data());
 }
 template <> inline Vec_s32x1 sg_vectorcall(sg_convert_floor)(
     const Vec_f64x1 x)
 {
-    return static_cast<int32_t>(std::floor(x.data()));
+    return sg_cvtf_f64x1_s32x1(x.data());
 }
 template <> inline Vec_pi32 sg_vectorcall(sg_convert_floor)(const Vec_f64x1 x) {
-    return sg_convert_floor<Vec_f64x1, Vec_s32x1>(x).data();
+    return sg_cvtf_f64x1_s32x1(x.data());
 }
 template <> inline Vec_s64x1 sg_vectorcall(sg_convert_nearest)(
     const Vec_f64x1 x)
 {
-    return static_cast<int64_t>(std::rint(x.data()));
+    return sg_cvt_f64x1_s64x1(x.data());
 }
 template <> inline Vec_pi64 sg_vectorcall(sg_convert_nearest)(const Vec_f64x1 x)
 {
-    return sg_convert_nearest<Vec_f64x1, Vec_s64x1>(x).data();
+    return sg_cvt_f64x1_s64x1((x.data());
 }
 template <> inline Vec_s64x1 sg_vectorcall(sg_convert_truncate)(
     const Vec_f64x1 x)
 {
-    return static_cast<int64_t>(x.data());
+    return sg_cvtt_f64x1_s64x1(x.data());
 }
 template <> inline Vec_pi64 sg_vectorcall(sg_convert_truncate)(
     const Vec_f64x1 x)
 {
-    return sg_convert_truncate<Vec_f64x1, Vec_pi64>(x).data();
+    return sg_cvtt_f64x1_s64x1(x.data());
 }
 template <> inline Vec_s64x1 sg_vectorcall(sg_convert_floor)(const Vec_f64x1 x)
 {
-    return static_cast<int64_t>(std::floor(x.data()));
+    return sg_cvtf_f64x1_s64x1(x.data());
 }
 template <> inline Vec_pi64 sg_vectorcall(sg_convert_floor)(const Vec_f64x1 x) {
-    return sg_convert_floor<Vec_f64x1, Vec_s64x1>(x).data();
+    return sg_cvtf_f64x1_s64x1(x.data());
 }
 template <> inline Vec_f32x1 sg_vectorcall(sg_convert)(const Vec_f64x1 x) {
-    return static_cast<float>(x.data());
+    return sg_cvt_f64x1_f32x1(x.data());
 }
 template <> inline Vec_ps sg_vectorcall(sg_convert)(const Vec_f64x1 x) {
-    return sg_convert<Vec_f64x1, Vec_f32x1>(x).data();
+    return sg_cvt_f64x1_f32x1(x.data());
 }
 template <> inline Vec_f64x1 sg_vectorcall(sg_convert)(const Vec_f64x1 x) {
     return x;
 }
 template <> inline Vec_pd sg_vectorcall(sg_convert)(const Vec_f64x1 x) {
     return x.data();
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert_nearest)(const Vec_f64x1 x) {
+    return sg_cvt_f64x1_s32x1(x.data());
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert_truncate)(const Vec_f64x1 x) {
+    return sg_cvtt_f64x1_s32x1(x.data());
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_convert_floor)(const Vec_f64x1 x) {
+    return sg_cvtf_f64x1_s32x1(x.data());
+}
+template <> inline Vec_f32x2 sg_vectorcall(sg_convert)(const Vec_f64x1 x) {
+    return sg_cvt_f64x1_f32x1(x.data());
 }
 
 //
@@ -9351,6 +9605,30 @@ template <> inline Vec_pd sg_vectorcall(sg_bitcast)(const Vec_pd x) {
     return x;
 }
 
+template <> inline Vec_s64x1 sg_vectorcall(sg_bitcast)(const Vec_s32x2 x) {
+    return sg_bitcast_s32x2_s64x1(x.data());
+}
+template <> inline Vec_f64x1 sg_vectorcall(sg_bitcast)(const Vec_s32x2 x) {
+    return sg_bitcast_s32x2_f64x1(x.data());
+}
+template <> inline sg_f32x2 sg_vectorcall(sg_bitcast)(const Vec_s32x2 x) {
+    return sg_bitcast_s32x2_f32x2(x.data());
+}
+
+template <> inline Vec_s64x1 sg_vectorcall(sg_bitcast)(const Vec_f32x2 x) {
+    return sg_bitcast_f32x2_s64x1(x.data());
+}
+template <> inline Vec_f64x1 sg_vectorcall(sg_bitcast)(const Vec_f32x2 x) {
+    return sg_bitcast_f32x2_double(x.data());
+}
+template <> inline Vec_f64x1 sg_vectorcall(sg_bitcast)(const Vec_f32x2 x) {
+    return sg_bitcast_f32x2_s32x2(x.data());
+}
+
+//
+//
+// Bitcast from scalar types
+
 template <> inline Vec_s32x1 sg_vectorcall(sg_bitcast)(const Vec_s32x1 x) {
     return x;
 }
@@ -9363,6 +9641,12 @@ template <> inline Vec_s64x1 sg_vectorcall(sg_bitcast)(const Vec_s64x1 x) {
 }
 template <> inline Vec_f64x1 sg_vectorcall(sg_bitcast)(const Vec_s64x1 x) {
     return sg_bitcast_s64x1_f64x1(x.data());
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_bitcast)(const Vec_s64x1 x) {
+    return sg_bitcast_s64x1_s32x2(x.data());
+}
+template <> inline Vec_f32x2 sg_vectorcall(sg_bitcast)(const Vec_s64x1 x) {
+    return sg_bitcast_s64x1_f32x2(x.data());
 }
 
 template <> inline Vec_s32x1 sg_vectorcall(sg_bitcast)(const Vec_f32x1 x) {
@@ -9377,6 +9661,12 @@ template <> inline Vec_s64x1 sg_vectorcall(sg_bitcast)(const Vec_f64x1 x) {
 }
 template <> inline Vec_f64x1 sg_vectorcall(sg_bitcast)(const Vec_f64x1 x) {
     return x;
+}
+template <> inline Vec_s32x2 sg_vectorcall(sg_bitcast)(const Vec_f64x1 x) {
+    return sg_bitcast_f64x1_s32x2(x.data());
+}
+template <> inline Vec_f32x2 sg_vectorcall(sg_bitcast)(const Vec_f64x1 x) {
+    return sg_bitcast_f64x1_f32x2(x.data());
 }
 
 //
@@ -9401,6 +9691,14 @@ template <> inline Compare_pd sg_vectorcall(sg_convert)(const Compare_pi32 cmp)
 {
     return sg_cvtcmp_pi32_pd(cmp.data());
 }
+template <> inline Compare_s32x2 sg_vectorcall(sg_convert)(const Compare_pi32 cmp)
+{
+    return sg_cvtcmp_pi32_s32x2(cmp.data());
+}
+template <> inline Compare_f32x2 sg_vectorcall(sg_convert)(const Compare_pi32 cmp)
+{
+    return sg_cvtcmp_pi32_f32x2(cmp.data());
+}
 
 template <> inline Compare_pi32 sg_vectorcall(sg_convert)(
     const Compare_pi64 cmp)
@@ -9420,6 +9718,14 @@ template <> inline Compare_pd sg_vectorcall(sg_convert)(const Compare_pi64 cmp)
 {
     return sg_cvtcmp_pi64_pd(cmp.data());
 }
+template <> inline Compare_s32x2 sg_vectorcall(sg_convert)(const Compare_pi64 cmp)
+{
+    return sg_cvtcmp_pi64_s32x2(cmp.data());
+}
+template <> inline Compare_f32x2 sg_vectorcall(sg_convert)(const Compare_pi64 cmp)
+{
+    return sg_cvtcmp_pi64_f32x2(cmp.data());
+}
 
 template <> inline Compare_pi32 sg_vectorcall(sg_convert)(const Compare_ps cmp)
 {
@@ -9435,6 +9741,14 @@ template <> inline Compare_ps sg_vectorcall(sg_convert)(const Compare_ps cmp) {
 template <> inline Compare_pd sg_vectorcall(sg_convert)(const Compare_ps cmp) {
     return sg_cvtcmp_ps_pd(cmp.data());
 }
+template <> inline Compare_s32x2 sg_vectorcall(sg_convert)(const Compare_ps cmp)
+{
+    return sg_cvtcmp_ps_s32x2(cmp.data());
+}
+template <> inline Compare_f32x2 sg_vectorcall(sg_convert)(const Compare_ps cmp)
+{
+    return sg_cvtcmp_ps_f32x2(cmp.data());
+}
 
 template <> inline Compare_pi32 sg_vectorcall(sg_convert)(const Compare_pd cmp)
 {
@@ -9448,6 +9762,64 @@ template <> inline Compare_ps sg_vectorcall(sg_convert)(const Compare_pd cmp) {
     return sg_cvtcmp_pd_ps(cmp.data());
 }
 template <> inline Compare_pd sg_vectorcall(sg_convert)(const Compare_pd cmp) {
+    return cmp;
+}
+template <> inline Compare_s32x2 sg_vectorcall(sg_convert)(const Compare_pd cmp)
+{
+    return sg_cvtcmp_pd_s32x2(cmp.data());
+}
+template <> inline Compare_f32x2 sg_vectorcall(sg_convert)(const Compare_pd cmp)
+{
+    return sg_cvtcmp_pd_f32x2(cmp.data());
+}
+
+template <> inline Compare_pi32 sg_vectorcall(sg_convert)(const Compare_s32x2 cmp)
+{
+    return sg_cvtcmp_s32x2_pi32(cmp.data());
+}
+template <> inline Compare_pi64 sg_vectorcall(sg_convert)(const Compare_s32x2 cmp)
+{
+    return sg_cvtcmp_s32x2_pi64(cmp.data());
+}
+template <> inline Compare_ps sg_vectorcall(sg_convert)(const Compare_s32x2 cmp)
+{
+    return sg_cvtcmp_s32x2_ps(cmp.data());
+}
+template <> inline Compare_pd sg_vectorcall(sg_convert)(const Compare_s32x2 cmp)
+{
+    return sg_cvtcmp_s32x2_pd(cmp.data());
+}
+template <> inline Compare_s32x2 sg_vectorcall(sg_convert)(const Compare_s32x2 cmp)
+{
+    return cmp;
+}
+template <> inline Compare_f32x2 sg_vectorcall(sg_convert)(const Compare_s32x2 cmp)
+{
+    return sg_cvtcmp_s32x2_f32x2(cmp);
+}
+
+template <> inline Compare_pi32 sg_vectorcall(sg_convert)(const Compare_f32x2 cmp)
+{
+    return sg_cvtcmp_f32x2_pi32(cmp.data());
+}
+template <> inline Compare_pi64 sg_vectorcall(sg_convert)(const Compare_f32x2 cmp)
+{
+    return sg_cvtcmp_f32x2_pi64(cmp.data());
+}
+template <> inline Compare_ps sg_vectorcall(sg_convert)(const Compare_f32x2 cmp)
+{
+    return sg_cvtcmp_f32x2_ps(cmp.data());
+}
+template <> inline Compare_pd sg_vectorcall(sg_convert)(const Compare_f32x2 cmp)
+{
+    return sg_cvtcmp_f32x2_pd(cmp.data());
+}
+template <> inline Compare_s32x2 sg_vectorcall(sg_convert)(const Compare_f32x2 cmp)
+{
+    return sg_cvtcmp_f32x2_s32x2(cmp.data());
+}
+template <> inline Compare_f32x2 sg_vectorcall(sg_convert)(const Compare_f32x2 cmp)
+{
     return cmp;
 }
 

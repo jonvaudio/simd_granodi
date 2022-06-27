@@ -769,6 +769,41 @@ void test_shift() {
 }
 
 void test_cmp() {
+    // Test set
+    assert_eq_cmp_pi32(sg_setzero_cmp_pi32(), false, false, false, false);
+    assert_eq_cmp_pi32(sg_set1cmp_pi32(true), true, true, true, true);
+    assert_eq_cmp_pi32(sg_setcmp_pi32(true, false, true, false),
+        true, false, true, false);
+    assert_eq_cmp_pi32(sg_setcmp_pi32(false, true, false, true),
+        false, true, false, true);
+    
+    assert_eq_cmp_pi64(sg_setzero_cmp_pi64(), false, false);
+    assert_eq_cmp_pi64(sg_set1cmp_pi64(true), true, true);
+    assert_eq_cmp_pi64(sg_setcmp_pi64(true, false), true, false);
+    assert_eq_cmp_pi64(sg_setcmp_pi64(false, true), false, true);
+
+    assert_eq_cmp_ps(sg_setzero_cmp_ps(), false, false, false, false);
+    assert_eq_cmp_ps(sg_set1cmp_ps(true), true, true, true, true);
+    assert_eq_cmp_ps(sg_setcmp_ps(true, false, true, false),
+        true, false, true, false);
+    assert_eq_cmp_ps(sg_setcmp_ps(false, true, false, true),
+        false, true, false, true);
+
+    assert_eq_cmp_pd(sg_setzero_cmp_pd(), false, false);
+    assert_eq_cmp_pd(sg_set1cmp_pd(true), true, true);
+    assert_eq_cmp_pd(sg_setcmp_pd(true, false), true, false);
+    assert_eq_cmp_pd(sg_setcmp_pd(false, true), false, true);
+
+    assert_eq_cmp_s32x2(sg_setzero_cmp_s32x2(), false, false);
+    assert_eq_cmp_s32x2(sg_set1cmp_s32x2(true), true, true);
+    assert_eq_cmp_s32x2(sg_setcmp_s32x2(true, false), true, false);
+    assert_eq_cmp_s32x2(sg_setcmp_s32x2(false, true), false, true);
+
+    assert_eq_cmp_f32x2(sg_setzero_cmp_f32x2(), false, false);
+    assert_eq_cmp_f32x2(sg_set1cmp_f32x2(true), true, true);
+    assert_eq_cmp_f32x2(sg_setcmp_f32x2(true, false), true, false);
+    assert_eq_cmp_f32x2(sg_setcmp_f32x2(false, true), false, true);
+
     // Test that 0.0 and -0.0 are equal
     const sg_ps z_ps = sg_setzero_ps(), nz_ps = sg_set1_ps(-0.0f);
     const sg_pd z_pd = sg_setzero_pd(), nz_pd = sg_set1_pd(-0.0);
