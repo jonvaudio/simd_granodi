@@ -2438,7 +2438,7 @@ static inline double sg_vectorcall(sg_cvt_s64x1_f64x1)(int64_t a) {
 static inline int32_t sg_vectorcall(sg_cvt_f32x1_s32x1)(float a) {
     return (int32_t) rintf(a);
 }
-static inline int32_t sg_vectorcall(sg_cvtt_f32x1_s32x1(float a) {
+static inline int32_t sg_vectorcall(sg_cvtt_f32x1_s32x1)(float a) {
     return (int32_t) a;
 }
 static inline int32_t sg_vectorcall(sg_cvtf_f32x1_s32x1)(float a) {
@@ -3249,7 +3249,7 @@ static inline sg_pi32 sg_vectorcall(sg_cvtf_ps_pi32)(const sg_ps a) {
         _mm_castps_si128(_mm_cmpgt_ps(trunc_ps, a)), _mm_set1_epi32(1)));
 }
 static inline sg_pi64 sg_vectorcall(sg_cvtf_ps_pi64)(const sg_ps a) {
-    return sg_set_pi64(sg_cvtf_f32x1_s64x1(sg_get1_ps(a))),
+    return sg_set_pi64(sg_cvtf_f32x1_s64x1(sg_get1_ps(a)),
         sg_cvtf_f32x1_s64x1(sg_get0_ps(a)));
 }
 #define sg_cvtf_ps_s32x2(a) sg_cvt_pi32_s32x2(sg_cvtf_ps_pi32(a))
@@ -6529,6 +6529,9 @@ static inline sg_generic_f32x2 sg_vectorcall(sg_neg_generic_f32x2)(
 #define sg_minus_infinity_pd sg_set1_pd(sg_minus_infinity_f64x1)
 #define sg_infinity_pd sg_set1_pd(sg_infinity_f64x1)
 
+#define sg_minus_infinity_f32x2 sg_set1_f32x2(sg_minus_infinity_f32x1)
+#define sg_infinity_f32x2 sg_set1_f32x2(sg_infinity_f32x1)
+
 //
 //
 //
@@ -7095,15 +7098,117 @@ public:
     Compare_s32x2(const bool b1, const bool b0) :
         data_{sg_setcmp_s32x2(b1, b0)} {}
     Compare_s32x2(const sg_cmp_s32x2 cmp) : data_{cmp} {}
-    #if !defined SIMD_GRANODI_FORCE_GENERIC || ! defined SIMD_GRANODI_SSE2
+    #if !defined SIMD_GRANODI_FORCE_GENERIC && !defined SIMD_GRANODI_SSE2
     Compare_s32x2(const sg_generic_cmp2 cmp) :
         data_{sg_from_generic_cmp_s32x2(cmp)} {}
     #endif
+
+    sg_cmp_s32x2 sg_vectorcall(data)() const { return data_; }
+
+    Compare_s32x2 sg_vectorcall(operator&&)(const Compare_s32x2 rhs) const {
+        return sg_and_cmp_s32x2(data_, rhs.data());
+    }
+
+    Compare_s32x2 sg_vectorcall(operator||)(const Compare_s32x2 rhs) const {
+        return sg_or_cmp_s32x2(data_, rhs.data());
+    }
+
+    Compare_s32x2 sg_vectorcall(operator!)() const {
+        return sg_not_cmp_s32x2(data_);
+    }
+
+    bool sg_vectorcall(debug_valid_eq)(const bool b1, const bool b0) const
+    {
+        return sg_debug_cmp_valid_eq_s32x2(data_, b1, b0);
+    }
+    bool sg_vectorcall(debug_valid_eq)(const bool b) const {
+        return debug_valid_eq(b, b);
+    }
+
+    template <typename To>
+    To sg_vectorcall(to)() const { return sg_convert<Compare_s32x2, To>(*this); }
+
+    template <typename From>
+    static Compare_s32x2 sg_vectorcall(from)(const From x) {
+        return sg_convert<From, Compare_s32x2>(x);
+    }
+
+    inline Vec_s32x2 sg_vectorcall(choose_else_zero)(const Vec_s32x2 if_true)
+        const;
+    inline Vec_s32x2 sg_vectorcall(choose)(const Vec_s32x2 if_true,
+        const Vec_s32x2 if_false) const;
 };
 
+inline Compare_s32x2 sg_vectorcall(operator==)(const Compare_s32x2 lhs,
+    const Compare_s32x2 rhs)
+{
+    return sg_cmpeq_cmp_s32x2(lhs.data(), rhs.data());
+}
+inline Compare_s32x2 sg_vectorcall(operator!=)(const Compare_s32x2 lhs,
+    const Compare_s32x2 rhs)
+{
+    return sg_cmpneq_cmp_s32x2(lhs.data(), rhs.data());
+}
+
 class Compare_f32x2 {
-    //
+    sg_cmp_f32x2 data_;
+public:
+    Compare_f32x2() : data_{sg_setzero_cmp_s32x2()} {}
+    Compare_f32x2(const bool b) : data_{sg_set1cmp_f32x2(b)} {}
+    Compare_f32x2(const bool b1, const bool b0) :
+        data_{sg_setcmp_f32x2(b1, b0)} {}
+    Compare_f32x2(const sg_cmp_f32x2 cmp) : data_{cmp} {}
+    #if !defined SIMD_GRANODI_FORCE_GENERIC && !defined SIMD_GRANODI_SSE2
+    Compare_f32x2(const sg_generic_cmp2 cmp) :
+        data_{sg_from_generic_cmp_f32x2(cmp)} {}
+    #endif
+
+    sg_cmp_f32x2 sg_vectorcall(data)() const { return data_; }
+
+    Compare_f32x2 sg_vectorcall(operator&&)(const Compare_f32x2 rhs) const {
+        return sg_and_cmp_f32x2(data_, rhs.data());
+    }
+
+    Compare_f32x2 sg_vectorcall(operator||)(const Compare_f32x2 rhs) const {
+        return sg_or_cmp_f32x2(data_, rhs.data());
+    }
+
+    Compare_f32x2 sg_vectorcall(operator!)() const {
+        return sg_not_cmp_f32x2(data_);
+    }
+
+    bool sg_vectorcall(debug_valid_eq)(const bool b1, const bool b0) const
+    {
+        return sg_debug_cmp_valid_eq_f32x2(data_, b1, b0);
+    }
+    bool sg_vectorcall(debug_valid_eq)(const bool b) const {
+        return debug_valid_eq(b, b);
+    }
+
+    template <typename To>
+    To sg_vectorcall(to)() const { return sg_convert<Compare_f32x2, To>(*this); }
+
+    template <typename From>
+    static Compare_f32x2 sg_vectorcall(from)(const From x) {
+        return sg_convert<From, Compare_f32x2>(x);
+    }
+
+    inline Vec_f32x2 sg_vectorcall(choose_else_zero)(const Vec_f32x2 if_true)
+        const;
+    inline Vec_f32x2 sg_vectorcall(choose)(const Vec_f32x2 if_true,
+        const Vec_f32x2 if_false) const;
 };
+
+inline Compare_f32x2 sg_vectorcall(operator==)(const Compare_f32x2 lhs,
+    const Compare_f32x2 rhs)
+{
+    return sg_cmpeq_cmp_f32x2(lhs.data(), rhs.data());
+}
+inline Compare_f32x2 sg_vectorcall(operator!=)(const Compare_f32x2 lhs,
+    const Compare_f32x2 rhs)
+{
+    return sg_cmpneq_cmp_f32x2(lhs.data(), rhs.data());
+}
 
 // Macros for consistency inside templated methods
 
@@ -7152,8 +7257,10 @@ public:
     using compare_t = Compare_pi32;
 
     using equiv_int_t = Vec_pi32;
-    using fast_int_t = Vec_pi32;
     using equiv_float_t = Vec_ps;
+
+    using fast_convert_int_t = Vec_pi32;
+    using fast_register_t = Vec_pi32;
 
     static constexpr bool is_int_t = true, is_float_t = false;
 
@@ -7393,12 +7500,13 @@ public:
     using compare_t = Compare_pi64;
 
     using equiv_int_t = Vec_pi64;
-    #ifdef SIMD_GRANODI_SSE2
-    using fast_int_t = Vec_pi32;
-    #else
-    using fast_int_t = Vec_pi64;
-    #endif
     using equiv_float_t = Vec_pd;
+    #ifdef SIMD_GRANODI_SSE2
+    using fast_convert_int_t = Vec_pi32;
+    #else
+    using fast_convert_int_t = Vec_pi64;
+    #endif
+    using fast_register_t = Vec_pi64;
 
     static constexpr bool is_int_t = true, is_float_t = false;
 
@@ -7640,8 +7748,9 @@ public:
     using compare_t = Compare_ps;
 
     using equiv_int_t = Vec_pi32;
-    using fast_int_t = Vec_pi32;
     using equiv_float_t = Vec_ps;
+    using fast_convert_int_t = Vec_pi32;
+    using fast_register_t = Vec_ps;
 
     static constexpr bool is_int_t = false, is_float_t = true;
 
@@ -7891,12 +8000,13 @@ public:
     using compare_t = Compare_pd;
 
     using equiv_int_t = Vec_pi64;
-    #ifdef SIMD_GRANODI_SSE2
-    using fast_int_t = Vec_pi32;
-    #else
-    using fast_int_t = Vec_pi64;
-    #endif
     using equiv_float_t = Vec_pd;
+    #ifdef SIMD_GRANODI_SSE2
+    using fast_convert_int_t = Vec_pi32;
+    #else
+    using fast_convert_int_t = Vec_pi64;
+    #endif
+    using fast_register_t = Vec_pd;
 
     static constexpr bool is_int_t = false, is_float_t = true;
 
@@ -8112,6 +8222,488 @@ public:
 
 typedef Vec_pd Vec_f64x2;
 
+class Vec_s32x2 {
+    sg_s32x2 data_;
+public:
+    Vec_s32x2() : data_{sg_setzero_s32x2()} {}
+    Vec_s32x2(const int32_t i) : data_{sg_set1_s32x2(i)} {}
+    Vec_s32x2(const int32_t i1, const int32_t i0) :
+        data_{sg_set_s32x2(i1, i0)} {}
+    Vec_s32x2(const sg_s32x2 s32x2) : data_{s32x2} {}
+    #if !defined SIMD_GRANODI_FORCE_GENERIC && !defined SIMD_GRANODI_SSE2
+    Vec_s32x2(const sg_generic_s32x2 g)
+        : data_{sg_from_generic_s32x2(g)} {}
+    #endif
+
+    using elem_t = int32_t;
+    using scalar_t = Vec_s32x1;
+    using vec128_t = Vec_pi32;
+    using compare_t = Compare_s32x2;
+
+    using equiv_int_t = Vec_s32x2;
+    using equiv_float_t = Vec_f32x2;
+
+    using fast_convert_int_t = Vec_s32x2;
+    #ifdef SIMD_GRANODI_SSE2
+    using fast_register_t = Vec_pi32;
+    #else
+    using fast_register_t = Vec_s32x2;
+    #endif
+
+    static constexpr bool is_int_t = true, is_float_t = false;
+
+    static constexpr std::size_t elem_size = sizeof(int32_t),
+        elem_count = 2;
+
+    static Vec_s32x2 sg_vectorcall(bitcast_from_u32)(const uint32_t i) {
+        return sg_set1_from_u32_s32x2(i);
+    }
+    static Vec_s32x2 sg_vectorcall(bitcast_from_u32)(const uint32_t i1,
+        const uint32_t i0)
+    {
+        return sg_set_from_u32_s32x2(i1, i0);
+    }
+
+    static Vec_s32x2 sg_vectorcall(set_duo)(const int32_t i1, const int32_t i0) {
+        return sg_set_s32x2(i1, i0);
+    }
+
+    sg_s32x2 sg_vectorcall(data)() const { return data_; }
+
+    int32_t sg_vectorcall(i0)() const { return sg_get0_s32x2(data_); }
+    int32_t sg_vectorcall(i1)() const { return sg_get1_s32x2(data_); }
+
+    template <int32_t i> int32_t sg_vectorcall(get)() const {
+        sassert_index_x2(i);
+        return sg_get0_s32x2(sg_shuffle_s32x2(data_, 1, i));
+    }
+
+    Vec_s32x2& sg_vectorcall(operator++)() {
+        data_ = sg_add_s32x2(data_, sg_set1_s32x2(1));
+        return *this;
+    }
+    Vec_s32x2 sg_vectorcall(operator++)(int) {
+        Vec_s32x2 old = *this;
+        operator++();
+        return old;
+    }
+
+    Vec_s32x2& sg_vectorcall(operator--)() {
+        data_ = sg_sub_s32x2(data_, sg_set1_s32x2(1));
+        return *this;
+    }
+    Vec_s32x2 sg_vectorcall(operator--)(int) {
+        Vec_s32x2 old = *this;
+        operator--();
+        return old;
+    }
+
+    Vec_s32x2& sg_vectorcall(operator+=)(const Vec_s32x2 rhs) {
+        data_ = sg_add_s32x2(data_, rhs.data());
+        return *this;
+    }
+    friend Vec_s32x2 sg_vectorcall(operator+)(Vec_s32x2 lhs,
+        const Vec_s32x2 rhs)
+    {
+        lhs += rhs;
+        return lhs;
+    }
+    Vec_s32x2 sg_vectorcall(operator+)() const { return *this; }
+
+    Vec_s32x2& sg_vectorcall(operator-=)(const Vec_s32x2 rhs) {
+        data_ = sg_sub_s32x2(data_, rhs.data());
+        return *this;
+    }
+    friend Vec_s32x2 sg_vectorcall(operator-)(Vec_s32x2 lhs, const Vec_s32x2 rhs) {
+        lhs -= rhs;
+        return lhs;
+    }
+    Vec_s32x2 sg_vectorcall(operator-)() const { return sg_neg_s32x2(data_); }
+
+    Vec_s32x2& sg_vectorcall(operator*=)(const Vec_s32x2 rhs) {
+        data_ = sg_mul_s32x2(data_, rhs.data());
+        return *this;
+    }
+    friend Vec_s32x2 sg_vectorcall(operator*)(Vec_s32x2 lhs, const Vec_s32x2 rhs) {
+        lhs *= rhs;
+        return lhs;
+    }
+
+    Vec_s32x2& sg_vectorcall(operator/=)(const Vec_s32x2 rhs) {
+        data_ = sg_div_s32x2(data_, rhs.data());
+        return *this;
+    }
+    friend Vec_s32x2 sg_vectorcall(operator/)(Vec_s32x2 lhs, const Vec_s32x2 rhs) {
+        lhs /= rhs;
+        return lhs;
+    }
+
+    Vec_s32x2& sg_vectorcall(operator&=)(const Vec_s32x2 rhs) {
+        data_ = sg_and_s32x2(data_, rhs.data());
+        return *this;
+    }
+    friend Vec_s32x2 sg_vectorcall(operator&)(Vec_s32x2 lhs, const Vec_s32x2 rhs) {
+        lhs &= rhs;
+        return lhs;
+    }
+
+    Vec_s32x2& sg_vectorcall(operator|=)(const Vec_s32x2 rhs) {
+        data_ = sg_or_s32x2(data_, rhs.data());
+        return *this;
+    }
+    friend Vec_s32x2 sg_vectorcall(operator|)(Vec_s32x2 lhs, const Vec_s32x2 rhs) {
+        lhs |= rhs;
+        return lhs;
+    }
+
+    Vec_s32x2& sg_vectorcall(operator^=)(const Vec_s32x2 rhs) {
+        data_ = sg_xor_s32x2(data_, rhs.data());
+        return *this;
+    }
+    friend Vec_s32x2 sg_vectorcall(operator^)(Vec_s32x2 lhs, const Vec_s32x2 rhs) {
+        lhs ^= rhs;
+        return lhs;
+    }
+
+    Vec_s32x2 sg_vectorcall(operator~)() const { return sg_not_s32x2(data_); }
+
+    Compare_s32x2 sg_vectorcall(operator<)(const Vec_s32x2 rhs) const {
+        return sg_cmplt_s32x2(data_, rhs.data());
+    }
+    Compare_s32x2 sg_vectorcall(operator<=)(const Vec_s32x2 rhs) const {
+        return sg_cmplte_s32x2(data_, rhs.data());
+    }
+    Compare_s32x2 sg_vectorcall(operator==)(const Vec_s32x2 rhs) const {
+        return sg_cmpeq_s32x2(data_, rhs.data());
+    }
+    Compare_s32x2 sg_vectorcall(operator!=)(const Vec_s32x2 rhs) const {
+        return sg_cmpneq_s32x2(data_, rhs.data());
+    }
+    Compare_s32x2 sg_vectorcall(operator>=)(const Vec_s32x2 rhs) const {
+        return sg_cmpgte_s32x2(data_, rhs.data());
+    }
+    Compare_s32x2 sg_vectorcall(operator>)(const Vec_s32x2 rhs) const {
+        return sg_cmpgt_s32x2(data_, rhs.data());
+    }
+
+    template <int32_t shift>
+    Vec_s32x2 sg_vectorcall(shift_l_imm)() const {
+        sassert_shift_32(shift);
+        return sg_sl_imm_s32x2(data_, shift);
+    }
+    template <int32_t shift>
+    Vec_s32x2 sg_vectorcall(shift_rl_imm)() const {
+        sassert_shift_32(shift);
+        return sg_srl_imm_s32x2(data_, shift);
+    }
+    template <int32_t shift>
+    Vec_s32x2 sg_vectorcall(shift_ra_imm)() const {
+        sassert_shift_32(shift);
+        return sg_sra_imm_s32x2(data_, shift);
+    }
+
+    Vec_s32x2 sg_vectorcall(shift_l)(const Vec_s32x2 shift) const {
+        return sg_sl_s32x2(data_, shift.data());
+    }
+    Vec_s32x2 sg_vectorcall(shift_rl)(const Vec_s32x2 shift) const {
+        return sg_srl_s32x2(data_, shift.data());
+    }
+    Vec_s32x2 sg_vectorcall(shift_ra)(const Vec_s32x2 shift) const {
+        return sg_sra_s32x2(data_, shift.data());
+    }
+
+    template <int32_t src1, int32_t src0>
+    Vec_s32x2 sg_vectorcall(shuffle)() const {
+        sassert_shuffle_x2(src1, src0);
+        return sg_shuffle_s32x2(data_, src1, src0);
+    }
+
+    Vec_s32x2 sg_vectorcall(safe_divide_by)(const Vec_s32x2 rhs) const {
+        return sg_safediv_s32x2(data_, rhs.data());
+    }
+    Vec_s32x2 sg_vectorcall(abs)() const { return sg_abs_s32x2(data_); }
+    Vec_s32x2 sg_vectorcall(constrain)(const Vec_s32x2 lowerb,
+        const Vec_s32x2 upperb) const
+    {
+        return sg_constrain_s32x2(lowerb.data(), upperb.data(), data_);
+    }
+
+    static Vec_s32x2 sg_vectorcall(min)(const Vec_s32x2 a, const Vec_s32x2 b) {
+        return sg_min_s32x2(a.data(), b.data());
+    }
+    static Vec_s32x2 sg_vectorcall(max)(const Vec_s32x2 a, const Vec_s32x2 b) {
+        return sg_max_s32x2(a.data(), b.data());
+    }
+
+    bool sg_vectorcall(debug_eq)(const int32_t i1, const int32_t i0) const
+    {
+        return sg_debug_eq_s32x2(data_, i1, i0);
+    }
+    bool sg_vectorcall(debug_eq)(const int32_t i) const {
+        return debug_eq(i, i);
+    }
+    bool sg_vectorcall(debug_eq)(const Vec_s32x2 s32x2) const {
+        return (Vec_s32x2{data_} == s32x2).debug_valid_eq(true);
+    }
+
+    template <typename To>
+    To sg_vectorcall(to)() const { return sg_convert<Vec_s32x2, To>(*this); }
+
+    template <typename From>
+    static Vec_s32x2 sg_vectorcall(from)(const From x) {
+        return sg_convert<From, Vec_s32x2>(x);
+    }
+
+    template <typename To>
+    To sg_vectorcall(bitcast)() const {
+        return sg_bitcast<Vec_s32x2, To>(*this);
+    }
+
+    template <typename From>
+    static Vec_s32x2 sg_vectorcall(bitcast_from)(const From x) {
+        return sg_bitcast<From, Vec_s32x2>(x);
+    }
+};
+
+class Vec_f32x2 {
+    sg_f32x2 data_;
+public:
+    Vec_f32x2() : data_{sg_setzero_f32x2()} {}
+    Vec_f32x2(const float f) : data_{sg_set1_f32x2(f)} {}
+    Vec_f32x2(const float f1, const float f0)
+        : data_{sg_set_f32x2(f1, f0)} {}
+    Vec_f32x2(const sg_f32x2 f32x2) : data_{f32x2} {}
+    #if !defined SIMD_GRANODI_FORCE_GENERIC && !defined SIMD_GRANODI_SSE2
+    Vec_f32x2(const sg_generic_f32x2 g) :
+        data_{sg_from_generic_s32x2(g)} {}
+    #endif
+
+    static Vec_f32x2 sg_vectorcall(minus_infinity)() {
+        return sg_minus_infinity_f32x2; }
+    static Vec_f32x2 sg_vectorcall(infinity)() { return sg_infinity_f32x2; }
+
+    using elem_t = float;
+    using scalar_t = Vec_f32x1;
+    using vec128_t = Vec_ps;
+    using compare_t = Compare_f32x2;
+
+    using equiv_int_t = Vec_s32x2;
+    using equiv_float_t = Vec_f32x2;
+    using fast_convert_int_t = Vec_s32x2;
+    using fast_register_t = Vec_ps;
+
+    static constexpr bool is_int_t = false, is_float_t = true;
+
+    static constexpr std::size_t elem_size = sizeof(float),
+        elem_count = 2;
+
+    static Vec_f32x2 sg_vectorcall(bitcast_from_u32)(const uint32_t i) {
+        return sg_set1_from_u32_f32x2(i);
+    }
+    static Vec_f32x2 sg_vectorcall(bitcast_from_u32)(const uint32_t i1, const uint32_t i0)
+    {
+        return sg_set_from_u32_f32x2(i1, i0);
+    }
+
+    static Vec_f32x2 sg_vectorcall(set_duo)(const float f1, const float f0) {
+        return sg_set_f32x2(f1, f0);
+    }
+
+    sg_f32x2 sg_vectorcall(data)() const { return data_; }
+    sg_generic_f32x2 sg_vectorcall(generic)() const { return sg_to_generic_f32x2(data_); }
+    float sg_vectorcall(f0)() const { return sg_get0_f32x2(data_); }
+    float sg_vectorcall(f1)() const { return sg_get1_f32x2(data_); }
+
+    template <int32_t i> float sg_vectorcall(get)() const {
+        sassert_index_x2(i);
+        return sg_get0_f32x2(sg_shuffle_f32x2(data_, 1, i));
+    }
+
+    Vec_f32x2& sg_vectorcall(operator+=)(const Vec_f32x2 rhs) {
+        data_ = sg_add_f32x2(data_, rhs.data());
+        return *this;
+    }
+    friend Vec_f32x2 sg_vectorcall(operator+)(Vec_f32x2 lhs, const Vec_f32x2 rhs) {
+        lhs += rhs;
+        return lhs;
+    }
+    Vec_f32x2 sg_vectorcall(operator+)() const { return *this; }
+
+    Vec_f32x2& sg_vectorcall(operator-=)(const Vec_f32x2 rhs) {
+        data_ = sg_sub_f32x2(data_, rhs.data());
+        return *this;
+    }
+    friend Vec_f32x2 sg_vectorcall(operator-)(Vec_f32x2 lhs, const Vec_f32x2 rhs) {
+        lhs -= rhs;
+        return lhs;
+    }
+    Vec_f32x2 sg_vectorcall(operator-)() const { return sg_neg_f32x2(data_); }
+
+    Vec_f32x2& sg_vectorcall(operator*=)(const Vec_f32x2 rhs) {
+        data_ = sg_mul_f32x2(data_, rhs.data());
+        return *this;
+    }
+    friend Vec_f32x2 sg_vectorcall(operator*)(Vec_f32x2 lhs, const Vec_f32x2 rhs) {
+        lhs *= rhs;
+        return lhs;
+    }
+
+    Vec_f32x2& sg_vectorcall(operator/=)(const Vec_f32x2 rhs) {
+        data_ = sg_div_f32x2(data_, rhs.data());
+        return *this;
+    }
+    friend Vec_f32x2 sg_vectorcall(operator/)(Vec_f32x2 lhs, const Vec_f32x2 rhs) {
+        lhs /= rhs;
+        return lhs;
+    }
+
+    Vec_f32x2 sg_vectorcall(mul_add)(const Vec_f32x2 mul, const Vec_f32x2 add) const {
+        return sg_mul_add_f32x2(data_, mul.data(), add.data());
+    }
+
+    Vec_f32x2& sg_vectorcall(operator&=)(const Vec_f32x2 rhs) {
+        data_ = sg_and_f32x2(data_, rhs.data());
+        return *this;
+    }
+    friend Vec_f32x2 sg_vectorcall(operator&)(Vec_f32x2 lhs, const Vec_f32x2 rhs) {
+        lhs &= rhs;
+        return lhs;
+    }
+
+    Vec_f32x2& sg_vectorcall(operator|=)(const Vec_f32x2 rhs) {
+        data_ = sg_or_f32x2(data_, rhs.data());
+        return *this;
+    }
+    friend Vec_f32x2 sg_vectorcall(operator|)(Vec_f32x2 lhs, const Vec_f32x2 rhs) {
+        lhs |= rhs;
+        return lhs;
+    }
+
+    Vec_f32x2& sg_vectorcall(operator^=)(const Vec_f32x2 rhs) {
+        data_ = sg_xor_f32x2(data_, rhs.data());
+        return *this;
+    }
+    friend Vec_f32x2 sg_vectorcall(operator^)(Vec_f32x2 lhs, const Vec_f32x2 rhs) {
+        lhs ^= rhs;
+        return lhs;
+    }
+
+    Vec_f32x2 sg_vectorcall(operator~)() const { return sg_not_f32x2(data_); }
+
+    Compare_f32x2 sg_vectorcall(operator<)(const Vec_f32x2 rhs) const {
+        return sg_cmplt_f32x2(data_, rhs.data());
+    }
+    Compare_f32x2 sg_vectorcall(operator<=)(const Vec_f32x2 rhs) const {
+        return sg_cmplte_f32x2(data_, rhs.data());
+    }
+    Compare_f32x2 sg_vectorcall(operator==)(const Vec_f32x2 rhs) const {
+        return sg_cmpeq_f32x2(data_, rhs.data());
+    }
+    Compare_f32x2 sg_vectorcall(operator!=)(const Vec_f32x2 rhs) const {
+        return sg_cmpneq_f32x2(data_, rhs.data());
+    }
+    Compare_f32x2 sg_vectorcall(operator>=)(const Vec_f32x2 rhs) const {
+        return sg_cmpgte_f32x2(data_, rhs.data());
+    }
+    Compare_f32x2 sg_vectorcall(operator>)(const Vec_f32x2 rhs) const {
+        return sg_cmpgt_f32x2(data_, rhs.data());
+    }
+
+    template <int32_t src1, int32_t src0>
+    Vec_f32x2 sg_vectorcall(shuffle)() const {
+        sassert_shuffle_x2(src1, src0);
+        return sg_shuffle_f32x2(data_, src1, src0);
+    }
+
+    Vec_f32x2 sg_vectorcall(safe_divide_by)(const Vec_f32x2 rhs) const {
+        return sg_safediv_f32x2(data_, rhs.data());
+    }
+    Vec_f32x2 sg_vectorcall(abs)() const { return sg_abs_f32x2(data_); }
+    Vec_f32x2 sg_vectorcall(remove_signed_zero)() const {
+        return sg_remove_signed_zero_f32x2(data_);
+    }
+    Vec_f32x2 sg_vectorcall(constrain)(const Vec_f32x2 lowerb, const Vec_f32x2 upperb)
+        const
+    {
+        return sg_constrain_f32x2(lowerb.data(), upperb.data(), data_);
+    }
+
+    static Vec_f32x2 sg_vectorcall(min)(const Vec_f32x2 a, const Vec_f32x2 b) {
+        return sg_min_f32x2(a.data(), b.data());
+    }
+    static Vec_f32x2 sg_vectorcall(max)(const Vec_f32x2 a, const Vec_f32x2 b) {
+        return sg_max_f32x2(a.data(), b.data());
+    }
+
+    bool sg_vectorcall(debug_eq)(const float f1, const float f0) const
+    {
+        return sg_debug_eq_f32x2(data_, f1, f0);
+    }
+    bool sg_vectorcall(debug_eq)(const float f) const {
+        return debug_eq(f, f);
+    }
+    bool sg_vectorcall(debug_eq)(const Vec_f32x2 f32x2) const {
+        return (bitcast<Vec_s32x2>() == f32x2.bitcast<Vec_s32x2>())
+            .debug_valid_eq(true);
+    }
+
+    template <typename To>
+    To sg_vectorcall(to)() const { return sg_convert<Vec_f32x2, To>(*this); }
+
+    template <typename To>
+    To sg_vectorcall(nearest)() const {
+        return sg_convert_nearest<Vec_f32x2, To>(*this);
+    }
+
+    template <typename To>
+    To sg_vectorcall(truncate)() const {
+        return sg_convert_truncate<Vec_f32x2, To>(*this);
+    }
+
+    template <typename To>
+    To sg_vectorcall(floor)() const {
+        return sg_convert_floor<Vec_f32x2, To>(*this);
+    }
+
+    template <typename From>
+    static Vec_f32x2 sg_vectorcall(from)(const From x) {
+        return sg_convert<From, Vec_f32x2>(x);
+    }
+
+    template <typename To>
+    To sg_vectorcall(bitcast)() const { return sg_bitcast<Vec_f32x2, To>(*this); }
+
+    template <typename From>
+    static Vec_f32x2 sg_vectorcall(bitcast_from)(const From x) {
+        return sg_bitcast<From, Vec_f32x2>(x);
+    }
+
+    Vec_f32x2 sg_vectorcall(std_log)() const {
+        return Vec_f32x2 {std::log(sg_get1_f32x2(data_)),
+            std::log(sg_get0_f32x2(data_)) };
+    }
+    Vec_f32x2 sg_vectorcall(std_exp)() const {
+        return Vec_f32x2 { std::exp(sg_get1_f32x2(data_)),
+            std::exp(sg_get0_f32x2(data_)) };
+    }
+    Vec_f32x2 sg_vectorcall(std_sin)() const {
+        return Vec_f32x2 { std::sin(sg_get1_f32x2(data_)),
+            std::sin(sg_get0_f32x2(data_)) };
+    }
+    Vec_f32x2 sg_vectorcall(std_cos)() const {
+        return Vec_f32x2 { std::cos(sg_get1_f32x2(data_)),
+            std::cos(sg_get0_f32x2(data_)) };
+    }
+    Vec_f32x2 sg_vectorcall(std_tan)() const {
+        return Vec_f32x2 { std::tan(sg_get1_f32x2(data_)),
+            std::tan(sg_get0_f32x2(data_)) };
+    }
+    Vec_f32x2 sg_vectorcall(std_sqrt)() const {
+        return Vec_f32x2 { std::sqrt(sg_get1_f32x2(data_)),
+            std::sqrt(sg_get0_f32x2(data_)) };
+    }
+};
+
 inline Vec_pi32 sg_vectorcall(Compare_pi32::choose_else_zero)(
     const Vec_pi32 if_true) const
 {
@@ -8154,6 +8746,29 @@ inline Vec_pd sg_vectorcall(Compare_pd::choose)(const Vec_pd if_true,
     const Vec_pd if_false) const
 {
     return sg_choose_pd(data_, if_true.data(), if_false.data());
+}
+
+inline Vec_s32x2 sg_vectorcall(Compare_s32x2::choose_else_zero)(const Vec_s32x2 if_true)
+    const
+{
+    return sg_choose_else_zero_s32x2(data_, if_true.data());
+}
+inline Vec_s32x2 sg_vectorcall(Compare_s32x2::choose)(const Vec_s32x2 if_true,
+    const Vec_s32x2 if_false)
+    const
+{
+    return sg_choose_s32x2(data_, if_true.data(), if_false.data());
+}
+
+inline Vec_f32x2 sg_vectorcall(Compare_f32x2::choose_else_zero)(const Vec_f32x2 if_true)
+    const
+{
+    return sg_choose_else_zero_f32x2(data_, if_true.data());
+}
+inline Vec_f32x2 sg_vectorcall(Compare_f32x2::choose)(const Vec_f32x2 if_true,
+    const Vec_f32x2 if_false) const
+{
+    return sg_choose_f32x2(data_, if_true.data(), if_false.data());
 }
 
 template <typename ScalarType>
@@ -8234,8 +8849,9 @@ public:
     using compare_t = Compare_s32x1;
 
     using equiv_int_t = Vec_s32x1;
-    using fast_int_t = Vec_s32x1;
     using equiv_float_t = Vec_f32x1;
+    using fast_convert_int_t = Vec_s32x1;
+    using fast_register_t = Vec_s32x2;
 
     static constexpr bool is_int_t = true, is_float_t = false;
 
@@ -8450,8 +9066,9 @@ public:
     using compare_t = Compare_s64x1;
 
     using equiv_int_t = Vec_s64x1;
-    using fast_int_t = Vec_s64x1;
     using equiv_float_t = Vec_f64x1;
+    using fast_convert_int_t = Vec_s64x1;
+    using fast_register_t = Vec_s64x1;
 
     static constexpr bool is_int_t = true, is_float_t = false;
 
@@ -8669,8 +9286,9 @@ public:
     using compare_t = Compare_f32x1;
 
     using equiv_int_t = Vec_s32x1;
-    using fast_int_t = Vec_s32x1;
     using equiv_float_t = Vec_f32x1;
+    using fast_convert_int_t = Vec_s32x1;
+    using fast_register_t = Vec_s32x1;
 
     static constexpr bool is_int_t = false, is_float_t = true;
 
@@ -8885,8 +9503,9 @@ public:
     using compare_t = Compare_f64x1;
 
     using equiv_int_t = Vec_s64x1;
-    using fast_int_t = Vec_s64x1;
     using equiv_float_t = Vec_f64x1;
+    using fast_convert_int_t = Vec_s64x1;
+    using fast_register_t = Vec_f64x1;
 
     static constexpr bool is_int_t = false, is_float_t = true;
 
@@ -9078,81 +9697,6 @@ public:
 
 typedef Vec_f32x1 Vec_ss;
 typedef Vec_f64x1 Vec_sd;
-
-// Neon supports this type natively, but we have not implemented this yet.
-// It can be converted to Vec_ps for long running SIMD calculations.
-// Implemented as it's useful as a stereo audio float type that saves space.
-class Vec_f32x2 {
-    float f0_, f1_;
-public:
-    Vec_f32x2() : f0_{0.0f}, f1_{0.0f} {}
-    Vec_f32x2(const float f32) : f0_{f32}, f1_{f32} {}
-    Vec_f32x2(const float f1, const float f0) :
-        f0_{f0}, f1_{f1} {}
-    
-    static Vec_f32x2 sg_vectorcall(minus_infinity)() {
-        return sg_minus_infinity_f32x1;
-    }
-    static Vec_f32x2 sg_vectorcall(infinity)() { return sg_infinity_f32x1; }
-
-    using elem_t = float;
-    using scalar_t = Vec_f32x1;
-    using vec128_t = Vec_ps;
-    using compare_t = Compare_f32x2;
-
-    //using equiv_int_t = Vec_s32x2;
-    //using fast_int_t = Vec_pi32;
-    using equiv_float_t = Vec_f32x2;
-
-    static constexpr bool is_int_t = false, is_float_t = true;
-
-    static constexpr std::size_t elem_size = sizeof(float), elem_count = 2;
-
-    static Vec_f32x2 sg_vectorcall(bitcast_from_u32)(const uint32_t u32) {
-        return sg_bitcast_u32x1_f32x1(u32);
-    }
-    static Vec_f32x2 sg_vectorcall(bitcast_from_u32)(const uint32_t u1,
-        const uint32_t u0)
-    {
-        return Vec_f32x2{sg_bitcast_u32x1_f32x1(u1),
-            sg_bitcast_u32x1_f32x1(u0)};
-    }
-
-    float sg_vectorcall(f0)() const { return f0_; }
-    float sg_vectorcall(f1)() const { return f1_; }
-    template <int32_t i> float sg_vectorcall(get)() const {
-        sassert_index_x2(i);
-        return i ? f1_ : f0_;
-    }
-
-    Vec_f32x2 sg_vectorcall(operator+=)(const Vec_f32x2 rhs) {
-        f0_ += rhs.f0();
-        f1_ += rhs.f1();
-        return *this;
-    }
-    friend Vec_f32x2 sg_vectorcall(operator+)(Vec_f32x2 lhs,
-        const Vec_f32x2 rhs)
-    {
-        lhs += rhs;
-        return lhs;
-    }
-    Vec_f32x2 sg_vectorcall(operator+)() const { return *this; }
-
-    Vec_f32x2 sg_vectorcall(operator-=)(const Vec_f32x2 rhs) {
-        f0_ -= rhs.f0();
-        f1_ -= rhs.f1();
-        return *this;
-    }
-    friend Vec_f32x2 sg_vectorcall(operator-)(Vec_f32x2 lhs,
-        const Vec_f32x2 rhs)
-    {
-        lhs -= rhs;
-        return lhs;
-    }
-    Vec_f32x2 sg_vectorcall(operator-)() const {
-        return Vec_f32x2 {-f1_, -f0_};
-    }
-};
 
 //
 //
@@ -9349,7 +9893,7 @@ template <> inline Vec_ps sg_vectorcall(sg_convert)(const Vec_s32x1 x) {
     return sg_cvt_s32x1_f32x1(x.data());
 }
 template <> inline Vec_f64x1 sg_vectorcall(sg_convert)(const Vec_s32x1 x) {
-    return sg_cvt_s32x1_s64x1(x.data());
+    return sg_cvt_s32x1_f64x1(x.data());
 }
 template <> inline Vec_pd sg_vectorcall(sg_convert)(const Vec_s32x1 x) {
     return sg_cvt_s32x1_f64x1(x.data());
@@ -9390,7 +9934,7 @@ template <> inline Vec_s32x2 sg_vectorcall(sg_convert)(const Vec_s64x1 x) {
 }
 template <> inline Vec_f32x2 sg_vectorcall(sg_convert)(const Vec_s64x1 x) {
     return sg_cvt_s64x1_f32x1(x.data());
-
+}
 template <> inline Vec_s32x1 sg_vectorcall(sg_convert_nearest)(
     const Vec_f32x1 x)
 {
@@ -9505,7 +10049,7 @@ template <> inline Vec_s64x1 sg_vectorcall(sg_convert_nearest)(
 }
 template <> inline Vec_pi64 sg_vectorcall(sg_convert_nearest)(const Vec_f64x1 x)
 {
-    return sg_cvt_f64x1_s64x1((x.data());
+    return sg_cvt_f64x1_s64x1(x.data());
 }
 template <> inline Vec_s64x1 sg_vectorcall(sg_convert_truncate)(
     const Vec_f64x1 x)
@@ -9611,6 +10155,9 @@ template <> inline Vec_s64x1 sg_vectorcall(sg_bitcast)(const Vec_s32x2 x) {
 template <> inline Vec_f64x1 sg_vectorcall(sg_bitcast)(const Vec_s32x2 x) {
     return sg_bitcast_s32x2_f64x1(x.data());
 }
+template <> inline Vec_s32x2 sg_vectorcall(sg_bitcast)(const Vec_s32x2 x) {
+    return x;
+}
 template <> inline sg_f32x2 sg_vectorcall(sg_bitcast)(const Vec_s32x2 x) {
     return sg_bitcast_s32x2_f32x2(x.data());
 }
@@ -9619,10 +10166,13 @@ template <> inline Vec_s64x1 sg_vectorcall(sg_bitcast)(const Vec_f32x2 x) {
     return sg_bitcast_f32x2_s64x1(x.data());
 }
 template <> inline Vec_f64x1 sg_vectorcall(sg_bitcast)(const Vec_f32x2 x) {
-    return sg_bitcast_f32x2_double(x.data());
+    return sg_bitcast_f32x2_f64x1(x.data());
 }
-template <> inline Vec_f64x1 sg_vectorcall(sg_bitcast)(const Vec_f32x2 x) {
+template <> inline Vec_s32x2 sg_vectorcall(sg_bitcast)(const Vec_f32x2 x) {
     return sg_bitcast_f32x2_s32x2(x.data());
+}
+template <> inline Vec_f32x2 sg_vectorcall(sg_bitcast)(const Vec_f32x2 x) {
+    return x;
 }
 
 //
@@ -9795,7 +10345,7 @@ template <> inline Compare_s32x2 sg_vectorcall(sg_convert)(const Compare_s32x2 c
 }
 template <> inline Compare_f32x2 sg_vectorcall(sg_convert)(const Compare_s32x2 cmp)
 {
-    return sg_cvtcmp_s32x2_f32x2(cmp);
+    return sg_cvtcmp_s32x2_f32x2(cmp.data());
 }
 
 template <> inline Compare_pi32 sg_vectorcall(sg_convert)(const Compare_f32x2 cmp)
