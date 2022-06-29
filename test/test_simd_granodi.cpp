@@ -1410,23 +1410,53 @@ static void test_opover() {
 
     sg_assert(Vec_pi32::elem_size == 4);
     sg_assert(Vec_pi32::elem_count == 4);
+    sg_assert(Vec_pi32::is_int_t);
+    sg_assert(!Vec_pi32::is_float_t);
+
     sg_assert(Vec_s32x1::elem_size == 4);
     sg_assert(Vec_s32x1::elem_count == 1);
+    sg_assert(Vec_s32x1::is_int_t);
+    sg_assert(!Vec_s32x1::is_float_t);
 
     sg_assert(Vec_pi64::elem_size == 8);
     sg_assert(Vec_pi64::elem_count == 2);
+    sg_assert(Vec_pi64::is_int_t);
+    sg_assert(!Vec_pi64::is_float_t);
+
     sg_assert(Vec_s64x1::elem_size == 8);
     sg_assert(Vec_s64x1::elem_count == 1);
+    sg_assert(Vec_s64x1::is_int_t);
+    sg_assert(!Vec_s64x1::is_float_t);
 
     sg_assert(Vec_ps::elem_size == 4);
     sg_assert(Vec_ps::elem_count == 4);
+    sg_assert(!Vec_ps::is_int_t);
+    sg_assert(Vec_ps::is_float_t);
+
     sg_assert(Vec_f32x1::elem_size == 4);
     sg_assert(Vec_f32x1::elem_count == 1);
+    sg_assert(!Vec_f32x1::is_int_t);
+    sg_assert(Vec_f32x2::is_float_t);
 
     sg_assert(Vec_pd::elem_size == 8);
     sg_assert(Vec_pd::elem_count == 2);
+    sg_assert(!Vec_pd::is_int_t);
+    sg_assert(Vec_pd::is_float_t);
+
     sg_assert(Vec_f64x1::elem_size == 8);
     sg_assert(Vec_f64x1::elem_count == 1);
+    sg_assert(!Vec_f64x1::is_int_t);
+    sg_assert(Vec_f64x1::is_float_t);
+
+    sg_assert(Vec_s32x2::elem_size == 4);
+    sg_assert(Vec_f32x2::elem_count == 2);
+    sg_assert(Vec_s32x2::is_int_t);
+    sg_assert(!Vec_s32x2::is_float_t);
+
+    sg_assert(Vec_f32x2::elem_size == 4);
+    sg_assert(Vec_f32x2::elem_count == 2);
+    sg_assert(!Vec_f32x2::is_int_t);
+    sg_assert(Vec_f32x2::is_float_t);
 
     // Constructors and some getters
     sg_assert(Vec_pi32{}.debug_eq(0)); sg_assert(Vec_pi64{}.debug_eq(0));
