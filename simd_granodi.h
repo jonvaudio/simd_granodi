@@ -278,14 +278,14 @@ typedef int32x4_t sg_pi32;
 typedef int64x2_t sg_pi64;
 typedef float32x4_t sg_ps;
 typedef float64x2_t sg_pd;
-typedef in32x2_t sg_s32x2;
+typedef int32x2_t sg_s32x2;
 typedef float32x2_t sg_f32x2;
 
 typedef uint32x4_t sg_cmp_pi32;
 typedef uint64x2_t sg_cmp_pi64;
 typedef uint32x4_t sg_cmp_ps;
 typedef uint64x2_t sg_cmp_pd;
-typedef uin32x2_t sg_cmp_s32x2;
+typedef uint32x2_t sg_cmp_s32x2;
 typedef uint32x2_t sg_cmp_f32x2;
 #endif
 
@@ -604,8 +604,8 @@ static inline sg_generic_s32x2 sg_vectorcall(sg_bitcast_generic_f32x2_s32x2)(
 #define sg_bitcast_s64x1_s32x2(a) vreinterpret_s32_s64(vdup_n_s64(a))
 #define sg_bitcast_s64x1_f32x2(a) vreinterpret_f32_s64(vdup_n_s64(a))
 
-#define sg_bitcast_f64x1_s32x2 vreinterpret_s32_f64(vdup_n_f64(a))
-#define sg_bitcast_f64x1_f32x2 vreinterpret_f32_f64(vdup_n_f64(a))
+#define sg_bitcast_f64x1_s32x2(a) vreinterpret_s32_f64(vdup_n_f64(a))
+#define sg_bitcast_f64x1_f32x2(a) vreinterpret_f32_f64(vdup_n_f64(a))
 
 #define sg_bitcast_s32x2_s64x1(a) vget_lane_s64(vreinterpret_s64_s32(a), 0)
 #define sg_bitcast_s32x2_f64x1(a) vget_lane_f64(vreinterpret_f64_s32(a), 0)
@@ -637,7 +637,7 @@ static inline sg_generic_pi32 sg_vectorcall(sg_shuffle_generic_pi32)(
     const int32_t src3, const int32_t src2,
     const int32_t src1, const int32_t src0)
 {
-    
+
     sg_generic_pi32 result;
     const char *pa = (char*) &a;
     memcpy(&(result.i0), pa + (src0&3)*sizeof(int32_t), sizeof(int32_t));
@@ -1880,7 +1880,7 @@ static inline sg_pd sg_vectorcall(sg_shuffle_pd_switch_)(const sg_pd a,
         src1_compile_time_constant, \
         src0_compile_time_constant))
 
-static inline sg_s32x2 sg_vectorcall(sg_shuffle_s32x2_switch_(const sg_s32x2 a,
+static inline sg_s32x2 sg_vectorcall(sg_shuffle_s32x2_switch_)(const sg_s32x2 a,
     const int32_t imm8_compile_time_constant)
 {
     switch(imm8_compile_time_constant & 3)
@@ -1893,7 +1893,7 @@ static inline sg_s32x2 sg_vectorcall(sg_shuffle_s32x2_switch_(const sg_s32x2 a,
     }
 }
 
-static inline sg_f32x2 sg_vectorcall(sg_shuffle_f32x2_switch_(const sg_f32x2 a,
+static inline sg_f32x2 sg_vectorcall(sg_shuffle_f32x2_switch_)(const sg_f32x2 a,
     const int32_t imm8_compile_time_constant)
 {
     switch(imm8_compile_time_constant & 3)
@@ -2109,7 +2109,7 @@ static inline sg_generic_f32x2 sg_vectorcall(sg_set_generic_f32x2)(
 #define sg_setzero_f32x2() vdup_n_f32(0.0f)
 #define sg_set1_f32x2(f) vdup_n_f32(f)
 #define sg_set_f32x2(f1, f0) \
-    vset_lane_f32(i1, vset_lane_f32(i0, vdup_n_f32(0.0f), 0), 1)
+    vset_lane_f32(f1, vset_lane_f32(f0, vdup_n_f32(0.0f), 0), 1)
 
 #endif
 
@@ -2566,8 +2566,8 @@ static inline sg_f32x2 sg_vectorcall(sg_cvt_pi32_f32x2)(const sg_pi32 a) {
 #define sg_cvt_pi32_pi64(a) vshll_n_s32(vget_low_s32(a), 0)
 #define sg_cvt_pi32_ps vcvtq_f32_s32
 #define sg_cvt_pi32_pd(a) vcvtq_f64_s64(vshll_n_s32(vget_low_s32(a), 0))
-#define sg_cvt_pi32_s32x2 vget_lowq_s32
-#define sg_cvt_pi32_f32x2(a) vcvt_f32_s32(vget_lowq_s32(a))
+#define sg_cvt_pi32_s32x2 vget_low_s32
+#define sg_cvt_pi32_f32x2(a) vcvt_f32_s32(vget_low_s32(a))
 #endif
 
 //
@@ -2646,14 +2646,19 @@ static inline sg_pd sg_vectorcall(sg_cvt_pi64_pd)(const sg_pi64 a) {
 }
 
 #elif defined SIMD_GRANODI_NEON
-#define sg_cvt_pi64_pi32(a) vcombine_s32(vget_low_s32(vcopyq_laneq_s32( \
-        vreinterpretq_s32_s64(a), 1, vreinterpretq_s32_s64(a), 2)), \
-        vdup_n_s32(0));
+static inline sg_pi32 sg_vectorcall(sg_cvt_pi64_pi32)(const sg_pi64 a) {
+    return vcombine_s32(vget_low_s32(vcopyq_laneq_s32(
+        vreinterpretq_s32_s64(a), 1, vreinterpretq_s32_s64(a), 2)),
+            vdup_n_s32(0));
+}
+
 #define sg_cvt_pi64_ps(a) \
     vcombine_f32(vcvt_f32_f64(vcvtq_f64_s64(a)), vdup_n_f32(0.0f))
 #define sg_cvt_pi64_pd vcvtq_f64_s64
-#define sg_cvt_pi64_s32x2(a) vget_low_s32(vcopyq_laneq_s32( \
-    vreinterpretq_s32_s64(a), 1, vreinterpretq_s32_s64(a), 2))
+static inline sg_s32x2 sg_vectorcall(sg_cvt_pi64_s32x2)(const sg_pi64 a) {
+    return vget_low_s32(vcopyq_laneq_s32(
+        vreinterpretq_s32_s64(a), 1, vreinterpretq_s32_s64(a), 2));
+}
 #define sg_cvt_pi64_f32x2(a) vcvt_f32_f64(vcvtq_f64_s64(a))
 
 #endif
@@ -2728,7 +2733,7 @@ static inline sg_generic_ps sg_vectorcall(sg_cvt_generic_pd_ps)(
 static inline sg_generic_f32x2 sg_vectorcall(sg_cvt_generic_pd_f32x2)(
     const sg_generic_pd a)
 {
-    sg_f32x2 result;
+    sg_generic_f32x2 result;
     result.f0 = sg_cvt_f64x1_f32x1(a.d0);
     result.f1 = sg_cvt_f64x1_f32x1(a.d1);
     return result;
@@ -2820,7 +2825,7 @@ static inline sg_pi32 sg_vectorcall(sg_cvt_s32x2_pi32)(const sg_s32x2 a) {
 #define sg_cvt_s32x2_pi64(a) vshll_n_s32(a, 0)
 #define sg_cvt_s32x2_ps(a) vcombine_f32(vcvt_f32_s32(a), vdup_n_f32(0.0f))
 #define sg_cvt_s32x2_pd(a) sg_cvt_pi64_pd(sg_cvt_s32x2_pi64(a))
-#define sg_cvt_s32x2_f32x2 vcvt_s32_f32
+#define sg_cvt_s32x2_f32x2 vcvt_f32_s32
 
 #endif
 
@@ -3027,7 +3032,7 @@ static inline sg_generic_s32x2 sg_vectorcall(sg_cvt_generic_f32x2_s32x2)(
 
 #elif defined SIMD_GRANODI_NEON
 #define sg_cvt_f32x2_pi32(a) vcombine_s32(vcvtn_s32_f32(a), vdup_n_s32(0))
-#define sg_cvt_f32x2_pi64(a) vcvtn_s64_f64(vcvt_f64_f32(a))
+#define sg_cvt_f32x2_pi64(a) vcvtnq_s64_f64(vcvt_f64_f32(a))
 #define sg_cvt_f32x2_s32x2 vcvtn_s32_f32
 
 #endif
@@ -3190,7 +3195,7 @@ static inline sg_pi32 sg_vectorcall(sg_cvtt_f32x2_pi32)(const sg_f32x2 a) {
 
 #elif defined SIMD_GRANODI_NEON
 #define sg_cvtt_f32x2_pi32(a) vcombine_s32(vcvt_s32_f32(a), vdup_n_s32(0))
-#define sg_cvtt_f32x2_pi64(a) vcvt_s64_f64(vcvt_f64_f32(a))
+#define sg_cvtt_f32x2_pi64(a) vcvtq_s64_f64(vcvt_f64_f32(a))
 #define sg_cvtt_f32x2_s32x2 vcvt_s32_f32
 #endif
 
@@ -3227,7 +3232,7 @@ static inline sg_generic_pi64 sg_vectorcall(sg_cvtf_generic_ps_pi64)(
     result.l1 = sg_cvtf_f32x1_s64x1(a.f1);
     return result;
 }
-static inline sg_s32x2 sg_vectorcall(sg_cvtf_generic_ps_s32x2)(
+static inline sg_generic_s32x2 sg_vectorcall(sg_cvtf_generic_ps_s32x2)(
     const sg_generic_ps a)
 {
     sg_generic_s32x2 result;
@@ -3309,7 +3314,7 @@ static inline sg_pi32 sg_vectorcall(sg_cvtf_pd_pi32)(const sg_pd a) {
 }
 
 #elif defined SIMD_GRANODI_NEON
-#define sg_cvtf_pd_pi32(a) sg_cvtf_pi64_pi32(vcvtmq_s64_f64(a))
+#define sg_cvtf_pd_pi32(a) sg_cvt_pi64_pi32(vcvtmq_s64_f64(a))
 #define sg_cvtf_pd_pi64 vcvtmq_s64_f64
 #define sg_cvtf_pd_s32x2(a) sg_cvt_pi64_s32x2(vcvtmq_s64_f64(a))
 
@@ -3723,6 +3728,7 @@ static inline sg_generic_f32x2 sg_vectorcall(sg_div_generic_f32x2)(
 
 #elif defined SIMD_GRANODI_NEON
 #define sg_div_ps vdivq_f32
+#define sg_div_pd vdivq_f64
 #define sg_div_f32x2 vdiv_f32
 #endif
 
@@ -3793,6 +3799,7 @@ static inline sg_generic_f32x2 sg_vectorcall(sg_mul_add_generic_f32x2)(
 #elif defined SIMD_GRANODI_NEON
 #define sg_mul_add_ps(a, b, c) vfmaq_f32(c, a, b)
 #define sg_mul_add_pd(a, b, c) vfmaq_f64(c, a, b)
+#define sg_mul_add_f32x2(a, b, c) vfma_f32(c, a, b)
 #endif
 
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
@@ -4314,6 +4321,9 @@ static inline sg_generic_s32x2 sg_vectorcall(sg_srl_generic_s32x2)(
     return result;
 }
 
+#define sg_srl_s32x2(a, shift) sg_from_generic_s32x2(sg_srl_generic_s32x2( \
+    sg_to_generic_s32x2(a), sg_to_generic_s32x2(shift)))
+
 #ifdef SIMD_GRANODI_SSE2
 static inline sg_pi32 sg_vectorcall(sg_srl_pi32)(
     const sg_pi32 a, const sg_pi32 shift)
@@ -4343,15 +4353,12 @@ static inline sg_pi64 sg_vectorcall(sg_srl_pi64)(const sg_pi64 a,
 }
 #endif
 
-#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-#define sg_srl_s32x2 sg_srl_generic_s32x2
-#endif
-
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_NEON
 #define sg_srl_pi32(a, shift) sg_from_generic_pi32(sg_srl_generic_pi32( \
     sg_to_generic_pi32(a), sg_to_generic_pi32(shift)))
 #define sg_srl_pi64(a, shift) sg_from_generic_pi64(sg_srl_generic_pi64( \
     sg_to_generic_pi64(a), sg_to_generic_pi64(shift)))
+
 #endif
 
 //
@@ -4773,7 +4780,7 @@ static inline sg_generic_cmp4 sg_vectorcall(sg_set_generic_cmp4)(const bool b3,
 #define sg_setcmp_pd sg_setcmp_pi64
 #define sg_setcmp_s32x2(b1, b0) vset_lane_u32( \
     (b1) ? sg_allset_u32 : 0, vset_lane_u32((b0) ? sg_allset_u32 : 0, \
-        vdun_n_u32(0), 0), 1)
+        vdup_n_u32(0), 0), 1)
 #define sg_setcmp_f32x2 sg_setcmp_s32x2
 #endif
 
@@ -4838,7 +4845,7 @@ static inline sg_cmp_s32x2 sg_vectorcall(sg_from_generic_cmp_s32x2)(
 static inline sg_cmp_f32x2 sg_vectorcall(sg_from_generic_cmp_f32x2)(
     const sg_generic_cmp2 cmpg)
 {
-    return sg_setcmp_f32x2(cmpg.b1, cmpg.b0)
+    return sg_setcmp_f32x2(cmpg.b1, cmpg.b0);
 }
 #endif
 
@@ -4890,7 +4897,7 @@ static inline sg_generic_cmp4 sg_vectorcall(sg_to_generic_cmp_pi32)(
     result.b3 = (bool) vgetq_lane_u32(cmp, 3);
     return result;
 }
-static inline sg_generic_cmp4 sg_vectorcall(sg_to_generic_cmp_pi64)(
+static inline sg_generic_cmp2 sg_vectorcall(sg_to_generic_cmp_pi64)(
     const sg_cmp_pi64 cmp)
 {
     sg_generic_cmp2 result;
@@ -5346,10 +5353,10 @@ static inline sg_generic_cmp2 sg_vectorcall(sg_cmpneq_generic_f32x2)(
 
 #elif defined SIMD_GRANODI_NEON
 #define sg_cmpneq_pi32(a, b) vmvnq_u32(vceqq_s32(a, b))
-#define sg_cmpneq_pi64(a, b) sg_neon_not_u64(vceqq_s64(a, b))
+#define sg_cmpneq_pi64(a, b) sg_neon_not_u64x2(vceqq_s64(a, b))
 #define sg_cmpneq_ps(a, b) vmvnq_u32(vceqq_f32(a, b))
-#define sg_cmpneq_pd(a, b) sg_neon_not_u64(vceqq_f64(a, b))
-#define sg_cmnpeq_s32x2(a, b) vmvn_u32(vceq_s32(a, b))
+#define sg_cmpneq_pd(a, b) sg_neon_not_u64x2(vceqq_f64(a, b))
+#define sg_cmpneq_s32x2(a, b) vmvn_u32(vceq_s32(a, b))
 #define sg_cmpneq_f32x2(a, b) vmvn_u32(vceq_f32(a, b))
 #endif
 
@@ -5508,6 +5515,8 @@ static inline sg_generic_cmp2 sg_vectorcall(sg_cmpgt_generic_f32x2)(
 #define sg_cmpgt_pi64 vcgtq_s64
 #define sg_cmpgt_ps vcgtq_f32
 #define sg_cmpgt_pd vcgtq_f64
+#define sg_cmpgt_s32x2 vcgt_s32
+#define sg_cmpgt_f32x2 vcgt_f32
 
 #endif
 
@@ -5565,10 +5574,18 @@ static inline sg_cmp_s32x2 sg_vectorcall(sg_cvtcmp_pi32_s32x2)(
 #define sg_cvtcmp_pi32_f32x2 sg_cvtcmp_pi32_s32x2
 
 #elif defined SIMD_GRANODI_NEON
+static inline sg_cmp_pi64 sg_vectorcall(sg_cvtcmp_pi32_pi64)(
+    const sg_cmp_pi32 cmp)
+{
+    return vreinterpretq_u64_u32(vzip1q_u32(cmp, cmp));
+}
+#define sg_cvtcmp_pi32_pd sg_cvtcmp_pi32_pi64
+#define sg_cvtcmp_pi32_s32x2 vget_low_u32
+#define sg_cvtcmp_pi32_f32x2 vget_low_u32
 
 #endif
 
-#if defined SIMD_GRANODI_FORCE_GENERIC || SIMD_GRANODI_NEON
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_NEON
 #define sg_cvtcmp_pi32_ps(a) (a)
 #endif
 
@@ -5596,7 +5613,7 @@ static inline sg_cmp_s32x2 sg_vectorcall(sg_cvtcmp_pi32_s32x2)(
 #define sg_cvtcmp_pi64_pi32(cmp) \
     vuzp1q_u32(vreinterpretq_u32_u64(cmp), vdupq_n_u32(0))
 #define sg_cvtcmp_pi64_ps sg_cvtcmp_pi64_pi32
-#define sg_cvtcmp_pi64_s32x2(a) vget_low_s32(sg_cvtcmp_pi64_pi32(a))
+#define sg_cvtcmp_pi64_s32x2(a) vget_low_u32(sg_cvtcmp_pi64_pi32(a))
 #define sg_cvtcmp_pi64_f32x2 sg_cvtcmp_pi64_s32x2
 #endif
 
@@ -5676,8 +5693,8 @@ static inline sg_cmp_s32x2 sg_cvtcmp_ps_s32x2(sg_cmp_ps cmp) {
 #elif defined SIMD_GRANODI_NEON
 #define sg_cvtcmp_pd_pi32 sg_cvtcmp_pi64_pi32
 #define sg_cvtcmp_pd_ps sg_cvtcmp_pi64_pi32
-#define sg_cvtcmp_pd_s32x2 vget_low_u32
-#define sg_cvtcmp_pd_f32x2 vget_low_u32
+#define sg_cvtcmp_pd_s32x2(a) vget_low_u32(sg_cvtcmp_pi64_pi32(a))
+#define sg_cvtcmp_pd_f32x2 sg_cvtcmp_pd_s32x2
 
 #endif
 
@@ -5714,7 +5731,7 @@ static inline sg_cmp_pi32 sg_vectorcall(sg_cvtcmp_s32x2_pi32)(
 #define sg_cvtcmp_s32x2_pd sg_from_generic_cmp_pd
 
 #elif defined SIMD_GRANODI_NEON
-#define sg_cvtcmp_s32x2_pi32(a) vcombine_s32(a, vdup_n_s32(0))
+#define sg_cvtcmp_s32x2_pi32(a) vcombine_u32(a, vdup_n_u32(0))
 #define sg_cvtcmp_s32x2_pi64(a) sg_cvtcmp_pi32_pi64(sg_cvtcmp_s32x2_pi32(a))
 #define sg_cvtcmp_s32x2_ps sg_cvtcmp_s32x2_pi32
 #define sg_cvtcmp_s32x2_pd sg_cvtcmp_s32x2_pi64
@@ -5735,7 +5752,6 @@ static inline sg_cmp_pi32 sg_vectorcall(sg_cvtcmp_s32x2_pi32)(
 #define sg_cvtcmp_f32x2_pi32 sg_cvtcmp_generic_cmp2_cmp4
 #define sg_cvtcmp_f32x2_pi64(a) (a)
 #define sg_cvtcmp_f32x2_ps sg_cvtcmp_generic_cmp2_cmp4
-#define sg_cvtcmp_f32x2_pd(a) (a)
 
 #elif defined SIMD_GRANODI_SSE2
 static inline sg_cmp_pi32 sg_vectorcall(sg_cvtcmp_f32x2_pi32)(
@@ -5905,8 +5921,8 @@ static inline sg_generic_cmp2 sg_vectorcall(sg_or_generic_cmp2)(
 #define sg_or_cmp_pi64 vorrq_u64
 #define sg_or_cmp_ps vorrq_u32
 #define sg_or_cmp_pd vorrq_u64
-#define sg_or_cmp_s32x2 vorr_s32
-#define sg_or_cmp_f32x2 vorr_f32
+#define sg_or_cmp_s32x2 vorr_u32
+#define sg_or_cmp_f32x2 vorr_u32
 
 #endif
 
@@ -6501,7 +6517,7 @@ static inline sg_generic_f32x2 sg_vectorcall(sg_neg_generic_f32x2)(
 #define sg_neg_ps vnegq_f32
 #define sg_neg_pd vnegq_f64
 #define sg_neg_s32x2 vneg_s32
-#defing sg_neg_f32x2 vneg_f32
+#define sg_neg_f32x2 vneg_f32
 
 #endif
 
@@ -8475,7 +8491,7 @@ public:
     Vec_f32x2(const sg_f32x2 f32x2) : data_{f32x2} {}
     #if !defined SIMD_GRANODI_FORCE_GENERIC && !defined SIMD_GRANODI_SSE2
     Vec_f32x2(const sg_generic_f32x2 g) :
-        data_{sg_from_generic_s32x2(g)} {}
+        data_{sg_from_generic_f32x2(g)} {}
     #endif
 
     static Vec_f32x2 sg_vectorcall(minus_infinity)() {

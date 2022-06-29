@@ -776,7 +776,7 @@ void test_cmp() {
         true, false, true, false);
     assert_eq_cmp_pi32(sg_setcmp_pi32(false, true, false, true),
         false, true, false, true);
-    
+
     assert_eq_cmp_pi64(sg_setzero_cmp_pi64(), false, false);
     assert_eq_cmp_pi64(sg_set1cmp_pi64(true), true, true);
     assert_eq_cmp_pi64(sg_setcmp_pi64(true, false), true, false);
@@ -946,7 +946,7 @@ void test_cmp() {
         assert_eqg_cmp_ps(sg_cvtcmp_pi64_ps(cmp_pi64), gcmp4_lower);
         assert_eqg_cmp_s32x2(sg_cvtcmp_pi64_s32x2(cmp_pi64), gcmp2);
         assert_eqg_cmp_f32x2(sg_cvtcmp_pi64_f32x2(cmp_pi64), gcmp2);
-        
+
         assert_eqg_cmp_pi64(sg_cvtcmp_ps_pi64(cmp_ps), gcmp2);
         assert_eqg_cmp_pd(sg_cvtcmp_ps_pd(cmp_ps), gcmp2);
         assert_eqg_cmp_s32x2(sg_cvtcmp_ps_s32x2(cmp_ps), gcmp2);
@@ -978,9 +978,9 @@ void test_cmp() {
     for (int b1 = 0; b1 < 2; ++b1) {
     for (int b2 = 0; b2 < 2; ++b2) {
     for (int b3 = 0; b3 < 2; ++b3) {
-        sg_generic_cmp4 a_gcmp4, b_gcmp4, a_and_b, a_andnot_b, a_not, a_or_b,
+        sg_generic_cmp4 a_gcmp4, b_gcmp4, a_and_b, /*a_andnot_b,*/ a_not, a_or_b,
             a_xor_b, a_eq_b;
-        sg_generic_cmp2 a_gcmp2, b_gcmp2, a_and_b_2, a_andnot_b_2, a_not_2,
+        sg_generic_cmp2 a_gcmp2, b_gcmp2, a_and_b_2, /*a_andnot_b_2,*/ a_not_2,
             a_or_b_2, a_xor_b_2, a_eq_b_2;
         a_gcmp4.b0 = (bool) a0; a_gcmp4.b1 = (bool) a1;
         a_gcmp4.b2 = (bool) a2; a_gcmp4.b3 = (bool) a3;
@@ -990,10 +990,10 @@ void test_cmp() {
         a_and_b.b1 = (bool) a1 && (bool) b1;
         a_and_b.b2 = (bool) a2 && (bool) b2;
         a_and_b.b3 = (bool) a3 && (bool) b3;
-        a_andnot_b.b0 = !((bool) a0) && (bool) b0;
+        /*a_andnot_b.b0 = !((bool) a0) && (bool) b0;
         a_andnot_b.b1 = !((bool) a1) && (bool) b1;
         a_andnot_b.b2 = !((bool) a2) && (bool) b2;
-        a_andnot_b.b3 = !((bool) a3) && (bool) b3;
+        a_andnot_b.b3 = !((bool) a3) && (bool) b3;*/
         a_not.b0 = !(bool) a0; a_not.b1 = !(bool) a1;
         a_not.b2 = !(bool) a2; a_not.b3 = !(bool) a3;
         a_or_b.b0 = (bool) a0 || (bool) b0;
@@ -1011,7 +1011,7 @@ void test_cmp() {
         a_gcmp2.b0 = (bool) a0; a_gcmp2.b1 = (bool) a1;
         b_gcmp2.b0 = (bool) b0; b_gcmp2.b1 = (bool) b1;
         a_and_b_2.b0 = a_and_b.b0; a_and_b_2.b1 = a_and_b.b1;
-        a_andnot_b_2.b0 = a_andnot_b.b0; a_andnot_b_2.b1 = a_andnot_b.b1;
+        //a_andnot_b_2.b0 = a_andnot_b.b0; a_andnot_b_2.b1 = a_andnot_b.b1;
         a_not_2.b0 = a_not.b0; a_not_2.b1 = a_not.b1;
         a_or_b_2.b0 = a_or_b.b0; a_or_b_2.b1 = a_or_b.b1;
         a_xor_b_2.b0 = a_xor_b.b0; a_xor_b_2.b1 = a_xor_b.b1;
