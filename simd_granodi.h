@@ -123,8 +123,8 @@ TODO:
 - Find efficient right shifting implementations for NEON
 - sg_abs_pi64() on SSE2 might be easy to implement in-vector
 - Load / store intrinsics
-- Consider using MMX to implement s32x2 on Intel, instead of
-  generic implementation.
+- Consider using MMX to implement s32x2 on SSE2, instead of
+  generic implementation? (Could be slower)
 
 */
 
@@ -3375,7 +3375,7 @@ static inline sg_generic_s32x2 sg_vectorcall(sg_cvtf_generic_f32x2_s32x2)(
 #endif
 
 #if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
-#define sg_cvtf_f32x2_pi64(a) sg_from_generic_pi64(sg_cvt_generic_f32x2_pi64(a))
+#define sg_cvtf_f32x2_pi64(a) sg_from_generic_pi64(sg_cvtf_generic_f32x2_pi64(a))
 #define sg_cvtf_f32x2_s32x2 sg_cvtf_generic_f32x2_s32x2
 #endif
 
@@ -7267,16 +7267,9 @@ public:
         : data_{sg_from_generic_pi32(g_pi32)} {}
     #endif
 
-    using elem_t = int32_t;
-    using scalar_t = Vec_s32x1;
-    using vec128_t = Vec_pi32;
-    using compare_t = Compare_pi32;
-
-    using equiv_int_t = Vec_pi32;
-    using equiv_float_t = Vec_ps;
-
-    using fast_convert_int_t = Vec_pi32;
-    using fast_register_t = Vec_pi32;
+    typedef int32_t elem_t;
+    typedef Compare_pi32 compare_t;
+    typedef Vec_pi32 fast_register_t;
 
     static constexpr bool is_int_t = true, is_float_t = false;
 
@@ -7510,19 +7503,9 @@ public:
         : data_{sg_from_generic_pi64(g_pi64)} {}
     #endif
 
-    using elem_t = int64_t;
-    using scalar_t = Vec_s64x1;
-    using vec128_t = Vec_pi64;
-    using compare_t = Compare_pi64;
-
-    using equiv_int_t = Vec_pi64;
-    using equiv_float_t = Vec_pd;
-    #ifdef SIMD_GRANODI_SSE2
-    using fast_convert_int_t = Vec_pi32;
-    #else
-    using fast_convert_int_t = Vec_pi64;
-    #endif
-    using fast_register_t = Vec_pi64;
+    typedef int64_t elem_t;
+    typedef Compare_pi64 compare_t;
+    typedef Vec_pi64 fast_register_t;
 
     static constexpr bool is_int_t = true, is_float_t = false;
 
@@ -7758,15 +7741,10 @@ public:
         return sg_minus_infinity_ps; }
     static Vec_ps sg_vectorcall(infinity)() { return sg_infinity_ps; }
 
-    using elem_t = float;
-    using scalar_t = Vec_f32x1;
-    using vec128_t = Vec_ps;
-    using compare_t = Compare_ps;
-
-    using equiv_int_t = Vec_pi32;
-    using equiv_float_t = Vec_ps;
-    using fast_convert_int_t = Vec_pi32;
-    using fast_register_t = Vec_ps;
+    typedef float elem_t;
+    typedef Compare_ps compare_t;
+    typedef Vec_pi32 fast_convert_int_t;
+    typedef Vec_ps fast_register_t;
 
     static constexpr bool is_int_t = false, is_float_t = true;
 
@@ -8010,19 +7988,14 @@ public:
     }
     static Vec_pd sg_vectorcall(infinity)() { return sg_infinity_pd; }
 
-    using elem_t = double;
-    using scalar_t = Vec_f64x1;
-    using vec128_t = Vec_pd;
-    using compare_t = Compare_pd;
-
-    using equiv_int_t = Vec_pi64;
-    using equiv_float_t = Vec_pd;
+    typedef double elem_t;
+    typedef Compare_pd compare_t;
     #ifdef SIMD_GRANODI_SSE2
-    using fast_convert_int_t = Vec_pi32;
+    typedef Vec_pi32 fast_convert_int_t;
     #else
-    using fast_convert_int_t = Vec_pi64;
+    typedef Vec_pi64 fast_convert_int_t;
     #endif
-    using fast_register_t = Vec_pd;
+    typedef Vec_pd fast_register_t;
 
     static constexpr bool is_int_t = false, is_float_t = true;
 
@@ -8251,19 +8224,12 @@ public:
         : data_{sg_from_generic_s32x2(g)} {}
     #endif
 
-    using elem_t = int32_t;
-    using scalar_t = Vec_s32x1;
-    using vec128_t = Vec_pi32;
-    using compare_t = Compare_s32x2;
-
-    using equiv_int_t = Vec_s32x2;
-    using equiv_float_t = Vec_f32x2;
-
-    using fast_convert_int_t = Vec_s32x2;
+    typedef int32_t elem_t;
+    typedef Compare_s32x2 compare_t;
     #ifdef SIMD_GRANODI_SSE2
-    using fast_register_t = Vec_pi32;
+    typedef Vec_pi32 fast_register_t;
     #else
-    using fast_register_t = Vec_s32x2;
+    typedef Vec_s32x2 fast_register_t;
     #endif
 
     static constexpr bool is_int_t = true, is_float_t = false;
@@ -8498,15 +8464,14 @@ public:
         return sg_minus_infinity_f32x2; }
     static Vec_f32x2 sg_vectorcall(infinity)() { return sg_infinity_f32x2; }
 
-    using elem_t = float;
-    using scalar_t = Vec_f32x1;
-    using vec128_t = Vec_ps;
-    using compare_t = Compare_f32x2;
-
-    using equiv_int_t = Vec_s32x2;
-    using equiv_float_t = Vec_f32x2;
-    using fast_convert_int_t = Vec_s32x2;
-    using fast_register_t = Vec_ps;
+    typedef float elem_t;
+    typedef Compare_f32x2 compare_t;
+    typedef Vec_s32x2 fast_convert_int_t;
+    #ifdef SIMD_GRANODI_SSE2
+    typedef Vec_ps fast_register_t;
+    #else
+    typedef Vec_f32x2 fast_register_t;
+    #endif
 
     static constexpr bool is_int_t = false, is_float_t = true;
 
@@ -8859,15 +8824,9 @@ public:
     Vec_s32x1() : data_{0} {}
     Vec_s32x1(const int32_t s32) : data_{s32} {}
 
-    using elem_t = int32_t;
-    using scalar_t = Vec_s32x1;
-    using vec128_t = Vec_pi32;
-    using compare_t = Compare_s32x1;
-
-    using equiv_int_t = Vec_s32x1;
-    using equiv_float_t = Vec_f32x1;
-    using fast_convert_int_t = Vec_s32x1;
-    using fast_register_t = Vec_s32x2;
+    typedef int32_t elem_t;
+    typedef Compare_s32x1 compare_t;
+    typedef Vec_s32x1 fast_register_t;
 
     static constexpr bool is_int_t = true, is_float_t = false;
 
@@ -9076,15 +9035,9 @@ public:
     Vec_s64x1() : data_{0} {}
     Vec_s64x1(const int64_t s64) : data_{s64} {}
 
-    using elem_t = int64_t;
-    using scalar_t = Vec_s64x1;
-    using vec128_t = Vec_pi64;
-    using compare_t = Compare_s64x1;
-
-    using equiv_int_t = Vec_s64x1;
-    using equiv_float_t = Vec_f64x1;
-    using fast_convert_int_t = Vec_s64x1;
-    using fast_register_t = Vec_s64x1;
+    typedef int64_t elem_t;
+    typedef Compare_s64x1 compare_t;
+    typedef Vec_s64x1 fast_register_t;
 
     static constexpr bool is_int_t = true, is_float_t = false;
 
@@ -9296,15 +9249,10 @@ public:
     }
     static Vec_f32x1 sg_vectorcall(infinity)() { return sg_infinity_f32x1; }
 
-    using elem_t = float;
-    using scalar_t = Vec_f32x1;
-    using vec128_t = Vec_ps;
-    using compare_t = Compare_f32x1;
-
-    using equiv_int_t = Vec_s32x1;
-    using equiv_float_t = Vec_f32x1;
-    using fast_convert_int_t = Vec_s32x1;
-    using fast_register_t = Vec_s32x1;
+    typedef float elem_t;
+    typedef Compare_f32x1 compare_t;
+    typedef Vec_s32x1 fast_convert_int_t;
+    typedef Vec_f32x1 fast_register_t;
 
     static constexpr bool is_int_t = false, is_float_t = true;
 
@@ -9513,15 +9461,10 @@ public:
         return sg_bitcast_u64x1_f64x1(i);
     }
 
-    using elem_t = double;
-    using scalar_t = Vec_f64x1;
-    using vec128_t = Vec_pd;
-    using compare_t = Compare_f64x1;
-
-    using equiv_int_t = Vec_s64x1;
-    using equiv_float_t = Vec_f64x1;
-    using fast_convert_int_t = Vec_s64x1;
-    using fast_register_t = Vec_f64x1;
+    typedef double elem_t;
+    typedef Compare_f64x1 compare_t;
+    typedef Vec_s64x1 fast_convert_int_t;
+    typedef Vec_f64x1 fast_register_t;
 
     static constexpr bool is_int_t = false, is_float_t = true;
 
@@ -10174,7 +10117,7 @@ template <> inline Vec_f64x1 sg_vectorcall(sg_bitcast)(const Vec_s32x2 x) {
 template <> inline Vec_s32x2 sg_vectorcall(sg_bitcast)(const Vec_s32x2 x) {
     return x;
 }
-template <> inline sg_f32x2 sg_vectorcall(sg_bitcast)(const Vec_s32x2 x) {
+template <> inline Vec_f32x2 sg_vectorcall(sg_bitcast)(const Vec_s32x2 x) {
     return sg_bitcast_s32x2_f32x2(x.data());
 }
 
@@ -10388,6 +10331,32 @@ template <> inline Compare_f32x2 sg_vectorcall(sg_convert)(const Compare_f32x2 c
 {
     return cmp;
 }
+
+//
+//
+//
+//
+//
+//
+//
+// Type finder section
+
+template <typename ElemType, std::size_t ElemCount>
+struct SGType {};
+
+template <> struct SGType<int32_t, 1> { typedef Vec_s32x1 value; };
+template <> struct SGType<int32_t, 2> { typedef Vec_s32x2 value; };
+template <> struct SGType<int32_t, 4> { typedef Vec_pi32 value; };
+
+template <> struct SGType<int64_t, 1> { typedef Vec_s64x1 value; };
+template <> struct SGType<int64_t, 2> { typedef Vec_pi64 value; };
+
+template <> struct SGType<float, 1> { typedef Vec_f32x1 value; };
+template <> struct SGType<float, 2> { typedef Vec_f32x2 value; };
+template <> struct SGType<float, 4> { typedef Vec_ps value; };
+
+template <> struct SGType<double, 1> { typedef Vec_f64x1 value; };
+template <> struct SGType<double, 2> { typedef Vec_pd value; };
 
 } // namespace simd_granodi
 
