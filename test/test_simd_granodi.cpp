@@ -1927,7 +1927,7 @@ static void test_opover() {
             sg_bitcast_u32x1_f32x1(~sg_bitcast_f32x1_u32x1(f1))));
         sg_assert((~Vec_pd{d1}).debug_eq(
             sg_bitcast_u64x1_f64x1(~sg_bitcast_f64x1_u64x1(d1))));
-        sg_assert((~Vec_s32x2{i1}.debug_eq(~i1)));
+        sg_assert((~Vec_s32x2{i1}).debug_eq(~i1));
         sg_assert((~Vec_f32x2{f1}).debug_eq(
             sg_bitcast_u32x1_f32x1(~sg_bitcast_f32x1_u32x1(f1))));
         sg_assert((~Vec_s32x1{i1}).debug_eq(~i1));
@@ -2331,7 +2331,7 @@ static void test_opover() {
     sg_assert(Vec_s32x2{1}.bitcast<Vec_s32x2>().debug_eq(1));
     sg_assert(Vec_s32x2{1}.bitcast<Vec_f32x2>().bitcast<Vec_s32x2>()
         .debug_eq(1));
-    
+
     sg_assert(Vec_f32x2{1}.bitcast<Vec_f32x2>().debug_eq(1));
 
     // Convert
@@ -2341,7 +2341,7 @@ static void test_opover() {
     sg_assert(Vec_pi32{1}.to<Vec_pd>().debug_eq(1.0));
     sg_assert(Vec_pi32{1}.to<Vec_s32x2>().debug_eq(1));
     sg_assert(Vec_pi32{1}.to<Vec_f32x2>().debug_eq(1));
-    
+
     sg_assert(Vec_pi64{1}.to<Vec_pi32>().debug_eq(0, 0, 1, 1));
     sg_assert(Vec_pi64{1}.to<Vec_pi64>().debug_eq(1));
     sg_assert(Vec_pi64{1}.to<Vec_ps>().debug_eq(0.0f, 0.0f, 1.0f, 1.0f));
