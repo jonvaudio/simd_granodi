@@ -10378,6 +10378,16 @@ template <> struct SGFloatType<4, 4> { typedef Vec_ps value; };
 template <> struct SGFloatType<8, 1> { typedef Vec_f64x1 value; };
 template <> struct SGFloatType<8, 2> { typedef Vec_pd value; };
 
+template <typename VecType>
+struct SGEquivIntType {
+    typedef SGIntType<VecType::elem_size, VecType::elem_count> value;
+};
+
+template <typename VecType>
+struct SGEquivFloatType {
+    typedef SGFloatType<VecType::elem_size, VecType::elem_count> value;
+};
+
 } // namespace simd_granodi
 
 #endif // __cplusplus
