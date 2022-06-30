@@ -10358,6 +10358,26 @@ template <> struct SGType<float, 4> { typedef Vec_ps value; };
 template <> struct SGType<double, 1> { typedef Vec_f64x1 value; };
 template <> struct SGType<double, 2> { typedef Vec_pd value; };
 
+template <std::size_t ElemSize, std::size_t ElemCount>
+struct SGIntType {};
+
+template <> struct SGIntType<4, 1> { typedef Vec_s32x1 value; };
+template <> struct SGIntType<4, 2> { typedef Vec_s32x2 value; };
+template <> struct SGIntType<4, 4> { typedef Vec_pi32 value; };
+
+template <> struct SGIntType<8, 1> { typedef Vec_s64x1 value; };
+template <> struct SGIntType<8, 2> { typedef Vec_pi64 value; };
+
+template <std::size_t ElemSize, std::size_t ElemCount>
+struct SGFloatType {};
+
+template <> struct SGFloatType<4, 1> { typedef Vec_f32x1 value; };
+template <> struct SGFloatType<4, 2> { typedef Vec_f32x2 value; };
+template <> struct SGFloatType<4, 4> { typedef Vec_ps value; };
+
+template <> struct SGFloatType<8, 1> { typedef Vec_f64x1 value; };
+template <> struct SGFloatType<8, 2> { typedef Vec_pd value; };
+
 } // namespace simd_granodi
 
 #endif // __cplusplus
