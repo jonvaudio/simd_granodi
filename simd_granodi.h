@@ -8786,7 +8786,8 @@ public:
         return cmp.data();
     }
 
-    ScalarType sg_vectorcall(choose_else_zero)(const ScalarType if_true) {
+    ScalarType sg_vectorcall(choose_else_zero)(const ScalarType if_true) const
+    {
         return data_ ? if_true : ScalarType{0};
     }
     ScalarType sg_vectorcall(choose)(const ScalarType if_true,
