@@ -423,8 +423,8 @@ static inline sg_generic_f32x2 sg_vectorcall(sg_load_generic_f32x2)(
 #define sg_load_pi64 vld1q_s64
 #define sg_loadu_ps vld1q_f32
 #define sg_load_ps vld1q_f32
-#define sg_loadu_ps vld1q_f64
-#define sg_load_ps vld1q_f64
+#define sg_loadu_pd vld1q_f64
+#define sg_load_pd vld1q_f64
 #define sg_loadu_s32x2 vld1_s32
 #define sg_load_s32x2 vld1_s32
 #define sg_loadu_f32x2 vld1_f32
@@ -7684,7 +7684,7 @@ public:
     void sg_vectorcall(storeu)(int64_t *const l) const {
         sg_storeu_pi64(l, data_);
     }
-    void sg_vectorcall(store)(int32_t *const l) const {
+    void sg_vectorcall(store)(int64_t *const l) const {
         sg_store_pi64(l, data_);
     }
 
