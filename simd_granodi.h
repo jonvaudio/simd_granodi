@@ -314,7 +314,157 @@ static inline sg_pi32 sg_vectorcall(sg_choose_pi32)(const sg_cmp_pi32,
 //
 //
 //
-// Bitcast scalar section
+// Load and store section
+
+static inline sg_generic_pi32 sg_vectorcall(sg_load_generic_pi32)(
+    int32_t *const i)
+{
+    sg_generic_pi32 result;
+    memcpy(&result, i, sizeof(sg_generic_pi32));
+    return result;
+}
+#define sg_store_generic_pi32(i_ptr, a) memcpy((i_ptr), &(a), \
+    sizeof(sg_generic_pi32))
+
+static inline sg_generic_pi64 sg_vectorcall(sg_load_generic_pi64)(
+    int64_t *const l)
+{
+    sg_generic_pi64 result;
+    memcpy(&result, l, sizeof(sg_generic_pi64));
+    return result;
+}
+#define sg_store_generic_pi64(l_ptr, a) memcpy((l_ptr), &(a), \
+    sizeof(sg_generic_pi64))
+
+static inline sg_generic_ps sg_vectorcall(sg_load_generic_ps)(
+    float *const f)
+{
+    sg_generic_ps result;
+    memcpy(&result, f, sizeof(sg_generic_ps));
+    return result;
+}
+#define sg_store_generic_ps(f_ptr, a) memcpy((f_ptr), &(a), \
+    sizeof(sg_generic_ps))
+
+static inline sg_generic_pd sg_vectorcall(sg_load_generic_pd)(
+    double *const d)
+{
+    sg_generic_pd result;
+    memcpy(&result, d, sizeof(sg_generic_pd));
+    return result;
+}
+#define sg_store_generic_pd(d_ptr, a) memcpy((d_ptr), &(a), \
+    sizeof(sg_generic_pd))
+
+static inline sg_generic_s32x2 sg_vectorcall(sg_load_generic_s32x2)(
+    int32_t *const i)
+{
+    sg_generic_s32x2 result;
+    memcpy(&result, i, sizeof(sg_generic_s32x2));
+    return result;
+}
+#define sg_store_generic_s32x2(i_ptr, a) memcpy((i_ptr), &(a), \
+    sizeof(sg_generic_s32x2))
+
+static inline sg_generic_f32x2 sg_vectorcall(sg_load_generic_f32x2)(
+    float *const f)
+{
+    sg_generic_f32x2 result;
+    memcpy(&result, f, sizeof(sg_generic_f32x2));
+    return result;
+}
+#define sg_store_generic_f32x2(f_ptr, a) memcpy((f_ptr), &(a), \
+    sizeof(sg_generic_f32x2))
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+#define sg_loadu_pi32 sg_load_generic_pi32
+#define sg_load_pi32 sg_load_generic_pi32
+#define sg_loadu_pi64 sg_load_generic_pi64
+#define sg_load_pi64 sg_load_generic_pi64
+#define sg_loadu_ps sg_load_generic_ps
+#define sg_load_ps sg_load_generic_ps
+#define sg_loadu_pd sg_load_generic_pd
+#define sg_load_pd sg_load_generic_pd
+
+#define sg_storeu_pi32 sg_store_generic_pi32
+#define sg_store_pi32 sg_store_generic_pi32
+#define sg_storeu_pi64 sg_store_generic_pi64
+#define sg_store_pi64 sg_store_generic_pi64
+#define sg_storeu_ps sg_store_generic_ps
+#define sg_store_ps sg_store_generic_ps
+#define sg_storeu_pd sg_store_generic_pd
+#define sg_store_pd sg_store_generic_pd
+
+#elif defined SIMD_GRANODI_SSE2
+// This would be UB, but the intel spec specifically says that any
+// implementation must allow vec pointers to alias some non-vec pointers
+#define sg_loadu_pi32(i) _mm_loadu_si128((__m128i *const) (i))
+#define sg_load_pi32(i) _mm_load_si128((__m128i *const) (i))
+#define sg_loadu_pi64(l) _mm_loadu_si128((__m128i *const) (l))
+#define sg_load_pi64(l) _mm_load_si128((__m128i *const) (l))
+#define sg_loadu_ps _mm_loadu_ps
+#define sg_load_ps _mm_load_ps
+#define sg_loadu_pd _mm_loadu_pd
+#define sg_load_pd _mm_load_pd
+
+#define sg_storeu_pi32(i, a) _mm_storeu_si128((__m128i *const) (i), a)
+#define sg_store_pi32(i, a) _mm_store_si128((__m128i *const) (i), a)
+#define sg_storeu_pi64(l, a) _mm_storeu_si128((__m128i *const) (l), a)
+#define sg_store_pi64(l, a) _mm_store_si128((__m128i *const) (l), a)
+#define sg_storeu_ps _mm_storeu_ps
+#define sg_store_ps _mm_store_ps
+#define sg_storeu_pd _mm_storeu_pd
+#define sg_store_pd _mm_store_pd
+
+#elif defined SIMD_GRANODI_NEON
+#define sg_loadu_pi32 vld1q_s32
+#define sg_load_pi32 vld1q_s32
+#define sg_loadu_pi64 vld1q_s64
+#define sg_load_pi64 vld1q_s64
+#define sg_loadu_ps vld1q_f32
+#define sg_load_ps vld1q_f32
+#define sg_loadu_pd vld1q_f64
+#define sg_load_pd vld1q_f64
+#define sg_loadu_s32x2 vld1_s32
+#define sg_load_s32x2 vld1_s32
+#define sg_loadu_f32x2 vld1_f32
+#define sg_load_f32x2 vld1_f32
+
+#define sg_storeu_pi32 vst1q_s32
+#define sg_store_pi32 vst1q_s32
+#define sg_storeu_pi64 vst1q_s64
+#define sg_store_pi64 vst1q_s64
+#define sg_storeu_ps vst1q_f32
+#define sg_store_ps vst1q_f32
+#define sg_storeu_pd vst1q_f64
+#define sg_store_pd vst1q_f64
+#define sg_storeu_s32x2 vst1_s32
+#define sg_store_s32x2 vst1_s32
+#define sg_storeu_f32x2 vst1_f32
+#define sg_store_f32x2 vst1_f32
+
+#endif
+
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
+#define sg_loadu_s32x2 sg_load_generic_s32x2
+#define sg_load_s32x2 sg_load_generic_s32x2
+#define sg_loadu_f32x2 sg_load_generic_f32x2
+#define sg_load_f32x2 sg_load_generic_f32x2
+
+#define sg_storeu_s32x2 sg_store_generic_s32x2
+#define sg_store_s32x2 sg_store_generic_s32x2
+#define sg_storeu_f32x2 sg_store_generic_f32x2
+#define sg_store_f32x2 sg_store_generic_f32x2
+#endif
+
+//
+//
+//
+//
+//
+//
+//
+// Bitcast section, scalar
 
 // On all compilers, these scalar memcpy bitcasts get optimized out
 // for constants, or compiled to a single move / load
@@ -365,7 +515,7 @@ static inline int64_t sg_vectorcall(sg_bitcast_f64x1_s64x1)(const double a) {
 //
 //
 //
-// Bitcast vector section
+// Bitcast section, vector
 
 //
 //
@@ -2197,7 +2347,7 @@ static inline sg_f32x2 sg_vectorcall(sg_from_generic_f32x2)(
 //
 //
 //
-// Get element section
+// Get section, element
 
 #ifdef SIMD_GRANODI_FORCE_GENERIC
 #define sg_get0_pi32(a) (a.i0)
@@ -7276,6 +7426,19 @@ public:
     static constexpr std::size_t elem_size = sizeof(int32_t),
         elem_count = 4;
 
+    static Vec_pi32 sg_vectorcall(loadu)(int32_t *const i) {
+        return sg_loadu_pi32(i);
+    }
+    static Vec_pi32 sg_vectorcall(load)(int32_t *const i) {
+        return sg_load_pi32(i);
+    }
+    void sg_vectorcall(storeu)(int32_t *const i) const {
+        sg_storeu_pi32(i, data_);
+    }
+    void sg_vectorcall(store)(int32_t *const i) const {
+        sg_store_pi32(i, data_);
+    }
+
     static Vec_pi32 sg_vectorcall(bitcast_from_u32)(const uint32_t i) {
         return sg_set1_from_u32_pi32(i);
     }
@@ -7511,6 +7674,19 @@ public:
 
     static constexpr std::size_t elem_size = sizeof(int64_t),
         elem_count = 2;
+
+    static Vec_pi64 sg_vectorcall(loadu)(int64_t *const l) {
+        return sg_loadu_pi64(l);
+    }
+    static Vec_pi64 sg_vectorcall(load)(int64_t *const l) {
+        return sg_load_pi64(l);
+    }
+    void sg_vectorcall(storeu)(int64_t *const l) const {
+        sg_storeu_pi64(l, data_);
+    }
+    void sg_vectorcall(store)(int64_t *const l) const {
+        sg_store_pi64(l, data_);
+    }
 
     static Vec_pi64 sg_vectorcall(bitcast_from_u64)(const uint64_t l) {
         return sg_set1_from_u64_pi64(l);
@@ -7750,6 +7926,19 @@ public:
 
     static constexpr std::size_t elem_size = sizeof(float),
         elem_count = 4;
+
+    static Vec_ps sg_vectorcall(loadu)(float *const f) {
+        return sg_loadu_ps(f);
+    }
+    static Vec_ps sg_vectorcall(load)(float *const f) {
+        return sg_load_ps(f);
+    }
+    void sg_vectorcall(storeu)(float *const f) const {
+        sg_storeu_ps(f, data_);
+    }
+    void sg_vectorcall(store)(float *const f) const {
+        sg_store_ps(f, data_);
+    }
 
     static Vec_ps sg_vectorcall(bitcast_from_u32)(const uint32_t i) {
         return sg_set1_from_u32_ps(i);
@@ -8002,6 +8191,19 @@ public:
     static constexpr size_t elem_size = sizeof(double),
         elem_count = 2;
 
+    static Vec_pd sg_vectorcall(loadu)(double *const d) {
+        return sg_loadu_pd(d);
+    }
+    static Vec_pd sg_vectorcall(load)(double *const d) {
+        return sg_load_pd(d);
+    }
+    void sg_vectorcall(storeu)(double *const d) const {
+        sg_storeu_pd(d, data_);
+    }
+    void sg_vectorcall(store)(double *const d) const {
+        sg_store_pd(d, data_);
+    }
+
     static Vec_pd sg_vectorcall(bitcast_from_u64)(const uint64_t l) {
         return sg_set1_from_u64_pd(l);
     }
@@ -8236,6 +8438,19 @@ public:
 
     static constexpr std::size_t elem_size = sizeof(int32_t),
         elem_count = 2;
+
+    static Vec_s32x2 sg_vectorcall(loadu)(int32_t *const i) {
+        return sg_loadu_s32x2(i);
+    }
+    static Vec_s32x2 sg_vectorcall(load)(int32_t *const i) {
+        return sg_load_s32x2(i);
+    }
+    void sg_vectorcall(storeu)(int32_t *const i) const {
+        sg_storeu_s32x2(i, data_);
+    }
+    void sg_vectorcall(store)(int32_t *const i) const {
+        sg_store_s32x2(i, data_);
+    }
 
     static Vec_s32x2 sg_vectorcall(bitcast_from_u32)(const uint32_t i) {
         return sg_set1_from_u32_s32x2(i);
@@ -8477,6 +8692,19 @@ public:
 
     static constexpr std::size_t elem_size = sizeof(float),
         elem_count = 2;
+
+    static Vec_f32x2 sg_vectorcall(loadu)(float *const f) {
+        return sg_loadu_f32x2(f);
+    }
+    static Vec_f32x2 sg_vectorcall(load)(float *const f) {
+        return sg_load_f32x2(f);
+    }
+    void sg_vectorcall(storeu)(float *const f) const {
+        sg_storeu_f32x2(f, data_);
+    }
+    void sg_vectorcall(store)(float *const f) const {
+        sg_store_f32x2(f, data_);
+    }
 
     static Vec_f32x2 sg_vectorcall(bitcast_from_u32)(const uint32_t i) {
         return sg_set1_from_u32_f32x2(i);
