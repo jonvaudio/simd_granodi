@@ -28,6 +28,7 @@ static void print_pd(const sg_pd);
 #endif
 
 static void test_128endian();
+static void test_load_store();
 static void test_cast();
 static void test_shuffle();
 static void test_set();
@@ -53,6 +54,7 @@ int main() {
     //sg_assert(false);
 
     test_128endian();
+    test_load_store();
     test_cast();
     test_shuffle();
     test_set();
@@ -241,6 +243,44 @@ void test_128endian() {
     #else
     printf("Using generic code, cannot test 128-bit endianness\n");
     #endif
+}
+
+void test_load_store() {
+    int32_t i[] = {0, 1, 2, 3};
+    int64_t l[] = {0, 1};
+    float f[] = {0, 1, 2, 3};
+    double d[] = {0, 1};
+
+    assert_eq_pi32(sg_loadu_pi32(i), 3, 2, 1, 0);
+    assert_eq_pi64(sg_loadu_pi64(l), 1, 0);
+    assert_eq_ps(sg_loadu_ps(f), 3, 2, 1, 0);
+    assert_eq_pd(sg_loadu_pd(d), 1, 0);
+    assert_eq_s32x2(sg_loadu_s32x2(i), 1, 0);
+    assert_eq_f32x2(sg_loadu_f32x2(f), 1, 0);
+
+    sg_pi32 pi32 = sg_set_pi32(7, 6, 5, 4);
+    sg_storeu_pi32(i, pi32);
+    sg_assert(i[0] == 4 && i[1] == 5 && i[2] == 6 && i[3] == 7);
+
+    sg_pi64 pi64 = sg_set_pi64(9, 8);
+    sg_storeu_pi64(l, pi64);
+    sg_assert(l[0] == 8 && l[1] == 9);
+
+    sg_ps ps = sg_set_ps(13, 12, 11, 10);
+    sg_storeu_ps(f, ps);
+    sg_assert(f[0] == 10 && f[1] == 11 && f[2] == 12 && f[3] == 13);
+
+    sg_pd pd = sg_set_pd(15, 14);
+    sg_storeu_pd(d, pd);
+    sg_assert(d[0] == 14 && d[1] == 15);
+
+    sg_s32x2 s32x2 = sg_set_s32x2(17, 16);
+    sg_storeu_s32x2(i, s32x2);
+    sg_assert(i[0] == 16 && i[1] == 17);
+
+    sg_f32x2 f32x2 = sg_set_f32x2(19, 18);
+    sg_storeu_f32x2(f, f32x2);
+    sg_assert(f[0] == 18 && f[1] == 19);
 }
 
 void test_cast() {
@@ -2787,10 +2827,10 @@ static void test_opover_cmp() {
     sg_assert((Compare_ps{true}.choose_else_zero(2.0f).debug_eq(2.0f)));
     sg_assert((Compare_pd{false}.choose_else_zero(2.0).debug_eq(0.0)));
     sg_assert((Compare_pd{true}.choose_else_zero(2.0).debug_eq(2.0)));
-    sg_assert((Compare_s32x2{false}.choose_else_zero(2.0).debug_eq(0.0)));
-    sg_assert((Compare_s32x2{true}.choose_else_zero(2.0).debug_eq(2.0)));
-    sg_assert((Compare_f32x2{false}.choose_else_zero(2.0).debug_eq(0.0)));
-    sg_assert((Compare_f32x2{true}.choose_else_zero(2.0).debug_eq(2.0)));
+    sg_assert((Compare_s32x2{false}.choose_else_zero(2).debug_eq(0)));
+    sg_assert((Compare_s32x2{true}.choose_else_zero(2).debug_eq(2)));
+    sg_assert((Compare_f32x2{false}.choose_else_zero(2).debug_eq(0)));
+    sg_assert((Compare_f32x2{true}.choose_else_zero(2).debug_eq(2)));
 
     sg_assert((Compare_s32x1{false}.choose_else_zero(2).debug_eq(0)));
     sg_assert((Compare_s32x1{true}.choose_else_zero(2).debug_eq(2)));
@@ -2810,8 +2850,8 @@ static void test_opover_cmp() {
     sg_assert(Compare_ps{true}.choose(2.0f, 3.0f).debug_eq(2.0f));
     sg_assert(Compare_pd{false}.choose(2.0, 3.0).debug_eq(3.0));
     sg_assert(Compare_pd{true}.choose(2.0, 3.0).debug_eq(2.0));
-    sg_assert(Compare_s32x2{false}.choose(2.0, 3.0).debug_eq(3.0));
-    sg_assert(Compare_s32x2{true}.choose(2.0, 3.0).debug_eq(2.0));
+    sg_assert(Compare_s32x2{false}.choose(2, 3).debug_eq(3));
+    sg_assert(Compare_s32x2{true}.choose(2, 3).debug_eq(2));
     sg_assert(Compare_f32x2{false}.choose(2.0, 3.0).debug_eq(3.0));
     sg_assert(Compare_f32x2{true}.choose(2.0, 3.0).debug_eq(2.0));
 
