@@ -396,19 +396,19 @@ static inline sg_generic_f32x2 sg_vectorcall(sg_load_generic_f32x2)(
 #elif defined SIMD_GRANODI_SSE2
 // This would be UB, but the intel spec specifically says that any
 // implementation must allow vec pointers to alias some non-vec pointers
-#define sg_loadu_pi32(i) _mm_loadu_si128((__m128i *const) (i))
-#define sg_load_pi32(i) _mm_load_si128((__m128i *const) (i))
-#define sg_loadu_pi64(l) _mm_loadu_si128((__m128i *const) (l))
-#define sg_load_pi64(l) _mm_load_si128((__m128i *const) (l))
+#define sg_loadu_pi32(i) _mm_loadu_si128((__m128i *) (i))
+#define sg_load_pi32(i) _mm_load_si128((__m128i *) (i))
+#define sg_loadu_pi64(l) _mm_loadu_si128((__m128i *) (l))
+#define sg_load_pi64(l) _mm_load_si128((__m128i *) (l))
 #define sg_loadu_ps _mm_loadu_ps
 #define sg_load_ps _mm_load_ps
 #define sg_loadu_pd _mm_loadu_pd
 #define sg_load_pd _mm_load_pd
 
-#define sg_storeu_pi32(i, a) _mm_storeu_si128((__m128i *const) (i), a)
-#define sg_store_pi32(i, a) _mm_store_si128((__m128i *const) (i), a)
-#define sg_storeu_pi64(l, a) _mm_storeu_si128((__m128i *const) (l), a)
-#define sg_store_pi64(l, a) _mm_store_si128((__m128i *const) (l), a)
+#define sg_storeu_pi32(i, a) _mm_storeu_si128((__m128i *) (i), a)
+#define sg_store_pi32(i, a) _mm_store_si128((__m128i *) (i), a)
+#define sg_storeu_pi64(l, a) _mm_storeu_si128((__m128i *) (l), a)
+#define sg_store_pi64(l, a) _mm_store_si128((__m128i *) (l), a)
 #define sg_storeu_ps _mm_storeu_ps
 #define sg_store_ps _mm_store_ps
 #define sg_storeu_pd _mm_storeu_pd
