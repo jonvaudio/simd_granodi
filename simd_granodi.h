@@ -2139,7 +2139,7 @@ static inline sg_generic_pd sg_vectorcall(sg_set_generic_pd)(const double d1,
     const double d0)
 {
     sg_generic_pd result;
-    result.d0 = d0, result.d1 = d1;
+    result.d0 = d0; result.d1 = d1;
     return result;
 }
 
