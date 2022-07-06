@@ -299,12 +299,10 @@ static inline sg_pi32 sg_vectorcall(sg_choose_pi32)(const sg_cmp_pi32,
 #define sg_sse2_allset_si128 _mm_set_epi64x(sg_allset_s64, sg_allset_s64)
 #define sg_sse2_allset_ps _mm_castsi128_ps(sg_sse2_allset_si128)
 #define sg_sse2_allset_pd _mm_castsi128_pd(sg_sse2_allset_si128)
-#define sg_sse2_signbit_ps _mm_set1_ps(-0.0f)
-#define sg_sse2_signbit_pd _mm_set1_pd(-0.0)
-#define sg_sse2_signmask_ps _mm_castsi128_ps( \
-    _mm_set1_epi32(sg_fp_signmask_s32))
-#define sg_sse2_signmask_pd _mm_castsi128_pd( \
-    _mm_set1_epi64x(sg_fp_signmask_s64))
+#define sg_sse2_signbit_ps _mm_set1_epi32(~sg_fp_signmask_s32)
+#define sg_sse2_signbit_pd _mm_set1_epi64x(~sg_fp_signmask_s64)
+#define sg_sse2_signmask_ps _mm_set1_epi32(sg_fp_signmask_s32)
+#define sg_sse2_signmask_pd _mm_set1_epi64x(sg_fp_signmask_s64)
 #endif
 
 //
@@ -6575,8 +6573,10 @@ static inline sg_pi32 sg_vectorcall(sg_abs_pi32)(const sg_pi32 a) {
     return sg_choose_pi32(_mm_cmplt_epi32(a, _mm_setzero_si128()),
         _mm_sub_epi32(_mm_setzero_si128(), a), a);
 }
-#define sg_abs_ps(a) _mm_and_ps(a, sg_sse2_signmask_ps)
-#define sg_abs_pd(a) _mm_and_pd(a, sg_sse2_signmask_pd)
+#define sg_abs_ps(a) _mm_castsi128_ps(_mm_and_si128(_mm_castps_si128(a), \
+    sg_sse2_signmask_ps))
+#define sg_abs_pd(a) _mm_castsi128_pd(_mm_and_si128(_mm_castpd_si128(a), \
+    sg_sse2_signmask_pd))
 
 #elif defined SIMD_GRANODI_NEON
 #define sg_abs_pi32 vabsq_s32
@@ -6658,8 +6658,10 @@ static inline sg_generic_f32x2 sg_vectorcall(sg_neg_generic_f32x2)(
 #elif defined SIMD_GRANODI_SSE2
 #define sg_neg_pi32(a) _mm_sub_epi32(_mm_setzero_si128(), a)
 #define sg_neg_pi64(a) _mm_sub_epi64(_mm_setzero_si128(), a)
-#define sg_neg_ps(a) _mm_xor_ps(a, sg_sse2_signbit_ps)
-#define sg_neg_pd(a) _mm_xor_pd(a, sg_sse2_signbit_pd)
+#define sg_neg_ps(a) _mm_castsi128_ps(_mm_xor_si128(_mm_castps_si128(a), \
+    sg_sse2_signbit_ps))
+#define sg_neg_pd(a) _mm_castsi128_pd(_mm_xor_si128(_mm_castpd_si128(a), \
+    sg_sse2_signbit_pd))
 
 #elif defined SIMD_GRANODI_NEON
 #define sg_neg_pi32 vnegq_s32
