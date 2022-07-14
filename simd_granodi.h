@@ -2596,7 +2596,7 @@ static inline sg_generic_f32x2 sg_vectorcall(sg_setlane_1_generic_f32x2)(
 #define sg_load_to_insert_pd_(d) _mm_set1_pd(d)
 #else
 #define sg_load_to_insert_pi32_(i) _mm_set_epi32(0,0,0,(i))
-#define sg_load_to_insert_pi64_(l) _mm_set_epi64(0,(l))
+#define sg_load_to_insert_pi64_(l) _mm_set_epi64x(0,(l))
 #define sg_load_to_insert_ps_(f) _mm_set_ps(0.0f, 0.0f, 0.0f, (f))
 #define sg_load_to_insert_pd_(d) _mm_set_pd(0.0, (d))
 #endif
@@ -7752,32 +7752,8 @@ public:
     int32_t sg_vectorcall(i2)() const { return sg_get2_pi32(data_); }
     int32_t sg_vectorcall(i3)() const { return sg_get3_pi32(data_); }
 
-    template <int32_t> int32_t sg_vectorcall(get)() const = delete;
-    template <> int32_t sg_vectorcall(get<0>)() const {
-        return sg_get0_pi32(data_);
-    }
-    template <> int32_t sg_vectorcall(get<1>)() const {
-        return sg_get1_pi32(data_);
-    }
-    template <> int32_t sg_vectorcall(get<2>)() const {
-        return sg_get2_pi32(data_);
-    }
-    template <> int32_t sg_vectorcall(get<3>)() const {
-        return sg_get3_pi32(data_);
-    }
-    template <int32_t> Vec_pi32 sg_vectorcall(set)(const int32_t) const = delete;
-    template <> Vec_pi32 sg_vectorcall(set<0>)(const int32_t i) const {
-        return sg_setlane_0_pi32(data_, i);
-    }
-    template <> Vec_pi32 sg_vectorcall(set<1>)(const int32_t i) const {
-        return sg_setlane_1_pi32(data_, i);
-    }
-    template <> Vec_pi32 sg_vectorcall(set<2>)(const int32_t i) const {
-        return sg_setlane_2_pi32(data_, i);
-    }
-    template <> Vec_pi32 sg_vectorcall(set<3>)(const int32_t i) const {
-        return sg_setlane_3_pi32(data_, i);
-    }
+    template <int32_t> inline int32_t sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_pi32 sg_vectorcall(set)(const int32_t) const = delete;
 
     Vec_pi32& sg_vectorcall(operator++)() {
         data_ = sg_add_pi32(data_, sg_set1_pi32(1));
@@ -7965,6 +7941,32 @@ public:
     }
 };
 
+template <> inline int32_t sg_vectorcall(Vec_pi32::get<0>)() const {
+    return sg_get0_pi32(data_);
+}
+template <> inline int32_t sg_vectorcall(Vec_pi32::get<1>)() const {
+    return sg_get1_pi32(data_);
+}
+template <> inline int32_t sg_vectorcall(Vec_pi32::get<2>)() const {
+    return sg_get2_pi32(data_);
+}
+template <> inline int32_t sg_vectorcall(Vec_pi32::get<3>)() const {
+    return sg_get3_pi32(data_);
+}
+
+template <> inline Vec_pi32 sg_vectorcall(Vec_pi32::set<0>)(const int32_t i) const {
+    return sg_setlane_0_pi32(data_, i);
+}
+template <> inline Vec_pi32 sg_vectorcall(Vec_pi32::set<1>)(const int32_t i) const {
+    return sg_setlane_1_pi32(data_, i);
+}
+template <> inline Vec_pi32 sg_vectorcall(Vec_pi32::set<2>)(const int32_t i) const {
+    return sg_setlane_2_pi32(data_, i);
+}
+template <> inline Vec_pi32 sg_vectorcall(Vec_pi32::set<3>)(const int32_t i) const {
+    return sg_setlane_3_pi32(data_, i);
+}
+
 typedef Vec_pi32 Vec_s32x4;
 
 class Vec_pi64 {
@@ -8021,20 +8023,8 @@ public:
     int64_t sg_vectorcall(l0)() const { return sg_get0_pi64(data_); }
     int64_t sg_vectorcall(l1)() const { return sg_get1_pi64(data_); }
 
-    template <int32_t> int64_t sg_vectorcall(get)() const = delete;
-    template <> int64_t sg_vectorcall(get<0>)() const {
-        return sg_get0_pi64(data_);
-    }
-    template <> int64_t sg_vectorcall(get<1>)() const {
-        return sg_get1_pi64(data_);
-    }
-    template <int32_t> Vec_pi64 sg_vectorcall(set)(const int64_t) const = delete;
-    template <> Vec_pi64 sg_vectorcall(set<0>)(const int64_t l) const {
-        return sg_setlane_0_pi64(data_, l);
-    }
-    template <> Vec_pi64 sg_vectorcall(set<1>)(const int64_t l) const {
-        return sg_setlane_1_pi64(data_, l);
-    }
+    template <int32_t> inline int64_t sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_pi64 sg_vectorcall(set)(const int64_t) const = delete;
 
     Vec_pi64& sg_vectorcall(operator++)() {
         data_ = sg_add_pi64(data_, sg_set1_pi64(1));
@@ -8222,6 +8212,19 @@ public:
 
 typedef Vec_pi64 Vec_s64x2;
 
+template <> inline int64_t sg_vectorcall(Vec_pi64::get<0>)() const {
+    return sg_get0_pi64(data_);
+}
+template <> inline int64_t sg_vectorcall(Vec_pi64::get<1>)() const {
+    return sg_get1_pi64(data_);
+}
+template <> inline Vec_pi64 sg_vectorcall(Vec_pi64::set<0>)(const int64_t l) const {
+    return sg_setlane_0_pi64(data_, l);
+}
+template <> inline Vec_pi64 sg_vectorcall(Vec_pi64::set<1>)(const int64_t l) const {
+    return sg_setlane_1_pi64(data_, l);
+}
+
 class Vec_ps {
     sg_ps data_;
 public:
@@ -8287,32 +8290,8 @@ public:
     float sg_vectorcall(f2)() const { return sg_get2_ps(data_); }
     float sg_vectorcall(f3)() const { return sg_get3_ps(data_); }
 
-    template <int32_t> float sg_vectorcall(get)() const = delete;
-    template <> float sg_vectorcall(get<0>)() const {
-        return sg_get0_ps(data_);
-    }
-    template <> float sg_vectorcall(get<1>)() const {
-        return sg_get1_ps(data_);
-    }
-    template <> float sg_vectorcall(get<2>)() const {
-        return sg_get2_ps(data_);
-    }
-    template <> float sg_vectorcall(get<3>)() const {
-        return sg_get3_ps(data_);
-    }
-    template <int32_t> Vec_ps sg_vectorcall(set)(const float f) const = delete;
-    template <> Vec_ps sg_vectorcall(set<0>)(const float f) const {
-        return sg_setlane_0_ps(data_, f);
-    }
-    template <> Vec_ps sg_vectorcall(set<1>)(const float f) const {
-        return sg_setlane_1_ps(data_, f);
-    }
-    template <> Vec_ps sg_vectorcall(set<2>)(const float f) const {
-        return sg_setlane_2_ps(data_, f);
-    }
-    template <> Vec_ps sg_vectorcall(set<3>)(const float f) const {
-        return sg_setlane_3_ps(data_, f);
-    }
+    template <int32_t> inline float sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_ps sg_vectorcall(set)(const float f) const = delete;
 
     Vec_ps& sg_vectorcall(operator+=)(const Vec_ps rhs) {
         data_ = sg_add_ps(data_, rhs.data());
@@ -8508,6 +8487,31 @@ public:
 
 typedef Vec_ps Vec_f32x4;
 
+template <> inline float sg_vectorcall(Vec_ps::get<0>)() const {
+    return sg_get0_ps(data_);
+}
+template <> inline float sg_vectorcall(Vec_ps::get<1>)() const {
+    return sg_get1_ps(data_);
+}
+template <> inline float sg_vectorcall(Vec_ps::get<2>)() const {
+    return sg_get2_ps(data_);
+}
+template <> inline float sg_vectorcall(Vec_ps::get<3>)() const {
+    return sg_get3_ps(data_);
+}
+template <> inline Vec_ps sg_vectorcall(Vec_ps::set<0>)(const float f) const {
+    return sg_setlane_0_ps(data_, f);
+}
+template <> inline Vec_ps sg_vectorcall(Vec_ps::set<1>)(const float f) const {
+    return sg_setlane_1_ps(data_, f);
+}
+template <> inline Vec_ps sg_vectorcall(Vec_ps::set<2>)(const float f) const {
+    return sg_setlane_2_ps(data_, f);
+}
+template <> inline Vec_ps sg_vectorcall(Vec_ps::set<3>)(const float f) const {
+    return sg_setlane_3_ps(data_, f);
+}
+
 class Vec_pd {
     sg_pd data_;
 public:
@@ -8571,20 +8575,8 @@ public:
     double sg_vectorcall(d0)() const { return sg_get0_pd(data_); }
     double sg_vectorcall(d1)() const { return sg_get1_pd(data_); }
 
-    template <int32_t> double sg_vectorcall(get)() const = delete;
-    template <> double sg_vectorcall(get<0>)() const {
-        return sg_get0_pd(data_);
-    }
-    template <> double sg_vectorcall(get<1>)() const {
-        return sg_get1_pd(data_);
-    }
-    template <int32_t> Vec_pd sg_vectorcall(set)(const double) const = delete;
-    template <> Vec_pd sg_vectorcall(set<0>)(const double d) const {
-        return sg_setlane_0_pd(data_, d);
-    }
-    template <> Vec_pd sg_vectorcall(set<1>)(const double d) const {
-        return sg_setlane_1_pd(data_, d);
-    }
+    template <int32_t> inline double sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_pd sg_vectorcall(set)(const double) const = delete;
 
     Vec_pd& sg_vectorcall(operator+=)(const Vec_pd rhs) {
         data_ = sg_add_pd(data_, rhs.data());
@@ -8772,6 +8764,20 @@ public:
 
 typedef Vec_pd Vec_f64x2;
 
+template <> inline double sg_vectorcall(Vec_pd::get<0>)() const {
+    return sg_get0_pd(data_);
+}
+template <> inline double sg_vectorcall(Vec_pd::get<1>)() const {
+    return sg_get1_pd(data_);
+}
+
+template <> inline Vec_pd sg_vectorcall(Vec_pd::set<0>)(const double d) const {
+    return sg_setlane_0_pd(data_, d);
+}
+template <> inline Vec_pd sg_vectorcall(Vec_pd::set<1>)(const double d) const {
+    return sg_setlane_1_pd(data_, d);
+}
+
 class Vec_s32x2 {
     sg_s32x2 data_;
 public:
@@ -8829,20 +8835,8 @@ public:
     int32_t sg_vectorcall(i0)() const { return sg_get0_s32x2(data_); }
     int32_t sg_vectorcall(i1)() const { return sg_get1_s32x2(data_); }
 
-    template <int32_t> int32_t sg_vectorcall(get)() const = delete;
-    template <> int32_t sg_vectorcall(get<0>)() const {
-        return sg_get0_s32x2(data_);
-    }
-    template <> int32_t sg_vectorcall(get<1>)() const {
-        return sg_get1_s32x2(data_);
-    }
-    template <int32_t> Vec_s32x2 sg_vectorcall(set)(const int32_t) const = delete;
-    template <> Vec_s32x2 sg_vectorcall(set<0>)(const int32_t i) const {
-        return sg_setlane_0_s32x2(data_, i);
-    }
-    template <> Vec_s32x2 sg_vectorcall(set<1>)(const int32_t i) const {
-        return sg_setlane_1_s32x2(data_, i);
-    }
+    template <int32_t> inline int32_t sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_s32x2 sg_vectorcall(set)(const int32_t) const = delete;
 
     Vec_s32x2& sg_vectorcall(operator++)() {
         data_ = sg_add_s32x2(data_, sg_set1_s32x2(1));
@@ -9031,6 +9025,19 @@ public:
     }
 };
 
+template <> inline int32_t sg_vectorcall(Vec_s32x2::get<0>)() const {
+    return sg_get0_s32x2(data_);
+}
+template <> inline int32_t sg_vectorcall(Vec_s32x2::get<1>)() const {
+    return sg_get1_s32x2(data_);
+}
+template <> inline Vec_s32x2 sg_vectorcall(Vec_s32x2::set<0>)(const int32_t i) const {
+    return sg_setlane_0_s32x2(data_, i);
+}
+template <> inline Vec_s32x2 sg_vectorcall(Vec_s32x2::set<1>)(const int32_t i) const {
+    return sg_setlane_1_s32x2(data_, i);
+}
+
 class Vec_f32x2 {
     sg_f32x2 data_;
 public:
@@ -9092,20 +9099,8 @@ public:
     float sg_vectorcall(f0)() const { return sg_get0_f32x2(data_); }
     float sg_vectorcall(f1)() const { return sg_get1_f32x2(data_); }
 
-    template <int32_t> float sg_vectorcall(get)() const = delete;
-    template <> float sg_vectorcall(get<0>)() const {
-        return sg_get0_f32x2(data_);
-    }
-    template <> float sg_vectorcall(get<1>)() const {
-        return sg_get1_f32x2(data_);
-    }
-    template <int32_t> Vec_f32x2 sg_vectorcall(set)(const float f) const = delete;
-    template <> Vec_f32x2 sg_vectorcall(set<0>)(const float f) const {
-        return sg_setlane_0_f32x2(data_, f);
-    }
-    template <> Vec_f32x2 sg_vectorcall(set<1>)(const float f) const {
-        return sg_setlane_1_f32x2(data_, f);
-    }
+    template <int32_t> inline float sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_f32x2 sg_vectorcall(set)(const float f) const = delete;
 
     Vec_f32x2& sg_vectorcall(operator+=)(const Vec_f32x2 rhs) {
         data_ = sg_add_f32x2(data_, rhs.data());
@@ -9292,6 +9287,19 @@ public:
     }
 };
 
+template <> inline float sg_vectorcall(Vec_f32x2::get<0>)() const {
+    return sg_get0_f32x2(data_);
+}
+template <> inline float sg_vectorcall(Vec_f32x2::get<1>)() const {
+    return sg_get1_f32x2(data_);
+}
+template <> inline Vec_f32x2 sg_vectorcall(Vec_f32x2::set<0>)(const float f) const {
+    return sg_setlane_0_f32x2(data_, f);
+}
+template <> inline Vec_f32x2 sg_vectorcall(Vec_f32x2::set<1>)(const float f) const {
+    return sg_setlane_1_f32x2(data_, f);
+}
+
 inline Vec_pi32 sg_vectorcall(Compare_pi32::choose_else_zero)(
     const Vec_pi32 if_true) const
 {
@@ -9448,12 +9456,8 @@ public:
     int32_t sg_vectorcall(data)() const { return data_; }
     int32_t sg_vectorcall(i0)() const { return data_; }
 
-    template <int32_t> int32_t sg_vectorcall(get)() const = delete;
-    template <> int32_t sg_vectorcall(get<0>)() const { return data_; }
-    template <int32_t> Vec_s32x1 sg_vectorcall(set)(const int32_t) const = delete;
-    template <> Vec_s32x1 sg_vectorcall(set<0>)(const int32_t i) const {
-        return i;
-    }
+    template <int32_t> inline int32_t sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_s32x1 sg_vectorcall(set)(const int32_t) const = delete;
 
     Vec_s32x1& sg_vectorcall(operator++)() {
         ++data_;
@@ -9640,6 +9644,11 @@ public:
     }
 };
 
+template <> inline int32_t sg_vectorcall(Vec_s32x1::get<0>)() const { return data_; }
+template <> inline Vec_s32x1 sg_vectorcall(Vec_s32x1::set<0>)(const int32_t i) const {
+    return i;
+}
+
 class Vec_s64x1 {
     int64_t data_;
 public:
@@ -9661,12 +9670,8 @@ public:
 
     int64_t sg_vectorcall(data)() const { return data_; }
     int64_t sg_vectorcall(l0)() const { return data_; }
-    template <int32_t> int64_t sg_vectorcall(get)() const = delete;
-    template <> int64_t sg_vectorcall(get<0>)() const { return data_; }
-    template <int32_t> Vec_s64x1 sg_vectorcall(set)(const int64_t) const = delete;
-    template <> Vec_s64x1 sg_vectorcall(set<0>)(const int64_t l) const {
-        return l;
-    }
+    template <int32_t> inline int64_t sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_s64x1 sg_vectorcall(set)(const int64_t) const = delete;
 
     Vec_s64x1& sg_vectorcall(operator++)() {
         ++data_;
@@ -9851,6 +9856,11 @@ public:
     }
 };
 
+template <> inline int64_t sg_vectorcall(Vec_s64x1::get<0>)() const { return data_; }
+template <> inline Vec_s64x1 sg_vectorcall(Vec_s64x1::set<0>)(const int64_t l) const {
+    return l;
+}
+
 class Vec_f32x1 {
     float data_;
 public:
@@ -9878,12 +9888,8 @@ public:
 
     float sg_vectorcall(data)() const { return data_; }
     float sg_vectorcall(f0)() const { return data_; }
-    template <int32_t> float sg_vectorcall(get)() const = delete;
-    template <> float sg_vectorcall(get<0>)() const { return data_; }
-    template <int32_t> Vec_f32x1 sg_vectorcall(set)(const float) const = delete;
-    template <> Vec_f32x1 sg_vectorcall(set<0>)(const float f) const {
-        return f;
-    }
+    template <int32_t> inline float sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_f32x1 sg_vectorcall(set)(const float) const = delete;
 
     Vec_f32x1& sg_vectorcall(operator+=)(const Vec_f32x1 rhs) {
         data_ += rhs.data();
@@ -10061,6 +10067,11 @@ public:
     Vec_f32x1 sg_vectorcall(std_sqrt)() const { return std::sqrt(data_); }
 };
 
+template <> inline float sg_vectorcall(Vec_f32x1::get<0>)() const { return data_; }
+template <> inline Vec_f32x1 sg_vectorcall(Vec_f32x1::set<0>)(const float f) const {
+    return f;
+}
+
 class Vec_f64x1 {
     double data_;
 public:
@@ -10088,12 +10099,8 @@ public:
 
     double sg_vectorcall(data)() const { return data_; }
     double sg_vectorcall(d0)() const { return data_; }
-    template <int32_t> double sg_vectorcall(get)() const = delete;
-    template <> double sg_vectorcall(get<0>)() const { return data_; }
-    template <int32_t> Vec_f64x1 sg_vectorcall(set)(const double) const = delete;
-    template <> Vec_f64x1 sg_vectorcall(set<0>)(const double d) const {
-        return d;
-    }
+    template <int32_t> inline double sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_f64x1 sg_vectorcall(set)(const double) const = delete;
 
     Vec_f64x1& sg_vectorcall(operator+=)(const Vec_f64x1 rhs) {
         data_ += rhs.data();
@@ -10273,6 +10280,11 @@ public:
 
 typedef Vec_f32x1 Vec_ss;
 typedef Vec_f64x1 Vec_sd;
+
+template <> inline double sg_vectorcall(Vec_f64x1::get<0>)() const { return data_; }
+template <> inline Vec_f64x1 sg_vectorcall(Vec_f64x1::set<0>)(const double d) const {
+    return d;
+}
 
 //
 //
