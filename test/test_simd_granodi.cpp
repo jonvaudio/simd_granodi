@@ -1736,8 +1736,8 @@ static void test_opover() {
     rv_f32 = (f32 += 1); rv_f64 = (f64 += 1);
     sg_assert(rv_pi32.debug_eq(1) && pi32.debug_eq(1));
     sg_assert(rv_pi64.debug_eq(1) && pi64.debug_eq(1));
-    sg_assert(rv_ps.debug_eq(1.0f) && ps.debug_eq(1.0f));
-    sg_assert(rv_pd.debug_eq(1.0) && pd.debug_eq(1.0));
+    sg_assert(rv_ps.debug_eq(1) && ps.debug_eq(1));
+    sg_assert(rv_pd.debug_eq(1) && pd.debug_eq(1));
     sg_assert(rv_s32x2.debug_eq(1) && s32x2.debug_eq(1));
     sg_assert(rv_f32x2.debug_eq(1) && f32x2.debug_eq(1));
     sg_assert(rv_s32.debug_eq(1) && s32.debug_eq(1));

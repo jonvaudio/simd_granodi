@@ -165,7 +165,11 @@ TODO:
     #elif defined (_M_IX86) && (_M_IX86_FP == 2)
         #define SIMD_GRANODI_FORCE_GENERIC
         #define SIMD_GRANODI_ARCH_SSE
-        #define sg_vectorcall(f) __vectorcall f
+        // WARNING: Uncommenting the following line breaks the MSVC++
+        // FORCE_GENERIC 32-bit x86 test build entirely due to
+        // sg_set1_generic_ps() setting .f3 to 0xCCCCCCCC. More investigation
+        // needed.
+        //#define sg_vectorcall(f) __vectorcall f
     #else
         #define SIMD_GRANODI_FORCE_GENERIC
     #endif
