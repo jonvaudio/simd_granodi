@@ -59,11 +59,13 @@ Generic, SSE, and NEON definitions grouped per section for comparison, education
 documentation, reference etc
 
 Assume reasonable confidence in modern compilers to inline, elide copies,
-pre-calculate constants etc. Written to compile with -O3 on GCC and Clang
-Now with some workarounds for improving MSVC++ performance.
+pre-calculate constants etc with some workarounds for improving MSVC++
+performance. Carefully written to stay in-register (eg when setting or getting
+elements of a vector).
 If using the C++ classes on MSVC, compiling with /GS- (with the "-" being the
-important part) will prevent needless stack security cookies being added,
-which are "triggered" by the SIMD classes.
+important part) will prevent needless stack security cookies being added for any
+non-inlined function that takes a SIMD wrapper class as an argument.
+SIMD wrapper objects should be passed by value.
 
 Behaviour of corner cases may NOT be identical on separate platforms
 (eg min / max of signed floating point zero, abs(INT_MIN), some conversion
