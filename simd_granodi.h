@@ -162,7 +162,7 @@ TODO:
         #define SIMD_GRANODI_SSE2
         #define SIMD_GRANODI_ARCH_SSE
         #define sg_vectorcall(f) __vectorcall f
-    #elif defined (_M_IX86) && (_M_IX86_FP == 2))
+    #elif defined (_M_IX86) && (_M_IX86_FP == 2)
         #define SIMD_GRANODI_FORCE_GENERIC
         #define SIMD_GRANODI_ARCH_SSE
         #define sg_vectorcall(f) __vectorcall f
