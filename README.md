@@ -1,6 +1,6 @@
 # simd_granodi.h
 
-### Easy C/C++ SIMD in a single header file, supporting AArch64 NEON and x86_64 SSE2
+### Easy C/C++ SIMD in a single header file, supporting AArch64 NEON, x86_64 SSE2, and an emulated implementation
 
 ## Features
 - Supports C99, and C++11 with extensive operator overloading, type traits, templated conversions etc.
@@ -10,7 +10,7 @@
 - The C++ classes are (mostly) immutable, apart from the `+=`, `-=`, `*=`, `/=`, `&=`, `|=`, `^=` operators. Most non-static methods are marked `const` and return a new value.
 - Templated methods and type traits make it easy to write C++ SIMD code that works on several different types.
 - The C implementation mostly uses macros (where arguments are evaluated no more than once), for faster debug builds. C code using the library should take almost the same amount of time to compile as if you had used the intrinsics directly.
-- The included generic, non-vector implementation allows for compilation on any target. (This implementation can be forced by defining `SIMD_GRANODI_FORCE_GENERIC`). It also serves as documentation for those not familiar with SIMD intrinsics.
+- The included emulated implementation, using built-in scalar types and standard library functions, allows for compilation on any target. (This implementation can be forced by defining `SIMD_GRANODI_FORCE_GENERIC`). It also serves as documentation for those not familiar with SIMD intrinsics.
 - Avoids undefined behaviour.
 - Tested on GCC, Clang, and MSVC++.
 - `simd_granodi.h` is the only file you need.
@@ -18,19 +18,20 @@
 
 ### Why 64-bit only? Why only SSE2?
 
-This library was written so that the author could easily write cross-platform Audio DSP code that runs on all x86_64 machines, and newer AArch64 machines (ie the latest hardware from Apple). It targets 128-bit SIMD types (32x4 or 64x2). However, the generic implementation should be able to target any hardware.
+This library was written so that the author could easily write cross-platform Audio DSP code that runs on all x86_64 machines, and newer AArch64 machines (ie the latest hardware from Apple). It targets 128-bit SIMD types (32x4 or 64x2). However, the emulated implementation should run on any hardware.
 
 The x86\_64 implementation limits itself to SSE2, as many otherwise-capable modern low-end CPUs do not support AVX, SSE2 is guaranteed to be implemented on all x86_64 machines, and later SSE instructions (eg SSE 4.2) only provide a marginal speed improvement to the functionality of this library. Also, NEON only supports 128-bit vectors. However, it would be very easy to add AVX support in future, and simply wrap 2 or 4 128-bit registers on NEON.
 
-### Generic "fallback" implementation
+### Emulated "fallback" implementation
 
-If the header cannot detect that you are on x64 or AArch64 using one of Clang, GCC, or MSVC++, it will revert to using a "generic" implementation which uses standard C/C++ scalar operations. This means that there is no risk of writing SIMD code, and then suddenly discovering you need to compile for a target that has no SIMD hardware.
+If the header cannot detect that you are on x64 or AArch64 using one of Clang, GCC, or MSVC++, it will revert to using a "generic" implementation which emulates SIMD using standard C/C++ built-in scalar types and standard library functions. This guarantees that you can compile for any target, even if it does not perform as well.
 
 ### Slow / non-vector functions
 
-Some platforms do not have intrinsic functions for some SIMD operations, and so they are implemented generically and may be slower. A list of these functions/macros, per-platform, is contained in a comment at the start of the `simd_granodi.h` file. If you are using the C++ classes, you may wish to search for those names in the file to see which methods they correspond to.
+Some platforms do not have intrinsic functions for some SIMD operations, and so they are emulated using standard library functions and may be slower. A list of these functions/macros, per-platform, is contained in a comment at the start of the `simd_granodi.h` file. If you are using the C++ classes, you may wish to search for those names in the file to see which methods they correspond to.
 
 ## C++ documentation
+
 ### Namespaces
 
 All of the C++ code is inside the namespace `simd_granodi`. All of the code examples below assume you are `using namespace simd_granodi;`, but you may choose to do something like `namespace sg = simd_granodi;`.
@@ -50,7 +51,7 @@ The following vector types are 64-bit in size:
 - `Vec_s32x2` - Vector of 2 `int32_t`
 - `Vec_f32x2` - Vector of 2 `float`
 
-**Note:** On SSE2, `Vec_s32x2` and `Vec_f32x2` are implemented generically. See below for explanation. 
+**Note:** On SSE2, `Vec_s32x2` and `Vec_f32x2` are emulated. See below for explanation. 
 
 The following are "scalar wrapper" types, which allow you to write templated code that operates either on built-in C++ types or SIMD vectors:
 
@@ -90,7 +91,7 @@ These are type aliases, so in order to use them you must use the `.to<NewType>()
 
 In order to obtain good performance when compiling x64 code using the SIMD C++ classes, it is recommended to take the following steps:
 
-##### Use the `sg_vectorcall` function macro
+##### Use the `sg_vectorcall()` macro to declare / define functions
 
 Use the `sg_vectorcall(f)` macro to define your own functions which take `float`, `double`, or any SIMD type or SIMD class wrapper type as an argument, to avoid unnecessary loads and stores. On MSVC++ under x64, this macro is defined as:
 
@@ -98,15 +99,15 @@ Use the `sg_vectorcall(f)` macro to define your own functions which take `float`
 #define sg_vectorcall(f) __vectorcall f
 ````
 
-and on all other platforms, this macro is defined as the identity macro:
+and on other platforms, this macro is defined as the identity macro:
 
 ```cpp
 #define sg_vectorcall(f) f
 ```
 
-and so is harmless.
+and so has no effect.
 
-Examples of use:
+Example of use:
 
 ```cpp
 float sg_vectorcall(my_func)(const float x) {
@@ -114,7 +115,7 @@ float sg_vectorcall(my_func)(const float x) {
 }
 
 Vec_ps sg_vectorcall(my_func_simd)(const Vec_ps x) {
-	return x + 12.0f;
+    return x + 12.0f;
 }
 ```
 
@@ -122,9 +123,9 @@ Vec_ps sg_vectorcall(my_func_simd)(const Vec_ps x) {
 
 On MSVC++, passing SIMD class types by `const` reference can introduce unnecessary loads and stores.
 
-##### Compile with the `/GS-` (the important part of that flag being the `-`)
+##### Compile with the `/GS-` (the important part being the `-`)
 
-Functions which take an argument the same type as the C++ SIMD classes cause MSVC++ to place a security cookie on the stack before that function is called, and check that cookie again when the function returns. (This only happens if the function is **not** inlined). This is a sensible way to check for stack corruption, but can slow things down if you repeatedly call a function which (for example) takes a `Vec_ps` as an argument, but is large enough to not get inlined.
+Functions which take an argument whose type is one of the C++ SIMD classes cause MSVC++ to place a security cookie on the stack before that function is called, and check that cookie again when the function returns. (This only happens if the function is **not** inlined). This is a sensible way to check for stack corruption, but can slow things down if you repeatedly call a function which (for example) takes a `Vec_ps` as an argument, but is large enough to not get inlined.
 
 ### Constructors
 
@@ -215,9 +216,9 @@ All signed integer types implement bit-shifting methods. These are not implement
 
 For shifting by an amount determined at run-time, by another `Vec_` of the same type, these are:
 
-- `.shift_l(const Vec_& amount)` - Return a new vector with each element shifted left by the corresponding element in `amount`.
-- `.shift_rl(const Vec_& amount)` - Return a new vector with each element shifted right logically by the corresponding element in `amount`.
-- `.shift_ra(const Vec_& amount)` - Return a new vector with each element shifted right arithmetically by the corresponding element in `amount`.
+- `.shift_l(const Vec_ amount)` - Return a new vector with each element shifted left by the corresponding element in `amount`.
+- `.shift_rl(const Vec_ amount)` - Return a new vector with each element shifted right logically by the corresponding element in `amount`.
+- `.shift_ra(const Vec_ amount)` - Return a new vector with each element shifted right arithmetically by the corresponding element in `amount`.
 
 ### Shuffling (rearranging vectors internally)
 
