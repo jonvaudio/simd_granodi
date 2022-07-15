@@ -48,8 +48,8 @@ All of the following vector types are 128-bit in size:
 
 The following vector types are 64-bit in size:
 
-- `Vec_s32x2` - Vector of 2 `int32_t`
-- `Vec_f32x2` - Vector of 2 `float`
+- `Vec_s32x2` - **Vec**tor of **2** **32**-bit **s**igned integers
+- `Vec_f32x2` - **Vec**tor of **2** **32**-bit **f**loating point values
 
 **Note:** On SSE2, `Vec_s32x2` and `Vec_f32x2` are emulated. See below for explanation. 
 
