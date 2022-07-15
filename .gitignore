@@ -2,5 +2,6 @@
 *.opendb
 /test/bin
 /test/test_simd_granodi_msvc/Debug
+/test/test_simd_granodi_msvc/Release
 /test/test_simd_granodi_msvc/x64
 /test/test_simd_granodi_msvc/.vs

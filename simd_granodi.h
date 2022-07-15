@@ -59,11 +59,13 @@ Generic, SSE, and NEON definitions grouped per section for comparison, education
 documentation, reference etc
 
 Assume reasonable confidence in modern compilers to inline, elide copies,
-pre-calculate constants etc. Written to compile with -O3 on GCC and Clang
-Now with some workarounds for improving MSVC++ performance.
+pre-calculate constants etc with some workarounds for improving MSVC++
+performance. Carefully written to stay in-register (eg when setting or getting
+elements of a vector).
 If using the C++ classes on MSVC, compiling with /GS- (with the "-" being the
-important part) will prevent needless stack security cookies being added,
-which are "triggered" by the SIMD classes.
+important part) will prevent needless stack security cookies being added for any
+non-inlined function that takes a SIMD wrapper class as an argument.
+SIMD wrapper objects should be passed by value.
 
 Behaviour of corner cases may NOT be identical on separate platforms
 (eg min / max of signed floating point zero, abs(INT_MIN), some conversion
@@ -160,10 +162,14 @@ TODO:
         #define SIMD_GRANODI_SSE2
         #define SIMD_GRANODI_ARCH_SSE
         #define sg_vectorcall(f) __vectorcall f
-    #elif defined (_M_IX86) && (_M_IX86_FP == 2))
+    #elif defined (_M_IX86) && (_M_IX86_FP == 2)
         #define SIMD_GRANODI_FORCE_GENERIC
         #define SIMD_GRANODI_ARCH_SSE
-        #define sg_vectorcall(f) __vectorcall f
+        // WARNING: Uncommenting the following line breaks the MSVC++
+        // FORCE_GENERIC 32-bit x86 test build entirely due to
+        // sg_set1_generic_ps() setting .f3 to 0xCCCCCCCC. More investigation
+        // needed.
+        //#define sg_vectorcall(f) __vectorcall f
     #else
         #define SIMD_GRANODI_FORCE_GENERIC
     #endif
@@ -182,7 +188,6 @@ TODO:
 
 #ifdef __cplusplus
 #include <algorithm> // for std::min(), std::max()
-#include <atomic> // for paranoid thread fencing
 #include <cstdlib> // for std::abs() of int32/64
 #include <cmath>
 #include <cstdint>
@@ -2430,6 +2435,290 @@ static inline double sg_vectorcall(sg_get1_pd)(const sg_pd a) {
 #define sg_get0_f32x2(a) vget_lane_f32(a, 0)
 #define sg_get1_f32x2(a) vget_lane_f32(a, 1)
 
+#endif
+
+//
+//
+//
+//
+//
+//
+//
+// Set section, element
+
+static inline sg_generic_pi32 sg_vectorcall(sg_setlane_0_generic_pi32)(
+    const sg_generic_pi32 a, const int32_t s32)
+{
+    sg_generic_pi32 result;
+    result.i0 = s32; result.i1 = a.i1;
+    result.i2 = a.i2; result.i3 = a.i3;
+    return result;
+}
+static inline sg_generic_pi32 sg_vectorcall(sg_setlane_1_generic_pi32)(
+    const sg_generic_pi32 a, const int32_t s32)
+{
+    sg_generic_pi32 result;
+    result.i0 = a.i0; result.i1 = s32;
+    result.i2 = a.i2; result.i3 = a.i3;
+    return result;
+}
+static inline sg_generic_pi32 sg_vectorcall(sg_setlane_2_generic_pi32)(
+    const sg_generic_pi32 a, const int32_t s32)
+{
+    sg_generic_pi32 result;
+    result.i0 = a.i0; result.i1 = a.i1;
+    result.i2 = s32; result.i3 = a.i3;
+    return result;
+}
+static inline sg_generic_pi32 sg_vectorcall(sg_setlane_3_generic_pi32)(
+    const sg_generic_pi32 a, const int32_t s32)
+{
+    sg_generic_pi32 result;
+    result.i0 = a.i0; result.i1 = a.i1;
+    result.i2 = a.i2; result.i3 = s32;
+    return result;
+}
+
+static inline sg_generic_pi64 sg_vectorcall(sg_setlane_0_generic_pi64)(
+    const sg_generic_pi64 a, const int64_t s64)
+{
+    sg_generic_pi64 result;
+    result.l0 = s64; result.l1 = a.l1;
+    return result;
+}
+static inline sg_generic_pi64 sg_vectorcall(sg_setlane_1_generic_pi64)(
+    const sg_generic_pi64 a, const int64_t s64)
+{
+    sg_generic_pi64 result;
+    result.l0 = a.l0; result.l1 = s64;
+    return result;
+}
+
+static inline sg_generic_ps sg_vectorcall(sg_setlane_0_generic_ps)(
+    const sg_generic_ps a, const float f)
+{
+    sg_generic_ps result;
+    result.f0 = f; result.f1 = a.f1;
+    result.f2 = a.f2; result.f3 = a.f3;
+    return result;
+}
+static inline sg_generic_ps sg_vectorcall(sg_setlane_1_generic_ps)(
+    const sg_generic_ps a, const float f)
+{
+    sg_generic_ps result;
+    result.f0 = a.f0; result.f1 = f;
+    result.f2 = a.f2; result.f3 = a.f3;
+    return result;
+}
+static inline sg_generic_ps sg_vectorcall(sg_setlane_2_generic_ps)(
+    const sg_generic_ps a, const float f)
+{
+    sg_generic_ps result;
+    result.f0 = a.f0; result.f1 = a.f1;
+    result.f2 = f; result.f3 = a.f3;
+    return result;
+}
+static inline sg_generic_ps sg_vectorcall(sg_setlane_3_generic_ps)(
+    const sg_generic_ps a, const float f)
+{
+    sg_generic_ps result;
+    result.f0 = a.f0; result.f1 = a.f1;
+    result.f2 = a.f2; result.f3 = f;
+    return result;
+}
+
+static inline sg_generic_pd sg_vectorcall(sg_setlane_0_generic_pd)(
+    const sg_generic_pd a, const double d)
+{
+    sg_generic_pd result;
+    result.d0 = d; result.d1 = a.d1;
+    return result;
+}
+static inline sg_generic_pd sg_vectorcall(sg_setlane_1_generic_pd)(
+    const sg_generic_pd a, const double d)
+{
+    sg_generic_pd result;
+    result.d0 = a.d0; result.d1 = d;
+    return result;
+}
+
+static inline sg_generic_s32x2 sg_vectorcall(sg_setlane_0_generic_s32x2)(
+    const sg_generic_s32x2 a, const int32_t s32)
+{
+    sg_generic_s32x2 result;
+    result.i0 = s32; result.i1 = a.i1;
+    return result;
+}
+static inline sg_generic_s32x2 sg_vectorcall(sg_setlane_1_generic_s32x2)(
+    const sg_generic_s32x2 a, const int32_t s32)
+{
+    sg_generic_s32x2 result;
+    result.i0 = a.i0; result.i1 = s32;
+    return result;
+}
+
+static inline sg_generic_f32x2 sg_vectorcall(sg_setlane_0_generic_f32x2)(
+    const sg_generic_f32x2 a, const float f32)
+{
+    sg_generic_f32x2 result;
+    result.f0 = f32; result.f1 = a.f1;
+    return result;
+}
+static inline sg_generic_f32x2 sg_vectorcall(sg_setlane_1_generic_f32x2)(
+    const sg_generic_f32x2 a, const float f32)
+{
+    sg_generic_f32x2 result;
+    result.f0 = a.f0; result.f1 = f32;
+    return result;
+}
+
+#ifdef SIMD_GRANODI_FORCE_GENERIC
+#define sg_setlane_0_pi32 sg_setlane_0_generic_pi32
+#define sg_setlane_1_pi32 sg_setlane_1_generic_pi32
+#define sg_setlane_2_pi32 sg_setlane_2_generic_pi32
+#define sg_setlane_3_pi32 sg_setlane_3_generic_pi32
+
+#define sg_setlane_0_pi64 sg_setlane_0_generic_pi64
+#define sg_setlane_1_pi64 sg_setlane_1_generic_pi64
+
+#define sg_setlane_0_ps sg_setlane_0_generic_ps
+#define sg_setlane_1_ps sg_setlane_1_generic_ps
+#define sg_setlane_2_ps sg_setlane_2_generic_ps
+#define sg_setlane_3_ps sg_setlane_3_generic_ps
+
+#define sg_setlane_0_pd sg_setlane_0_generic_pd
+#define sg_setlane_1_pd sg_setlane_1_generic_pd
+
+#elif defined SIMD_GRANODI_SSE2
+
+// These macros needed to avoid horrible codegen in MSVC, and less than optimal
+// codegen in gcc and clang
+#ifdef _MSC_VER
+#define sg_load_to_insert_pi32_(i) _mm_set1_epi32(i)
+#define sg_load_to_insert_pi64_(l) _mm_set1_epi64x(l)
+#define sg_load_to_insert_ps_(f) _mm_set1_ps(f)
+#define sg_load_to_insert_pd_(d) _mm_set1_pd(d)
+#else
+#define sg_load_to_insert_pi32_(i) _mm_set_epi32(0,0,0,(i))
+#define sg_load_to_insert_pi64_(l) _mm_set_epi64x(0,(l))
+#define sg_load_to_insert_ps_(f) _mm_set_ps(0.0f, 0.0f, 0.0f, (f))
+#define sg_load_to_insert_pd_(d) _mm_set_pd(0.0, (d))
+#endif
+
+#define sg_setlane_0_pi32(a, i) _mm_castps_si128(_mm_move_ss( \
+    _mm_castsi128_ps(a), _mm_castsi128_ps(sg_load_to_insert_pi32_(i))))
+static inline sg_pi32 sg_vectorcall(sg_setlane_1_pi32)(const sg_pi32 a,
+    const int32_t i)
+{
+    const sg_ps to_insert = _mm_castsi128_ps(sg_load_to_insert_pi32_(i));
+    sg_ps dest = _mm_castsi128_ps(_mm_shuffle_epi32(a, sg_sse2_shuffle32_imm(3, 2, 0, 1)));
+    dest = _mm_move_ss(dest, to_insert);
+    dest = _mm_shuffle_ps(dest, dest, sg_sse2_shuffle32_imm(3, 2, 0, 1));
+    return _mm_castps_si128(dest);
+}
+static inline sg_pi32 sg_vectorcall(sg_setlane_2_pi32)(const sg_pi32 a,
+    const int32_t i)
+{
+    const sg_ps to_insert = _mm_castsi128_ps(sg_load_to_insert_pi32_(i));
+    sg_ps dest = _mm_castsi128_ps(_mm_shuffle_epi32(a, sg_sse2_shuffle32_imm(3, 0, 1, 2)));
+    dest = _mm_move_ss(dest, to_insert);
+    dest = _mm_shuffle_ps(dest, dest, sg_sse2_shuffle32_imm(3, 0, 1, 2));
+    return _mm_castps_si128(dest);
+}
+static inline sg_pi32 sg_vectorcall(sg_setlane_3_pi32)(const sg_pi32 a,
+    const int32_t i)
+{
+    const sg_ps to_insert = _mm_castsi128_ps(sg_load_to_insert_pi32_(i));
+    sg_ps dest = _mm_castsi128_ps(_mm_shuffle_epi32(a, sg_sse2_shuffle32_imm(0, 2, 1, 3)));
+    dest = _mm_move_ss(dest, to_insert);
+    dest = _mm_shuffle_ps(dest, dest, sg_sse2_shuffle32_imm(0, 2, 1, 3));
+    return _mm_castps_si128(dest);
+}
+
+#define sg_setlane_0_pi64(a, l) _mm_castpd_si128(_mm_move_sd( \
+    _mm_castsi128_pd(a), _mm_castsi128_pd(sg_load_to_insert_pi64_(l))))
+static inline sg_pi64 sg_vectorcall(sg_setlane_1_pi64)(const sg_pi64 a,
+    const int64_t l)
+{
+    const sg_pd to_insert = _mm_castsi128_pd(sg_load_to_insert_pi64_(l));
+    sg_pd dest = _mm_shuffle_pd(_mm_castsi128_pd(a), _mm_castsi128_pd(a),
+        sg_sse2_shuffle64_imm(0, 1));
+    dest = _mm_move_sd(dest, to_insert);
+    dest = _mm_shuffle_pd(dest, dest, sg_sse2_shuffle64_imm(0, 1));
+    return _mm_castpd_si128(dest);
+}
+
+#define sg_setlane_0_ps(a, i) _mm_move_ss(a, sg_load_to_insert_ps_(i))
+static inline sg_ps sg_vectorcall(sg_setlane_1_ps)(const sg_ps a,
+    const float f)
+{
+    const sg_ps to_insert = sg_load_to_insert_ps_(f);
+    sg_ps dest = _mm_shuffle_ps(a, a, sg_sse2_shuffle32_imm(3, 2, 0, 1));
+    dest = _mm_move_ss(dest, to_insert);
+    dest = _mm_shuffle_ps(dest, dest, sg_sse2_shuffle32_imm(3, 2, 0, 1));
+    return dest;
+}
+static inline sg_ps sg_vectorcall(sg_setlane_2_ps)(const sg_ps a,
+    const float f)
+{
+    const sg_ps to_insert = sg_load_to_insert_ps_(f);
+    sg_ps dest = _mm_shuffle_ps(a, a, sg_sse2_shuffle32_imm(3, 0, 1, 2));
+    dest = _mm_move_ss(dest, to_insert);
+    dest = _mm_shuffle_ps(dest, dest, sg_sse2_shuffle32_imm(3, 0, 1, 2));
+    return dest;
+}
+static inline sg_ps sg_vectorcall(sg_setlane_3_ps)(const sg_ps a,
+    const float f)
+{
+    const sg_ps to_insert = sg_load_to_insert_ps_(f);
+    sg_ps dest = _mm_shuffle_ps(a, a, sg_sse2_shuffle32_imm(0, 2, 1, 3));
+    dest = _mm_move_ss(dest, to_insert);
+    dest = _mm_shuffle_ps(dest, dest, sg_sse2_shuffle32_imm(0, 2, 1, 3));
+    return dest;
+}
+
+#define sg_setlane_0_pd(a, d) _mm_move_sd((a), sg_load_to_insert_pd_(d))
+static inline sg_pd sg_vectorcall(sg_setlane_1_pd)(const sg_pd a,
+    const double d)
+{
+    const sg_pd to_insert = sg_load_to_insert_pd_(d);
+    sg_pd dest = _mm_shuffle_pd(a, a, sg_sse2_shuffle64_imm(0, 1));
+    dest = _mm_move_sd(dest, to_insert);
+    dest = _mm_shuffle_pd(dest, dest, sg_sse2_shuffle64_imm(0, 1));
+    return dest;
+}
+
+#elif defined SIMD_GRANODI_NEON
+#define sg_setlane_0_pi32(a, i) vsetq_lane_s32((i), (a), 0)
+#define sg_setlane_1_pi32(a, i) vsetq_lane_s32((i), (a), 1)
+#define sg_setlane_2_pi32(a, i) vsetq_lane_s32((i), (a), 2)
+#define sg_setlane_3_pi32(a, i) vsetq_lane_s32((i), (a), 3)
+
+#define sg_setlane_0_pi64(a, l) vsetq_lane_s64((l), (a), 0)
+#define sg_setlane_1_pi64(a, l) vsetq_lane_s64((l), (a), 1)
+
+#define sg_setlane_0_ps(a, f) vsetq_lane_f32((f), (a), 0)
+#define sg_setlane_1_ps(a, f) vsetq_lane_f32((f), (a), 1)
+#define sg_setlane_2_ps(a, f) vsetq_lane_f32((f), (a), 2)
+#define sg_setlane_3_ps(a, f) vsetq_lane_f32((f), (a), 3)
+
+#define sg_setlane_0_pd(a, d) vsetq_lane_f64((d), (a), 0)
+#define sg_setlane_1_pd(a, d) vsetq_lane_f64((d), (a), 1)
+
+#define sg_setlane_0_s32x2(a, i) vset_lane_s32((i), (a), 0)
+#define sg_setlane_1_s32x2(a, i) vset_lane_s32((i), (a), 1)
+
+#define sg_setlane_0_f32x2(a, f) vset_lane_f32((f), (a), 0)
+#define sg_setlane_1_f32x2(a, f) vset_lane_f32((f), (a), 1)
+
+#endif
+
+#if defined SIMD_GRANODI_FORCE_GENERIC || defined SIMD_GRANODI_SSE2
+#define sg_setlane_0_s32x2 sg_setlane_0_generic_s32x2
+#define sg_setlane_1_s32x2 sg_setlane_1_generic_s32x2
+
+#define sg_setlane_0_f32x2 sg_setlane_0_generic_f32x2
+#define sg_setlane_1_f32x2 sg_setlane_1_generic_f32x2
 #endif
 
 //
@@ -7410,6 +7699,10 @@ class Vec_pi32 {
 public:
     Vec_pi32() : data_{sg_setzero_pi32()} {}
     Vec_pi32(const int32_t i) : data_{sg_set1_pi32(i)} {}
+    Vec_pi32(const int32_t i1, const int32_t i0) :
+        data_{sg_set_pi32(0, 0, i1, i0)} {}
+    Vec_pi32(const int32_t i2, const int32_t i1, const int32_t i0) :
+        data_{sg_set_pi32(0, i2, i1, i0)} {}
     Vec_pi32(const int32_t i3, const int32_t i2, const int32_t i1,
         const int32_t i0) : data_{sg_set_pi32(i3, i2, i1, i0)} {}
     Vec_pi32(const sg_pi32 pi32) : data_{pi32} {}
@@ -7463,10 +7756,8 @@ public:
     int32_t sg_vectorcall(i2)() const { return sg_get2_pi32(data_); }
     int32_t sg_vectorcall(i3)() const { return sg_get3_pi32(data_); }
 
-    template <int32_t i> int32_t sg_vectorcall(get)() const {
-        sassert_index_x4(i);
-        return sg_get0_pi32(sg_shuffle_pi32(data_, 3, 2, 1, i));
-    }
+    template <int32_t> inline int32_t sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_pi32 sg_vectorcall(set)(const int32_t) const = delete;
 
     Vec_pi32& sg_vectorcall(operator++)() {
         data_ = sg_add_pi32(data_, sg_set1_pi32(1));
@@ -7654,6 +7945,32 @@ public:
     }
 };
 
+template <> inline int32_t sg_vectorcall(Vec_pi32::get<0>)() const {
+    return sg_get0_pi32(data_);
+}
+template <> inline int32_t sg_vectorcall(Vec_pi32::get<1>)() const {
+    return sg_get1_pi32(data_);
+}
+template <> inline int32_t sg_vectorcall(Vec_pi32::get<2>)() const {
+    return sg_get2_pi32(data_);
+}
+template <> inline int32_t sg_vectorcall(Vec_pi32::get<3>)() const {
+    return sg_get3_pi32(data_);
+}
+
+template <> inline Vec_pi32 sg_vectorcall(Vec_pi32::set<0>)(const int32_t i) const {
+    return sg_setlane_0_pi32(data_, i);
+}
+template <> inline Vec_pi32 sg_vectorcall(Vec_pi32::set<1>)(const int32_t i) const {
+    return sg_setlane_1_pi32(data_, i);
+}
+template <> inline Vec_pi32 sg_vectorcall(Vec_pi32::set<2>)(const int32_t i) const {
+    return sg_setlane_2_pi32(data_, i);
+}
+template <> inline Vec_pi32 sg_vectorcall(Vec_pi32::set<3>)(const int32_t i) const {
+    return sg_setlane_3_pi32(data_, i);
+}
+
 typedef Vec_pi32 Vec_s32x4;
 
 class Vec_pi64 {
@@ -7710,10 +8027,8 @@ public:
     int64_t sg_vectorcall(l0)() const { return sg_get0_pi64(data_); }
     int64_t sg_vectorcall(l1)() const { return sg_get1_pi64(data_); }
 
-    template <int32_t i> int64_t sg_vectorcall(get)() const {
-        sassert_index_x2(i);
-        return sg_get0_pi64(sg_shuffle_pi64(data_, 1, i));
-    }
+    template <int32_t> inline int64_t sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_pi64 sg_vectorcall(set)(const int64_t) const = delete;
 
     Vec_pi64& sg_vectorcall(operator++)() {
         data_ = sg_add_pi64(data_, sg_set1_pi64(1));
@@ -7901,11 +8216,28 @@ public:
 
 typedef Vec_pi64 Vec_s64x2;
 
+template <> inline int64_t sg_vectorcall(Vec_pi64::get<0>)() const {
+    return sg_get0_pi64(data_);
+}
+template <> inline int64_t sg_vectorcall(Vec_pi64::get<1>)() const {
+    return sg_get1_pi64(data_);
+}
+template <> inline Vec_pi64 sg_vectorcall(Vec_pi64::set<0>)(const int64_t l) const {
+    return sg_setlane_0_pi64(data_, l);
+}
+template <> inline Vec_pi64 sg_vectorcall(Vec_pi64::set<1>)(const int64_t l) const {
+    return sg_setlane_1_pi64(data_, l);
+}
+
 class Vec_ps {
     sg_ps data_;
 public:
     Vec_ps() : data_{sg_setzero_ps()} {}
     Vec_ps(const float f) : data_{sg_set1_ps(f)} {}
+    Vec_ps(const float f1, const float f0) :
+        data_{sg_set_ps(0.0f, 0.0f, f1, f0)} {}
+    Vec_ps(const float f2, const float f1, const float f0) :
+        data_{sg_set_ps(0.0f, f2, f1, f0)} {}
     Vec_ps(const float f3, const float f2, const float f1,
         const float f0)
         : data_{sg_set_ps(f3, f2, f1, f0)} {}
@@ -7962,10 +8294,8 @@ public:
     float sg_vectorcall(f2)() const { return sg_get2_ps(data_); }
     float sg_vectorcall(f3)() const { return sg_get3_ps(data_); }
 
-    template <int32_t i> float sg_vectorcall(get)() const {
-        sassert_index_x4(i);
-        return sg_get0_ps(sg_shuffle_ps(data_, 3, 2, 1, i));
-    }
+    template <int32_t> inline float sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_ps sg_vectorcall(set)(const float f) const = delete;
 
     Vec_ps& sg_vectorcall(operator+=)(const Vec_ps rhs) {
         data_ = sg_add_ps(data_, rhs.data());
@@ -8161,6 +8491,31 @@ public:
 
 typedef Vec_ps Vec_f32x4;
 
+template <> inline float sg_vectorcall(Vec_ps::get<0>)() const {
+    return sg_get0_ps(data_);
+}
+template <> inline float sg_vectorcall(Vec_ps::get<1>)() const {
+    return sg_get1_ps(data_);
+}
+template <> inline float sg_vectorcall(Vec_ps::get<2>)() const {
+    return sg_get2_ps(data_);
+}
+template <> inline float sg_vectorcall(Vec_ps::get<3>)() const {
+    return sg_get3_ps(data_);
+}
+template <> inline Vec_ps sg_vectorcall(Vec_ps::set<0>)(const float f) const {
+    return sg_setlane_0_ps(data_, f);
+}
+template <> inline Vec_ps sg_vectorcall(Vec_ps::set<1>)(const float f) const {
+    return sg_setlane_1_ps(data_, f);
+}
+template <> inline Vec_ps sg_vectorcall(Vec_ps::set<2>)(const float f) const {
+    return sg_setlane_2_ps(data_, f);
+}
+template <> inline Vec_ps sg_vectorcall(Vec_ps::set<3>)(const float f) const {
+    return sg_setlane_3_ps(data_, f);
+}
+
 class Vec_pd {
     sg_pd data_;
 public:
@@ -8224,10 +8579,8 @@ public:
     double sg_vectorcall(d0)() const { return sg_get0_pd(data_); }
     double sg_vectorcall(d1)() const { return sg_get1_pd(data_); }
 
-    template <int32_t i> double sg_vectorcall(get)() const {
-        sassert_index_x2(i);
-        return sg_get0_pd(sg_shuffle_pd(data_, 1, i));
-    }
+    template <int32_t> inline double sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_pd sg_vectorcall(set)(const double) const = delete;
 
     Vec_pd& sg_vectorcall(operator+=)(const Vec_pd rhs) {
         data_ = sg_add_pd(data_, rhs.data());
@@ -8415,6 +8768,20 @@ public:
 
 typedef Vec_pd Vec_f64x2;
 
+template <> inline double sg_vectorcall(Vec_pd::get<0>)() const {
+    return sg_get0_pd(data_);
+}
+template <> inline double sg_vectorcall(Vec_pd::get<1>)() const {
+    return sg_get1_pd(data_);
+}
+
+template <> inline Vec_pd sg_vectorcall(Vec_pd::set<0>)(const double d) const {
+    return sg_setlane_0_pd(data_, d);
+}
+template <> inline Vec_pd sg_vectorcall(Vec_pd::set<1>)(const double d) const {
+    return sg_setlane_1_pd(data_, d);
+}
+
 class Vec_s32x2 {
     sg_s32x2 data_;
 public:
@@ -8472,10 +8839,8 @@ public:
     int32_t sg_vectorcall(i0)() const { return sg_get0_s32x2(data_); }
     int32_t sg_vectorcall(i1)() const { return sg_get1_s32x2(data_); }
 
-    template <int32_t i> int32_t sg_vectorcall(get)() const {
-        sassert_index_x2(i);
-        return sg_get0_s32x2(sg_shuffle_s32x2(data_, 1, i));
-    }
+    template <int32_t> inline int32_t sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_s32x2 sg_vectorcall(set)(const int32_t) const = delete;
 
     Vec_s32x2& sg_vectorcall(operator++)() {
         data_ = sg_add_s32x2(data_, sg_set1_s32x2(1));
@@ -8664,6 +9029,19 @@ public:
     }
 };
 
+template <> inline int32_t sg_vectorcall(Vec_s32x2::get<0>)() const {
+    return sg_get0_s32x2(data_);
+}
+template <> inline int32_t sg_vectorcall(Vec_s32x2::get<1>)() const {
+    return sg_get1_s32x2(data_);
+}
+template <> inline Vec_s32x2 sg_vectorcall(Vec_s32x2::set<0>)(const int32_t i) const {
+    return sg_setlane_0_s32x2(data_, i);
+}
+template <> inline Vec_s32x2 sg_vectorcall(Vec_s32x2::set<1>)(const int32_t i) const {
+    return sg_setlane_1_s32x2(data_, i);
+}
+
 class Vec_f32x2 {
     sg_f32x2 data_;
 public:
@@ -8725,10 +9103,8 @@ public:
     float sg_vectorcall(f0)() const { return sg_get0_f32x2(data_); }
     float sg_vectorcall(f1)() const { return sg_get1_f32x2(data_); }
 
-    template <int32_t i> float sg_vectorcall(get)() const {
-        sassert_index_x2(i);
-        return sg_get0_f32x2(sg_shuffle_f32x2(data_, 1, i));
-    }
+    template <int32_t> inline float sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_f32x2 sg_vectorcall(set)(const float f) const = delete;
 
     Vec_f32x2& sg_vectorcall(operator+=)(const Vec_f32x2 rhs) {
         data_ = sg_add_f32x2(data_, rhs.data());
@@ -8915,6 +9291,19 @@ public:
     }
 };
 
+template <> inline float sg_vectorcall(Vec_f32x2::get<0>)() const {
+    return sg_get0_f32x2(data_);
+}
+template <> inline float sg_vectorcall(Vec_f32x2::get<1>)() const {
+    return sg_get1_f32x2(data_);
+}
+template <> inline Vec_f32x2 sg_vectorcall(Vec_f32x2::set<0>)(const float f) const {
+    return sg_setlane_0_f32x2(data_, f);
+}
+template <> inline Vec_f32x2 sg_vectorcall(Vec_f32x2::set<1>)(const float f) const {
+    return sg_setlane_1_f32x2(data_, f);
+}
+
 inline Vec_pi32 sg_vectorcall(Compare_pi32::choose_else_zero)(
     const Vec_pi32 if_true) const
 {
@@ -9070,10 +9459,9 @@ public:
 
     int32_t sg_vectorcall(data)() const { return data_; }
     int32_t sg_vectorcall(i0)() const { return data_; }
-    template <int32_t i> int32_t sg_vectorcall(get)() const {
-        sassert_index_x1(i);
-        return data_;
-    }
+
+    template <int32_t> inline int32_t sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_s32x1 sg_vectorcall(set)(const int32_t) const = delete;
 
     Vec_s32x1& sg_vectorcall(operator++)() {
         ++data_;
@@ -9260,6 +9648,11 @@ public:
     }
 };
 
+template <> inline int32_t sg_vectorcall(Vec_s32x1::get<0>)() const { return data_; }
+template <> inline Vec_s32x1 sg_vectorcall(Vec_s32x1::set<0>)(const int32_t i) const {
+    return i;
+}
+
 class Vec_s64x1 {
     int64_t data_;
 public:
@@ -9281,10 +9674,8 @@ public:
 
     int64_t sg_vectorcall(data)() const { return data_; }
     int64_t sg_vectorcall(l0)() const { return data_; }
-    template <int32_t i> int64_t sg_vectorcall(get)() const {
-        sassert_index_x1(i);
-        return data_;
-    }
+    template <int32_t> inline int64_t sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_s64x1 sg_vectorcall(set)(const int64_t) const = delete;
 
     Vec_s64x1& sg_vectorcall(operator++)() {
         ++data_;
@@ -9469,6 +9860,11 @@ public:
     }
 };
 
+template <> inline int64_t sg_vectorcall(Vec_s64x1::get<0>)() const { return data_; }
+template <> inline Vec_s64x1 sg_vectorcall(Vec_s64x1::set<0>)(const int64_t l) const {
+    return l;
+}
+
 class Vec_f32x1 {
     float data_;
 public:
@@ -9496,10 +9892,8 @@ public:
 
     float sg_vectorcall(data)() const { return data_; }
     float sg_vectorcall(f0)() const { return data_; }
-    template <int32_t i> float sg_vectorcall(get)() const {
-        sassert_index_x1(i);
-        return data_;
-    }
+    template <int32_t> inline float sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_f32x1 sg_vectorcall(set)(const float) const = delete;
 
     Vec_f32x1& sg_vectorcall(operator+=)(const Vec_f32x1 rhs) {
         data_ += rhs.data();
@@ -9677,6 +10071,11 @@ public:
     Vec_f32x1 sg_vectorcall(std_sqrt)() const { return std::sqrt(data_); }
 };
 
+template <> inline float sg_vectorcall(Vec_f32x1::get<0>)() const { return data_; }
+template <> inline Vec_f32x1 sg_vectorcall(Vec_f32x1::set<0>)(const float f) const {
+    return f;
+}
+
 class Vec_f64x1 {
     double data_;
 public:
@@ -9704,10 +10103,8 @@ public:
 
     double sg_vectorcall(data)() const { return data_; }
     double sg_vectorcall(d0)() const { return data_; }
-    template <int32_t i> double sg_vectorcall(get)() const {
-        sassert_index_x1(i);
-        return data_;
-    }
+    template <int32_t> inline double sg_vectorcall(get)() const = delete;
+    template <int32_t> inline Vec_f64x1 sg_vectorcall(set)(const double) const = delete;
 
     Vec_f64x1& sg_vectorcall(operator+=)(const Vec_f64x1 rhs) {
         data_ += rhs.data();
@@ -9887,6 +10284,11 @@ public:
 
 typedef Vec_f32x1 Vec_ss;
 typedef Vec_f64x1 Vec_sd;
+
+template <> inline double sg_vectorcall(Vec_f64x1::get<0>)() const { return data_; }
+template <> inline Vec_f64x1 sg_vectorcall(Vec_f64x1::set<0>)(const double d) const {
+    return d;
+}
 
 //
 //
