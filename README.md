@@ -230,6 +230,8 @@ This is best explained via example:
 - `Vec_ps{7.0f, 6.0f, 5.0f, 4.0f}.shuffle<0, 1, 2, 3>()` returns `Vec_ps{4.0f, 5.0f, 6.0f, 7.0f}`. We have reversed the elements.
 - `Vec_pd{7.0, 6.0}.shuffle<1, 1>()` returns `Vec_pd{7.0, 7.0}`, as we choose the highest (1) index as the source for both elements of our new vector.
 
+On SSE2, shuffles take 1 CPU instruction. On NEON, they take between 1 and 3 CPU instructions, depending on the shuffle.
+
 ### Bitcasting between `Vec_` types
 
 Any `Vec_` type can be bitcasted to any other `Vec_` type of the same total size. (The elements do not need to be the same size, but the total size of the two vectors must be the same). To do this, you use the `.bitcast<typename To>()` method. Eg `Vec_ps{4.0f}.bitcast<Vec_pi64>()` will re-interpret 4 packed 32-bit floating point values as 2 packed 64-bit signed integers. This particular bitcast is allowed because they are both the same size of 128 bits.
