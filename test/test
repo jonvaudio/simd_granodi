@@ -1,4 +1,4 @@
-./test_generic_debug
-./test_generic_opt
-./test_sse_neon_debug
-./test_sse_neon_opt
+./bin/test_generic_debug
+./bin/test_generic_opt
+./bin/test_sse_neon_debug
+./bin/test_sse_neon_opt
