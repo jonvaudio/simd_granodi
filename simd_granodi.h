@@ -186,6 +186,13 @@ TODO:
 #undef SIMD_GRANODI_NEON
 #endif
 
+/*#ifdef SIMD_GRANODI_FAST_DEBUG
+#ifdef _MSC_VER
+// "g" is the only option that actually does anything, despite being depreciated
+#pragma optimize("g", on)
+#endif
+#endif*/
+
 #ifdef __cplusplus
 #include <algorithm> // for std::min(), std::max()
 #include <cstdlib> // for std::abs() of int32/64
@@ -11022,6 +11029,13 @@ struct SGEquivFloatType {
     typedef typename SGFloatType<VecType::elem_size, VecType::elem_count>::value
         value;
 };
+
+/*#ifdef SIMD_GRANODI_FAST_DEBUG
+#ifdef _MSC_VER
+// Reset to default optimizations, whatever they are
+#pragma optimize("", on)
+#endif
+#endif*/
 
 } // namespace simd_granodi
 
