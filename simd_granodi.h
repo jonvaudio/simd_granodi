@@ -7720,6 +7720,7 @@ public:
     #endif
 
     typedef int32_t elem_t;
+    typedef Vec_s32x1 scalar_t;
     typedef Compare_pi32 compare_t;
     typedef Vec_pi32 fast_register_t;
 
@@ -8011,6 +8012,7 @@ public:
     #endif
 
     typedef int64_t elem_t;
+    typedef Vec_s64x1 scalar_t;
     typedef Compare_pi64 compare_t;
     typedef Vec_pi64 fast_register_t;
 
@@ -8287,6 +8289,7 @@ public:
     static Vec_ps sg_vectorcall(infinity)() { return sg_infinity_ps; }
 
     typedef float elem_t;
+    typedef Vec_f32x1 scalar_t;
     typedef Compare_ps compare_t;
     typedef Vec_pi32 fast_convert_int_t;
     typedef Vec_ps fast_register_t;
@@ -8588,6 +8591,7 @@ public:
     static Vec_pd sg_vectorcall(infinity)() { return sg_infinity_pd; }
 
     typedef double elem_t;
+    typedef Vec_f64x1 scalar_t;
     typedef Compare_pd compare_t;
     #ifdef SIMD_GRANODI_SSE2
     typedef Vec_pi32 fast_convert_int_t;
@@ -8859,6 +8863,7 @@ public:
     #endif
 
     typedef int32_t elem_t;
+    typedef Vec_s32x1 scalar_t;
     typedef Compare_s32x2 compare_t;
     #ifdef SIMD_GRANODI_SSE2
     typedef Vec_pi32 fast_register_t;
@@ -9133,6 +9138,7 @@ public:
     static Vec_f32x2 sg_vectorcall(infinity)() { return sg_infinity_f32x2; }
 
     typedef float elem_t;
+    typedef Vec_f32x1 scalar_t;
     typedef Compare_f32x2 compare_t;
     typedef Vec_s32x2 fast_convert_int_t;
     #ifdef SIMD_GRANODI_SSE2
@@ -9528,6 +9534,7 @@ public:
     Vec_s32x1(const int32_t s32) : data_{s32} {}
 
     typedef int32_t elem_t;
+    typedef Vec_s32x1 scalar_t;
     typedef Compare_s32x1 compare_t;
     typedef Vec_s32x1 fast_register_t;
 
@@ -9747,6 +9754,7 @@ public:
     Vec_s64x1(const int64_t s64) : data_{s64} {}
 
     typedef int64_t elem_t;
+    typedef Vec_s64x1 scalar_t;
     typedef Compare_s64x1 compare_t;
     typedef Vec_s64x1 fast_register_t;
 
@@ -9969,6 +9977,7 @@ public:
     static Vec_f32x1 sg_vectorcall(infinity)() { return sg_infinity_f32x1; }
 
     typedef float elem_t;
+    typedef Vec_f32x1 scalar_t;
     typedef Compare_f32x1 compare_t;
     typedef Vec_s32x1 fast_convert_int_t;
     typedef Vec_f32x1 fast_register_t;
@@ -10189,6 +10198,7 @@ public:
     }
 
     typedef double elem_t;
+    typedef Vec_f64x1 scalar_t;
     typedef Compare_f64x1 compare_t;
     typedef Vec_s64x1 fast_convert_int_t;
     typedef Vec_f64x1 fast_register_t;
