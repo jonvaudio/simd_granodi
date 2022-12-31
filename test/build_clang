@@ -1,4 +1,5 @@
 cp test_simd_granodi.cpp test_simd_granodi.c
+mkdir -p bin
 clang -o bin/test_generic_debug test_simd_granodi.c -Wall -Wextra -std=c99 -D SIMD_GRANODI_FORCE_GENERIC -lm
 clang -o bin/test_generic_opt test_simd_granodi.c -Wall -Wextra -std=c99 -D NDEBUG -D SIMD_GRANODI_FORCE_GENERIC -O3 -lm
 clang -o bin/test_sse_neon_debug test_simd_granodi.c -Wall -Wextra -std=c99 -lm
