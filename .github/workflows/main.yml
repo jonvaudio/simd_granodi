@@ -1,0 +1,71 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        compiler: [gcc, clang, msvc]
+        include:
+          - os: ubuntu-latest
+            arch: x64
+          - os: windows-latest
+            arch: x64
+        exclude:
+          - os: ubuntu-latest
+            compiler: msvc
+          - os: windows-latest
+            compiler: gcc
+          - os: windows-latest
+            compiler: clang
+          
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+      
+    # - name: Setup MSVC (Windows)
+    #   if: matrix.compiler == 'msvc'
+    #   uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Setup GCC (Ubuntu)
+      if: matrix.os == 'ubuntu-latest' && matrix.compiler == 'gcc'
+      run: |
+        sudo apt update
+        sudo apt install g++ -y
+
+    # - name: Setup Clang (Ubuntu)
+    #   if: matrix.os == 'ubuntu-latest' && matrix.compiler == 'clang'
+    #   run: |
+    #     sudo apt update
+    #     sudo apt install clang -y
+
+    - name: Build
+      run: |
+        ${{ matrix.compiler }} -o test test.c
+
+    - name: Run
+      run: ./test
+      
+  # build-arm:
+  #   runs-on: ubuntu-latest
+  #   container: 
+  #     image: docker://arm64v8/ubuntu:latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+
+  #   - name: Install Dependencies
+  #     run: |
+  #       sudo apt-get update
+  #       sudo apt-get install -y g++ clang
+
+  #   - name: Build GCC
+  #     run: |
+  #       g++ -o test test.c
+  #       ./test
+
+  #   - name: Build Clang
+  #     run: |
+  #       clang++ -o test test.c
+  #       ./test
