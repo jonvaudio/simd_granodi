@@ -43,10 +43,11 @@ jobs:
 
     - name: Build
       run: |
-        ${{ matrix.compiler }} -o test test.c
+        mkdir -p bin
+        ${{ matrix.compiler }} -o bin/test_generic_debug test/test_simd_granodi.cpp -Wall -Wextra -std=c++11 -D SIMD_GRANODI_FORCE_GENERIC -lm
 
     - name: Run
-      run: ./test
+      run: bin/test_generic_debug
       
   # build-arm:
   #   runs-on: ubuntu-latest
